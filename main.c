@@ -3,7 +3,7 @@
 #include <time.h>
 #include <windows.h>
 
-#define MAPSIZE 85
+#define MAPSIZE 130
 
 #define MULTIPLIER 1
 
@@ -281,8 +281,11 @@ int setBaseChance(Tile m[MAPSIZE][MAPSIZE], int x, int y)
 	else if(m[x][y].h == 1)
 		chance = 10;
 
-	else
+	else if(m[x][y].h == 0)
 		chance = 0;
+
+	else
+		chance = 50;
 
 	return chance;
 }
@@ -309,8 +312,11 @@ int lowerChance(Tile m[MAPSIZE][MAPSIZE], int oldX, int oldY)
 	else if(m[oldX][oldY].h == 1)
 		chance = (int) m[oldX][oldY].chance * 0.1 * MULTIPLIER;
 
+	else if(m[oldX][oldY].h == 0)
+		chance = (int) m[oldX][oldY].chance * 0.0 * MULTIPLIER;
+
 	else
-		chance = (int) m[oldX][oldY].chance * 0 * MULTIPLIER;
+		chance = (int) m[oldX][oldY].chance * 0.5 * MULTIPLIER;
 
 	return chance;
 }
@@ -474,45 +480,47 @@ void printSeed(int n)
 ///*
 void printColor(int n)
 {
-	switch(n)
+	int placeholder = n % 10;
+
+	switch(placeholder)
 	{
 		case 0 :
 			SetConsoleTextAttribute(hConsole, 17);
-			printf("%d", n);
+			printf("%d", placeholder);
 			break;
 
 		case 1 :
 			SetConsoleTextAttribute(hConsole, 51);
-			printf("%d", n);
+			printf("%d", placeholder);
 			break;
 
 		case 2 :
 			SetConsoleTextAttribute(hConsole, 102);
-			printf("%d", n);
+			printf("%d", placeholder);
 			break;
 		
 		case 3 :
 			SetConsoleTextAttribute(hConsole, 34);
-			printf("%d", n);
+			printf("%d", placeholder);
 			break;
 		
 		case 4 :
 			SetConsoleTextAttribute(hConsole, 136);
-			printf("%d", n);
+			printf("%d", placeholder);
 			break;
 		
 		case 5 :
 			SetConsoleTextAttribute(hConsole, 119);
-			printf("%d", n);
+			printf("%d", placeholder);
 			break;
 		
 		case 6 :
 			SetConsoleTextAttribute(hConsole, 255);
-			printf("%d", n);
+			printf("%d", placeholder);
 			break;
 		default:
 			SetConsoleTextAttribute(hConsole, 7);		
-			printf("%d", n);
+			printf("%d", placeholder);
 			break;
 	}
 
