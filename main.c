@@ -3,17 +3,12 @@
 #include <time.h>
 #include <windows.h>
 
-#define MAPSIZE 25
+#define MAPSIZE 85
 
 #define MULTIPLIER 1
 
 #define MAX_H 7
 
-#define BRANCO 0
-#define CINZA 1
-#define PRETO 2
-
-#define INFINITO 1100
 #define NULO -1
 
 // struct de posição
@@ -28,12 +23,14 @@ typedef struct tile
 {
 	int h;
 	int chance;
-	int cor;
-	int dist;
 	Pos pred;
 	int isSeed;
+	int skip;
 	int printPred;
-	int notLower;
+	int visitado;
+
+	int atualAgora;
+	int tempAgora;
 } Tile;
 
 // nó da fila de posições do mapa a serem alteradas
@@ -52,7 +49,8 @@ typedef struct fila
 
 typedef No* Lista;
 
-HANDLE hConsole; // console do Windows (pra mudar cores dos tiles quando for imprimir)
+// funções de inserção de seeds
+Pos insertSeed(Tile m[MAPSIZE][MAPSIZE]);
 
 //set chance de próximos tiles manterem altura
 int setBaseChance(Tile m[MAPSIZE][MAPSIZE], int x, int y); // retorna chance base do tile de acordo com altura
@@ -60,6 +58,7 @@ int lowerChance(Tile m[MAPSIZE][MAPSIZE], int oldX, int oldY); // retorna nova c
 
 //imprimir tile na cor certa (no Windows)
 void printMap(Tile m[MAPSIZE][MAPSIZE]);
+void printMapWithPreds(Tile m[MAPSIZE][MAPSIZE]);
 void printColor(int n);
 void printSeed(int n);
 void printPred(int n);
@@ -71,28 +70,32 @@ Pos remove_fila(Fila *fila);
 int fila_vazia(Fila *fila);
 void esvazia_fila(Fila *fila);
 
+HANDLE hConsole; // console do Windows (pra mudar cores dos tiles quando for imprimir)
+
+int hAtual;
+int numMedTerrain;
+
 int main()
 {
 	hConsole = GetStdHandle(STD_OUTPUT_HANDLE); // seleciona o console sendo usado
 
 	Tile m[MAPSIZE][MAPSIZE]; 	// mapa
 	Pos atual, temp;			// posição atual retirada da lista e temp pra manipulações
-	Fila filaAtual, filaLower;
+	Fila filaAtual, filaLower;	// filas de posições
 
-	int max; // altura máxima dos adjacentes
-
-	//iterações de inserção de seeds
-	int iterations = 0, numIts, hAtual;
-	int numMedTerrain;
+	int iterations, numIts;//iterações de inserção de seeds
 
 	//contadores
 	int i, j, k, l;
 
-	int aux1, aux2;
+	int seed;
+
+	scanf("%d", &seed);
 
 	inicializa_fila(&filaAtual);
 	inicializa_fila(&filaLower);
-	srand(time(NULL));
+
+	srand(seed);
 
 	// zera todos os tiles
 	for(i = 0; i < MAPSIZE; i++)
@@ -100,61 +103,33 @@ int main()
 		{
 				m[i][j].h = 0;
 				m[i][j].chance = 0;
-				m[i][j].cor = BRANCO;
-				m[i][j].dist = INFINITO;
 				m[i][j].pred.x = NULO;
 				m[i][j].pred.y = NULO;
 				m[i][j].isSeed = 0;
+				m[i][j].skip = 0;
 				m[i][j].printPred = 0;
-				m[i][j].notLower = 0;
+				m[i][j].visitado = 0;
 
+				m[i][j].atualAgora = 0;
+				m[i][j].tempAgora = 0;
 		}
 
 	scanf("%d", &numMedTerrain);
 	scanf("%d", &numIts);
 
-	while(iterations < numIts)
+	for(iterations = 0; iterations < numIts; iterations++)
 	{
-		// reseta marcadores de visitados a cada iteração
+		insere_fila(&filaAtual, insertSeed(m));
+
+		for(i = 0; i < MAPSIZE; i++)
+				for(j = 0; j < MAPSIZE; j++)
+					m[i][j].visitado = 0;
+
+		// zera skips
 		for(i = 0; i < MAPSIZE; i++)
 			for(j = 0; j < MAPSIZE; j++)
-					m[i][j].cor = BRANCO;
-
-		// aleatoriamente seleciona um tile seed
-		temp.x = rand() % MAPSIZE;
-		temp.y = rand() % MAPSIZE;
-
-		if(numMedTerrain > 0)
-		{
-			do{
-				temp.x = rand() % MAPSIZE;
-				temp.y = rand() % MAPSIZE;
-				aux1 = 3;
-			} while(aux1 < m[temp.x][temp.y].h);
-
-			numMedTerrain--;
-		}
-
-		else
-		{
-			do{
-				//temp.x = rand() % MAPSIZE;
-				//temp.y = rand() % MAPSIZE;
-				aux1 = rand() % MAX_H;
-			} while(aux1 < m[temp.x][temp.y].h);
-		}
-
-		m[temp.x][temp.y].h = aux1;
-		m[temp.x][temp.y].chance = setBaseChance(m, temp.x, temp.y);
-		m[temp.x][temp.y].cor = CINZA;
-		m[temp.x][temp.y].dist = 0;
-		m[temp.x][temp.y].pred.x = NULO;
-		m[temp.x][temp.y].pred.y = NULO;
-		m[temp.x][temp.y].isSeed = 1;
-
-		insere_fila(&filaAtual, temp);
-
-		hAtual = aux1;
+				if(m[i][j].h < hAtual)
+					m[i][j].skip = 0;
 
 		while(hAtual > 0)
 		{
@@ -163,108 +138,138 @@ int main()
 			{
 				atual = remove_fila(&filaAtual); // posição da fila a ser trabalhada
 
-				// checa posições adjacentes a posição original da fila e as modifica
+//m[atual.x][atual.y].atualAgora = 1;
+
+				// checa posições adjacentes a posição atual da fila e as modifica
 				for(i = -1; i <= 1; i++)
 					for(j = -1; j <= 1; j++)
 					{
 						// temp é a posição adjacente nesta iteração
-						temp.x = atual.x - j;
-						temp.y = atual.y - i;
+						temp.x = atual.x + j;
+						temp.y = atual.y + i;
 
-						
-						if(!(i == 0 && j == 0)															// posição é adjacente
-						 //&& ((j == 0 && (i == -1 || i == 1)) || (i == 0 && (j == -1 || j == 1)))		// e só varia em x OU em y (não é diagonal)
-						 && (temp.x >= 0 && temp.y >= 0 && temp.x < MAPSIZE && temp.y < MAPSIZE)		// e está dentro do mapa
-						 && m[temp.x][temp.y].cor == BRANCO											// e ainda não foi visitada
-						 && m[atual.x][atual.y].h > m[temp.x][temp.y].h)								// e adjacente é menor que tile da fila
+						// adjacente está dentro do mapa e é menor que altura atual
+						if(temp.x >= 0 && temp.y >= 0 && temp.x < MAPSIZE && temp.y < MAPSIZE
+							&& hAtual > m[temp.x][temp.y].h
+							&& m[temp.x][temp.y].visitado == 0)
 						{
-							m[temp.x][temp.y].cor = CINZA;							// marca como visitado
-							m[temp.x][temp.y].dist = m[atual.x][atual.y].dist + 1;	// marca distância em relação a tile seed
+//m[temp.x][temp.y].tempAgora = 1;
 							m[temp.x][temp.y].pred = atual;							// marca predecessor como posição que foi tirada da fila
+							m[temp.x][temp.y].visitado = 1;
 
-							// diminui ou não altura da adjacente em relação ao tile original
+							// diminui ou não altura da adjacente baseado na chance de manter do atual
 							if(rand() % 100 <= m[atual.x][atual.y].chance)	// mantem altura e diminui chance dos próximos manterem
 							{ 
 								m[temp.x][temp.y].h = hAtual;
 								m[temp.x][temp.y].chance = lowerChance(m, atual.x, atual.y);
 
-								m[temp.x][temp.y].notLower = 1;
-//printMap(m);
+								m[temp.x][temp.y].skip = 1;
+
 								insere_fila(&filaAtual, temp);	// coloca tile de mesma altura na fila de altura atual
+//printf("INSERIU NA FILA ATUAL - pos %d %d - altura %d =============================\n", temp.x, temp.y, hAtual); printMap(m);
 							}
 
-							else  // ou diminui altura em relação ao maior em volta do temp (não necessariamente o tile original da fila)
+							else  // insere na fila da próxima altura (diminui altura)
 							{
-								// e reseta chance de manter os próximos
-								//m[temp.x][temp.y].chance = setBaseChance(m, temp.x, temp.y);
-								
-								insere_fila(&filaLower, temp);	// coloca tile alterado na fila
-							} // rand atual/lower
-						} // hAtual > membro atual.h
+								insere_fila(&filaLower, temp);
+//printf("INSERIU NA PROX FILA - pos %d %d - altura %d VVVVVVVVVVVVVVVVVVVVVVVVVVVVVV\n", temp.x, temp.y, hAtual); printMap(m);
+							}
+//m[temp.x][temp.y].tempAgora = 0;
+						}
 					} // para todos os adjacentes do membro atual da fila
 
-				//m[atual.x][atual.y].cor = PRETO;
+//m[atual.x][atual.y].atualAgora = 0;
+
 			} // enquanto filaAtual não estiver vazia
 
 			hAtual--;
 
+			// esvazia próxima fila colocando membros não repetidos na fila atual
 			while(!fila_vazia(&filaLower))
 			{
 				atual = remove_fila(&filaLower);
 
-				if(m[atual.x][atual.y].notLower == 0)
+				if(m[atual.x][atual.y].skip == 0)
 				{
-					m[atual.x][atual.y].notLower = 1;
+					m[atual.x][atual.y].skip = 1;
 					m[atual.x][atual.y].h = hAtual;
 					m[atual.x][atual.y].chance = setBaseChance(m, atual.x, atual.y);
 					insere_fila(&filaAtual, atual);
-//printMap(m);
 				}
 			}
+//printf("PASSOU UMA ALTURA altura %d ---------------------------------------------------\n", hAtual); printMap(m);
 
-			for(i = 0; i < MAPSIZE; i++)
-				for(j = 0; j < MAPSIZE; j++)
-					if(m[i][j].h < hAtual)
-						m[i][j].notLower = 0;
-
+			// se chegou no fim das inserções dessa seed, zera fila atual
+			if(hAtual == 0)
+			{
+				while(!fila_vazia(&filaAtual))
+				{
+					remove_fila(&filaAtual);
+				}
+			}
 		} // enquanto filaAtual não estiver vazia
-			
-		//for(i = 0; i < MAPSIZE; i++)
-		//	for(j = 0; j < MAPSIZE; j++)
-		//		m[i][j].notLower = 0;
-
-		//esvazia_fila(&filaLower);
-
-printMap(m);
-		
-		iterations++;
 	} // para todas as iterações
 
-	//printMap(m);
- //*
-	scanf("%d %d", &aux1, &aux2);
+	printMap(m);
 
+//	printMapWithPreds(m);
 
-	while(aux1 > -1 && aux2 > -1)
-	{
-		for(i = 0; i < MAPSIZE; i++)
-			for(j = 0; j < MAPSIZE; j++)
-				m[i][j].printPred = 0;
-
-		while(m[aux1][aux2].pred.x != NULO || m[aux1][aux2].pred.y != NULO)
+	for(i = 0; i < MAPSIZE; i++)
+		for(j = 0; j < MAPSIZE; j++)
 		{
-			m[aux1][aux2].printPred = 1;
-			aux1 = m[aux1][aux2].pred.x;
-			aux2 = m[aux1][aux2].pred.y;
+			for(k = -1; k <= 1; k++)
+				for(l = -1; l <= 1; l++)
+				{
+					temp.x = i + k;
+					temp.y = j + l;
+
+					if((temp.x >= 0 && temp.y >= 0 && temp.x < MAPSIZE && temp.y < MAPSIZE))
+					{
+						if((m[temp.x][temp.y].h - m[i][j].h) > 1 || (m[temp.x][temp.y].h - m[i][j].h) < -1)
+						{
+							printf("ERRO EM %d %d\n", j, i);
+						}
+					}
+				}
+
 		}
 
-		printMap(m);
-
-		scanf("%d %d", &aux1, &aux2);
-	}
-//*/
-
 	return 0;
+}
+
+Pos insertSeed(Tile m[MAPSIZE][MAPSIZE])
+{
+	Pos temp;
+
+	if(numMedTerrain > 0)
+	{
+		do{
+			temp.x = rand() % MAPSIZE;
+			temp.y = rand() % MAPSIZE;
+			hAtual = 3;
+		} while(hAtual < m[temp.x][temp.y].h);
+
+		numMedTerrain--;
+	}
+
+	else
+	{
+		do{
+			temp.x = rand() % MAPSIZE;
+			temp.y = rand() % MAPSIZE;
+			hAtual = rand() % MAX_H;
+		} while(hAtual < m[temp.x][temp.y].h);
+	}
+
+	m[temp.x][temp.y].h = hAtual;
+	m[temp.x][temp.y].chance = setBaseChance(m, temp.x, temp.y);
+	m[temp.x][temp.y].pred.x = NULO;
+	m[temp.x][temp.y].pred.y = NULO;
+	m[temp.x][temp.y].isSeed = 1;
+	m[temp.x][temp.y].skip = 1;
+	m[temp.x][temp.y].printPred = 0;
+
+	return temp;
 }
 
 int setBaseChance(Tile m[MAPSIZE][MAPSIZE], int x, int y)
@@ -272,22 +277,22 @@ int setBaseChance(Tile m[MAPSIZE][MAPSIZE], int x, int y)
 	int chance;
 
 	if(m[x][y].h == 6)
-		chance = 40;
-
-	else if(m[x][y].h == 5)
 		chance = 50;
 
-	else if(m[x][y].h == 4)
+	else if(m[x][y].h == 5)
 		chance = 60;
+
+	else if(m[x][y].h == 4)
+		chance = 70;
 
 	else if(m[x][y].h == 3)
 		chance = 90;	
 
 	else if(m[x][y].h == 2)
-		chance = 0;
+		chance = 10;
 
 	else if(m[x][y].h == 1)
-		chance = 0;
+		chance = 10;
 
 	else
 		chance = 0;
@@ -300,22 +305,22 @@ int lowerChance(Tile m[MAPSIZE][MAPSIZE], int oldX, int oldY)
 	int chance;
 
 	if(m[oldX][oldY].h == 6)
-		chance = (int) m[oldX][oldY].chance * 0.30 * MULTIPLIER;
-
-	else if(m[oldX][oldY].h == 5)
 		chance = (int) m[oldX][oldY].chance * 0.40 * MULTIPLIER;
 
-	else if(m[oldX][oldY].h == 4)
+	else if(m[oldX][oldY].h == 5)
 		chance = (int) m[oldX][oldY].chance * 0.50 * MULTIPLIER;
 
+	else if(m[oldX][oldY].h == 4)
+		chance = (int) m[oldX][oldY].chance * 0.60 * MULTIPLIER;
+
 	else if(m[oldX][oldY].h == 3)
-		chance = (int) m[oldX][oldY].chance * 0.70 * MULTIPLIER;
+		chance = (int) m[oldX][oldY].chance * 0.80 * MULTIPLIER;
 
 	else if(m[oldX][oldY].h == 2)
 		chance = (int) m[oldX][oldY].chance * 0.1 * MULTIPLIER;
 
 	else if(m[oldX][oldY].h == 1)
-		chance = (int) m[oldX][oldY].chance * 0 * MULTIPLIER;
+		chance = (int) m[oldX][oldY].chance * 0.1 * MULTIPLIER;
 
 	else
 		chance = (int) m[oldX][oldY].chance * 0 * MULTIPLIER;
@@ -346,7 +351,21 @@ void printMap(Tile m[MAPSIZE][MAPSIZE])
 		printf("%3d", j);
 		for(i = 0; i < MAPSIZE; i++)
 			{
-				if(m[i][j].printPred == 1)
+				if(m[i][j].atualAgora == 1)
+				{
+					SetConsoleTextAttribute(hConsole, 64);
+					printf("%d", m[i][j].h);
+					SetConsoleTextAttribute(hConsole, 7);
+				}
+
+				else if(m[i][j].tempAgora == 1)
+				{
+					SetConsoleTextAttribute(hConsole, 87);
+					printf("%d", m[i][j].h);
+					SetConsoleTextAttribute(hConsole, 7);
+				}
+
+				else if(m[i][j].printPred == 1)
 					printPred(m[i][j].h);
 
 				else if(m[i][j].isSeed == 1)
@@ -357,6 +376,31 @@ void printMap(Tile m[MAPSIZE][MAPSIZE])
 			}
 
 		printf("\n");
+	}
+}
+
+void printMapWithPreds(Tile m[MAPSIZE][MAPSIZE])
+{
+	int aux1, aux2, i, j;
+
+	scanf("%d %d", &aux1, &aux2);
+
+	while(aux1 > -1 && aux2 > -1)
+	{
+		for(i = 0; i < MAPSIZE; i++)
+			for(j = 0; j < MAPSIZE; j++)
+				m[i][j].printPred = 0;
+
+		while(m[aux1][aux2].pred.x != NULO || m[aux1][aux2].pred.y != NULO)
+		{
+			m[aux1][aux2].printPred = 1;
+			aux1 = m[aux1][aux2].pred.x;
+			aux2 = m[aux1][aux2].pred.y;
+		}
+
+		printMap(m);
+
+		scanf("%d %d", &aux1, &aux2);
 	}
 }
 
@@ -417,12 +461,12 @@ void printSeed(int n)
 			break;
 
 		case 1 :
-			SetConsoleTextAttribute(hConsole, 176);
+			SetConsoleTextAttribute(hConsole, 48);
 			printf("%d", n);
 			break;
 
 		case 2 :
-			SetConsoleTextAttribute(hConsole, 240);
+			SetConsoleTextAttribute(hConsole, 96);
 			printf("%d", n);
 			break;
 		
@@ -442,7 +486,7 @@ void printSeed(int n)
 			break;
 		
 		case 6 :
-			SetConsoleTextAttribute(hConsole, 116);
+			SetConsoleTextAttribute(hConsole, 240);
 			printf("%d", n);
 			break;
 		default:
@@ -465,12 +509,12 @@ void printColor(int n)
 			break;
 
 		case 1 :
-			SetConsoleTextAttribute(hConsole, 187);
+			SetConsoleTextAttribute(hConsole, 51);
 			printf("%d", n);
 			break;
 
 		case 2 :
-			SetConsoleTextAttribute(hConsole, 255);//15
+			SetConsoleTextAttribute(hConsole, 102);
 			printf("%d", n);
 			break;
 		
@@ -490,7 +534,7 @@ void printColor(int n)
 			break;
 		
 		case 6 :
-			SetConsoleTextAttribute(hConsole, 127);
+			SetConsoleTextAttribute(hConsole, 255);
 			printf("%d", n);
 			break;
 		default:
@@ -585,6 +629,9 @@ Pos remove_fila(Fila *fila)
 	temp_no = fila->head;
 
 	fila->head = fila->head->prox;
+
+	if(fila_vazia(fila))
+		fila->tail = NULL;
 
 	free(temp_no);
 
