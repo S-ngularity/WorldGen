@@ -28,9 +28,6 @@ typedef struct tile
 	int skip;
 	int printPred;
 	int visitado;
-
-	int atualAgora;
-	int tempAgora;
 } Tile;
 
 // nó da fila de posições do mapa a serem alteradas
@@ -73,7 +70,7 @@ void esvazia_fila(Fila *fila);
 HANDLE hConsole; // console do Windows (pra mudar cores dos tiles quando for imprimir)
 
 int hAtual;
-int numMedTerrain;
+int numMedTerrain = 0;
 
 int main()
 {
@@ -88,14 +85,17 @@ int main()
 	//contadores
 	int i, j, k, l;
 
+	//*// seed manual
 	int seed;
-
+	
+	printf("Seed: ");
 	scanf("%d", &seed);
+	srand(seed);
+	//*/
+	//srand(time(NULL));
 
 	inicializa_fila(&filaAtual);
 	inicializa_fila(&filaLower);
-
-	srand(seed);
 
 	// zera todos os tiles
 	for(i = 0; i < MAPSIZE; i++)
@@ -109,12 +109,10 @@ int main()
 				m[i][j].skip = 0;
 				m[i][j].printPred = 0;
 				m[i][j].visitado = 0;
-
-				m[i][j].atualAgora = 0;
-				m[i][j].tempAgora = 0;
 		}
 
-	scanf("%d", &numMedTerrain);
+	//scanf("%d", &numMedTerrain);
+	printf("Iterations: ");
 	scanf("%d", &numIts);
 
 	for(iterations = 0; iterations < numIts; iterations++)
@@ -138,8 +136,6 @@ int main()
 			{
 				atual = remove_fila(&filaAtual); // posição da fila a ser trabalhada
 
-//m[atual.x][atual.y].atualAgora = 1;
-
 				// checa posições adjacentes a posição atual da fila e as modifica
 				for(i = -1; i <= 1; i++)
 					for(j = -1; j <= 1; j++)
@@ -153,8 +149,7 @@ int main()
 							&& hAtual > m[temp.x][temp.y].h
 							&& m[temp.x][temp.y].visitado == 0)
 						{
-//m[temp.x][temp.y].tempAgora = 1;
-							m[temp.x][temp.y].pred = atual;							// marca predecessor como posição que foi tirada da fila
+							m[temp.x][temp.y].pred = atual; // marca predecessor como posição que foi tirada da fila
 							m[temp.x][temp.y].visitado = 1;
 
 							// diminui ou não altura da adjacente baseado na chance de manter do atual
@@ -166,25 +161,17 @@ int main()
 								m[temp.x][temp.y].skip = 1;
 
 								insere_fila(&filaAtual, temp);	// coloca tile de mesma altura na fila de altura atual
-//printf("INSERIU NA FILA ATUAL - pos %d %d - altura %d =============================\n", temp.x, temp.y, hAtual); printMap(m);
 							}
 
 							else  // insere na fila da próxima altura (diminui altura)
-							{
 								insere_fila(&filaLower, temp);
-//printf("INSERIU NA PROX FILA - pos %d %d - altura %d VVVVVVVVVVVVVVVVVVVVVVVVVVVVVV\n", temp.x, temp.y, hAtual); printMap(m);
-							}
-//m[temp.x][temp.y].tempAgora = 0;
 						}
 					} // para todos os adjacentes do membro atual da fila
-
-//m[atual.x][atual.y].atualAgora = 0;
-
 			} // enquanto filaAtual não estiver vazia
 
 			hAtual--;
 
-			// esvazia próxima fila colocando membros não repetidos na fila atual
+			// esvazia próxima fila colocando membros não repetidos na fila atual e setando altura/chance de manter
 			while(!fila_vazia(&filaLower))
 			{
 				atual = remove_fila(&filaLower);
@@ -197,7 +184,6 @@ int main()
 					insere_fila(&filaAtual, atual);
 				}
 			}
-//printf("PASSOU UMA ALTURA altura %d ---------------------------------------------------\n", hAtual); printMap(m);
 
 			// se chegou no fim das inserções dessa seed, zera fila atual
 			if(hAtual == 0)
@@ -214,6 +200,7 @@ int main()
 
 //	printMapWithPreds(m);
 
+	// imprime erros de quando a diferença entre tiles adjacentes é maior que 1
 	for(i = 0; i < MAPSIZE; i++)
 		for(j = 0; j < MAPSIZE; j++)
 		{
@@ -351,25 +338,11 @@ void printMap(Tile m[MAPSIZE][MAPSIZE])
 		printf("%3d", j);
 		for(i = 0; i < MAPSIZE; i++)
 			{
-				if(m[i][j].atualAgora == 1)
-				{
-					SetConsoleTextAttribute(hConsole, 64);
-					printf("%d", m[i][j].h);
-					SetConsoleTextAttribute(hConsole, 7);
-				}
-
-				else if(m[i][j].tempAgora == 1)
-				{
-					SetConsoleTextAttribute(hConsole, 87);
-					printf("%d", m[i][j].h);
-					SetConsoleTextAttribute(hConsole, 7);
-				}
-
-				else if(m[i][j].printPred == 1)
+				if(m[i][j].printPred == 1)
 					printPred(m[i][j].h);
 
-				else if(m[i][j].isSeed == 1)
-					printSeed(m[i][j].h);
+				//else if(m[i][j].isSeed == 1)
+				//	printSeed(m[i][j].h);
 
 				else
 					printColor(m[i][j].h);
