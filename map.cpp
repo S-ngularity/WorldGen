@@ -1,8 +1,11 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "map.h"
+#include "filaPos.h"
 
 #define NULO -1
+
+// ----- ----- ----- ----- ----- ----- ----- ----- //
 
 Pos::Pos()
 {
@@ -16,161 +19,405 @@ Pos::Pos(int initX, int initY)
 	y = initY;
 }
 
+int Pos::getX()
+{
+	return x;
+}
+
+int Pos::getY()
+{
+	return y;
+}
+
 void Pos::setPos(int newX, int newY)
 {
 	x = newX;
 	y = newY;
 }
 
+// ----- ----- ----- ----- ----- ----- ----- ----- //
+/*void Tile::setPos(int x, int y)
+{
+	pos.setPos(x, y);
+}*/
+
+
 Tile::Tile()
 {
-	pos.x = 0;
-	pos.y = 0;
-
-	h = 0;
+	h = MAX_H / 2 + 1;
 	chance = 0;
-	pred.x = NULO;
-	pred.y = NULO;
+	pred.setPos(NULO, NULO);
 	isSeed = false;
 	skip = false;
-	printPred = 0;
-	visitado = 0;
 }
 
-Tile::Tile(Pos p)
+/*Pos Tile::getPos()
 {
-	pos.x = p.x;
-	pos.y = p.y;
-
-	h = 0;
-	chance = 0;
-	pred.x = NULO;
-	pred.y = NULO;
-	isSeed = false;
-	skip = false;
-	printPred = 0;
-	visitado = 0;
+	return pos;
 }
 
-Tile::Tile(int x, int y)
+int Tile::getPosX()
 {
-	pos.x = x;
-	pos.y = y;
-
-	h = 0;
-	chance = 0;
-	pred.x = NULO;
-	pred.y = NULO;
-	isSeed = false;
-	skip = false;
-	printPred = 0;
-	visitado = 0;
+	return pos.getX();
 }
 
-Tile Map::getTile(Pos p) throw(bool)
+int Tile::getPosY()
 {
-	if(p.x < 0 && p.y < 0 && p.x >= MAPSIZE && p.y >= MAPSIZE)
-		throw false;
+	return pos.getY();
+}*/
+
+// h
+int Tile::getH()
+{
+	return h;
+}
+
+void Tile::setH(int newH)
+{
+	h = newH;
+}
+
+
+// chance
+int Tile::getChance()
+{
+	return chance;
+}
+
+void Tile::setBaseChance(){
+	/*
+	if(h == 6)
+		chance = 50;
+
+	else if(h == 5)
+		chance = 60;
+
+	else if(h == 4)
+		chance = 70;
+
+	else if(h == 3)
+		chance = 80;	
+
+	else if(h == 2)
+		chance = 10;
+
+	else if(h == 1)
+		chance = 10;
+
+	else if(h == 0)
+		chance = 0;
+
+	else
+		chance = 50;
+	//*/
+
+	chance = rand() % 101;
+}
+
+void Tile::lowerChance(Tile prevTile)
+{
 	
-	return map[p.x][p.y];
+	int oldChance = prevTile.getChance();
+	/*int oldH = prevTile.getH();
+	
+	if(oldH == 6)
+		chance = oldChance * 0.40 * MULTIPLIER;
+
+	else if(oldH == 5)
+		chance = oldChance * 0.50 * MULTIPLIER;
+
+	else if(oldH == 4)
+		chance = oldChance * 0.60 * MULTIPLIER;
+
+	else if(oldH == 3)
+		chance = oldChance * 0.70 * MULTIPLIER;
+
+	else if(oldH == 2)
+		chance = oldChance * 0.1 * MULTIPLIER;
+
+	else if(oldH == 1)
+		chance = oldChance * 0.1 * MULTIPLIER;
+
+	else if(oldH == 0)
+		chance = oldChance * 0.0 * MULTIPLIER;
+
+	else
+		chance = oldChance * 0.5 * MULTIPLIER;
+	//*/
+
+	chance =  oldChance * ((rand() % 101) / 100) * MULTIPLIER;
 }
 
-Tile Map::getTile(int x, int y) throw(bool)
+// pred
+Pos Tile::getPred()
 {
-	if(x < 0 && y < 0 && x >= MAPSIZE && y >= MAPSIZE)
-		throw false;
-	
+	return pred;
+}
+
+void Tile::setPred(Pos newPred)
+{
+	pred = newPred;
+}
+
+void Tile::setPred(int predX, int predY)
+{
+	pred.setPos(predX, predY);
+}
+
+// isSeed
+bool Tile::getIsSeed()
+{
+	return isSeed;
+}
+
+void Tile::setIsSeed(bool newIsSeed)
+{
+	isSeed = newIsSeed;
+}
+
+
+// skip
+bool Tile::getSkip()
+{
+	return skip;
+}
+
+void Tile::setSkip(bool newSkip)
+{
+	skip = newSkip;
+}
+
+
+// ----- ----- ----- ----- ----- ----- ----- ----- //
+
+/*Map::Map()
+{
+	for(int y = 0; y < MAPSIZE; y++)
+		for(int x = 0; x < MAPSIZE; x++)
+		{
+			getTile(x, y).setPos(x, y);
+		}
+}*/
+
+bool Map::isPosInside(Pos p)
+{
+	if(p.getX() >= 0 && p.getY() >= 0 && p.getX() < MAPSIZE && p.getY() < MAPSIZE)
+		return true;
+
+	else
+		return false;
+}
+
+Tile& Map::getTile(Pos p)
+{
+	return map[p.getX()][p.getY()];
+}
+
+Tile& Map::getTile(int x, int y)
+{
 	return map[x][y];
 }
 
-void Map::setTile(Tile t)
-{
-	map[t.pos.x][t.pos.y] = t;
-}
 
-Pos Map::insertSeed()
+Pos Map::insertSeedHigh()
 {
 	Pos seedPos;
-	int h;
+	int seedH;
 
 	do{
-		seedPos.x = rand() % MAPSIZE;
-		seedPos.y = rand() % MAPSIZE;
-		h = rand() % MAX_H;
-	} while(h < map[seedPos.x][seedPos.y].h);
+		seedPos.setPos((rand() % MAPSIZE), (rand() % MAPSIZE ));
+		seedH = rand() % MAX_H;
+	} while(seedH < getTile(seedPos).getH()); // busca uma seed aleatória necessariamente com altura MAIOR do que tile
 
-	map[seedPos.x][seedPos.y].h = h;
-	setBaseChance(seedPos);
-	map[seedPos.x][seedPos.y].pred.x = NULO;
-	map[seedPos.x][seedPos.y].pred.y = NULO;
-	map[seedPos.x][seedPos.y].isSeed = true;
-	map[seedPos.x][seedPos.y].skip = true;
-	map[seedPos.x][seedPos.y].printPred = 0;
+	getTile(seedPos).setH(seedH);
+	getTile(seedPos).setBaseChance();
+	getTile(seedPos).setPred(NULO, NULO);
+	getTile(seedPos).setIsSeed(true);
+	getTile(seedPos).setSkip(true);
 
 	return seedPos;
 }
 
-void Map::setBaseChance(Pos p)
+Pos Map::insertSeedLow()
 {
-	//*
-	if(map[p.x][p.y].h == 6)
-		map[p.x][p.y].chance = 50;
+	Pos seedPos;
+	int seedH;
 
-	else if(map[p.x][p.y].h == 5)
-		map[p.x][p.y].chance = 60;
+	do{
+		seedPos.setPos((rand() % MAPSIZE), (rand() % MAPSIZE ));
+		seedH = rand() % MAX_H;
+	} while(seedH > getTile(seedPos).getH()); // busca uma seed aleatória necessariamente com altura MENOR do que tile
 
-	else if(map[p.x][p.y].h == 4)
-		map[p.x][p.y].chance = 70;
+	getTile(seedPos).setH(seedH);
+	getTile(seedPos).setBaseChance();
+	getTile(seedPos).setPred(NULO, NULO);
+	getTile(seedPos).setIsSeed(true);
+	getTile(seedPos).setSkip(true);
 
-	else if(map[p.x][p.y].h == 3)
-		map[p.x][p.y].chance = 80;	
-
-	else if(map[p.x][p.y].h == 2)
-		map[p.x][p.y].chance = 10;
-
-	else if(map[p.x][p.y].h == 1)
-		map[p.x][p.y].chance = 10;
-
-	else if(map[p.x][p.y].h == 0)
-		map[p.x][p.y].chance = 0;
-
-	else
-		map[p.x][p.y].chance = 50;
-	//*/
-
-	//map[p.x][p.y].chance = rand() % 101;
+	return seedPos;
 }
 
-int Map::lowerChance(Pos oldP)
+void Map::insertHighArtifact()
 {
-	int chance;
-	//*
-	if(map[oldP.x][oldP.y].h == 6)
-		chance = map[oldP.x][oldP.y].chance * 0.40 * MULTIPLIER;
+	Fila filaAtual, filaLower;	// filas de posições
 
-	else if(map[oldP.x][oldP.y].h == 5)
-		chance = map[oldP.x][oldP.y].chance * 0.50 * MULTIPLIER;
+	inicializa_fila(&filaAtual);
+	inicializa_fila(&filaLower);
 
-	else if(map[oldP.x][oldP.y].h == 4)
-		chance = map[oldP.x][oldP.y].chance * 0.60 * MULTIPLIER;
+	Pos auxPos = insertSeedHigh();
 
-	else if(map[oldP.x][oldP.y].h == 3)
-		chance = map[oldP.x][oldP.y].chance * 0.70 * MULTIPLIER;
+	int hAtual = getTile(auxPos).getH(); // altura sendo trabalhada; começa com do seed
 
-	else if(map[oldP.x][oldP.y].h == 2)
-		chance = map[oldP.x][oldP.y].chance * 0.1 * MULTIPLIER;
+	insere_fila(&filaAtual, auxPos);
 
-	else if(map[oldP.x][oldP.y].h == 1)
-		chance = map[oldP.x][oldP.y].chance * 0.1 * MULTIPLIER;
+	// zera skips de altura abaixo da sendo trabalhada
+	for(int i = 0; i < MAPSIZE; i++)
+		for(int j = 0; j < MAPSIZE; j++)
+			if(getTile(j, i).getH() < hAtual)
+				getTile(j, i).setSkip(false);
 
-	else if(map[oldP.x][oldP.y].h == 0)
-		chance = map[oldP.x][oldP.y].chance * 0.0 * MULTIPLIER;
 
-	else
-		chance = map[oldP.x][oldP.y].chance * 0.5 * MULTIPLIER;
-	//*/
+	while(hAtual > 0)
+	{
+		// checa toda a fila
+		while(!fila_vazia(&filaAtual))
+		{
+			Pos queuePos = remove_fila(&filaAtual);
 
-	//chance =  map[oldP.x][oldP.y].chance * ((rand() % 101) / 100) * MULTIPLIER;
+			// checa posições adjacentes a posição atual da fila
+			for(int yOffset = -1; yOffset <= 1; yOffset++)
+				for(int xOffset = -1; xOffset <= 1; xOffset++)
+				{
+					Pos adjPos(queuePos.getX() + xOffset, queuePos.getY() + yOffset);
 
-	return chance;
+					if(isPosInside(adjPos) && hAtual > getTile(adjPos).getH()) /* && m[adjPos.x][adjPos.y].visitado == 0 */ // adjacente está dentro do mapa e é menor que altura atual
+					{
+						getTile(adjPos).setPred(queuePos);
+						//getTile(adjPos).setVisitado(true);
+
+						// diminui ou não altura da adjacente baseado na chance de manter do atual
+						if(rand() % 100 <= getTile(queuePos).getChance()) // mantem altura e diminui chance dos próximos manterem
+						{
+							getTile(adjPos).setH(hAtual);
+							getTile(adjPos).lowerChance(getTile(queuePos));
+							getTile(adjPos).setSkip(true);
+
+							insere_fila(&filaAtual, adjPos); // coloca tile de mesma altura na fila de altura atual
+						}
+
+						else 
+							insere_fila(&filaLower, adjPos); // insere na fila da próxima altura (diminui altura)
+					}
+				}
+		}
+
+		hAtual--;
+
+		// esvazia próxima fila colocando membros não repetidos na fila atual e setando altura/chance de manter
+		while(!fila_vazia(&filaLower))
+		{
+			Pos auxPos = remove_fila(&filaLower);
+
+			if(getTile(auxPos).getSkip() == false)
+			{
+				getTile(auxPos).setSkip(true);
+				getTile(auxPos).setH(hAtual);
+				getTile(auxPos).setBaseChance();
+				
+				insere_fila(&filaAtual, auxPos);
+			}
+		}
+
+		// se chegou no fim das inserções dessa seed, zera fila atual
+		if(hAtual == 0)
+		{
+			while(!fila_vazia(&filaAtual))
+			{
+				remove_fila(&filaAtual);
+			}
+		}
+	} // enquanto filaAtual não estiver vazia
+}
+
+
+void Map::insertLowArtifact()
+{
+	Fila filaAtual, filaLower;	// filas de posições
+
+	inicializa_fila(&filaAtual);
+	inicializa_fila(&filaLower);
+
+	Pos auxPos = insertSeedLow();
+
+	int hAtual = getTile(auxPos).getH(); // altura sendo trabalhada; começa com do seed
+
+	insere_fila(&filaAtual, auxPos);
+
+	// zera skips de altura abaixo da sendo trabalhada
+	for(int i = 0; i < MAPSIZE; i++)
+		for(int j = 0; j < MAPSIZE; j++)
+			if(getTile(j, i).getH() > hAtual)
+				getTile(j, i).setSkip(false);
+
+
+	while(hAtual < MAX_H)
+	{
+		// checa toda a fila
+		while(!fila_vazia(&filaAtual))
+		{
+			Pos queuePos = remove_fila(&filaAtual);
+
+			// checa posições adjacentes a posição atual da fila
+			for(int yOffset = -1; yOffset <= 1; yOffset++)
+				for(int xOffset = -1; xOffset <= 1; xOffset++)
+				{
+					Pos adjPos(queuePos.getX() + xOffset, queuePos.getY() + yOffset);
+
+					if(isPosInside(adjPos) && hAtual < getTile(adjPos).getH()) /* && m[adjPos.x][adjPos.y].visitado == 0 */ // adjacente está dentro do mapa e é menor que altura atual
+					{
+						getTile(adjPos).setPred(queuePos);
+						//getTile(adjPos).setVisitado(true);
+
+						// diminui ou não altura da adjacente baseado na chance de manter do atual
+						if(rand() % 100 <= getTile(queuePos).getChance()) // mantem altura e diminui chance dos próximos manterem
+						{
+							getTile(adjPos).setH(hAtual);
+							getTile(adjPos).lowerChance(getTile(queuePos));
+							getTile(adjPos).setSkip(true);
+
+							insere_fila(&filaAtual, adjPos); // coloca tile de mesma altura na fila de altura atual
+						}
+
+						else 
+							insere_fila(&filaLower, adjPos); // insere na fila da próxima altura (diminui altura)
+					}
+				}
+		}
+
+		hAtual++;
+
+		// esvazia próxima fila colocando membros não repetidos na fila atual e setando altura/chance de manter
+		while(!fila_vazia(&filaLower))
+		{
+			Pos auxPos = remove_fila(&filaLower);
+
+			if(getTile(auxPos).getSkip() == false)
+			{
+				getTile(auxPos).setSkip(true);
+				getTile(auxPos).setH(hAtual);
+				getTile(auxPos).setBaseChance();
+				
+				insere_fila(&filaAtual, auxPos);
+			}
+		}
+
+		// se chegou no fim das inserções dessa seed, zera fila atual
+		if(hAtual == 0)
+		{
+			while(!fila_vazia(&filaAtual))
+			{
+				remove_fila(&filaAtual);
+			}
+		}
+	} // enquanto filaAtual não estiver vazia
 }
