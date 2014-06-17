@@ -11,8 +11,8 @@
 
 using namespace std;
 
-const int SCREEN_WIDTH = MAPSIZE * 4;
-const int SCREEN_HEIGHT = MAPSIZE * 4;
+const int SCREEN_WIDTH = MAPSIZE * 5;
+const int SCREEN_HEIGHT = MAPSIZE * 5;
 
 //The window we'll be rendering to
 SDL_Window *Window = NULL;
@@ -26,8 +26,10 @@ void SDLClose();
 
 int main(int argc, char* args[])
 {
-	Tile m[MAPSIZE][MAPSIZE]; 	// mapa
-	Pos atual, temp;			// posição atual retirada da lista e temp pra manipulações
+	Map map;
+	Tile auxTile;
+	Pos auxPos;
+
 	Fila filaAtual, filaLower;	// filas de posições
 
 	int iterations, numIts;//iterações de inserção de seeds
@@ -37,22 +39,6 @@ int main(int argc, char* args[])
 
 	//contadores
 	int i, j;
-
-	// zera todos os tiles
-	for(i = 0; i < MAPSIZE; i++)
-		for(j = 0; j < MAPSIZE; j++)
-		{
-				m[i][j].h = 0;
-				m[i][j].chance = 0;
-				m[i][j].pred.x = NULO;
-				m[i][j].pred.y = NULO;
-				m[i][j].isSeed = 0;
-				m[i][j].skip = 0;
-				m[i][j].printPred = 0;
-				m[i][j].visitado = 0;
-		}
-
-	
 
 	inicializa_fila(&filaAtual);
 	inicializa_fila(&filaLower);
@@ -74,16 +60,15 @@ int main(int argc, char* args[])
 
 	//numIts = 1000;
 
-	if(!SDLStart())
-	{
-		printf("ERRO AO INICIALIZAR SDL");
 
-		return -1;
-	}
 
 	for(iterations = 0; iterations < numIts; iterations++)
 	{
-		insere_fila(&filaAtual, insertSeed(hAtual, m));
+		auxPos = map.insertSeed();
+
+		hAtual = map.getTile(auxPos).h;
+
+		insere_fila(&filaAtual, auxPos);
 
 		//for(i = 0; i < MAPSIZE; i++)
 		//		for(j = 0; j < MAPSIZE; j++)
@@ -92,45 +77,57 @@ int main(int argc, char* args[])
 		// zera skips
 		for(i = 0; i < MAPSIZE; i++)
 			for(j = 0; j < MAPSIZE; j++)
-				if(m[i][j].h < hAtual)
-					m[i][j].skip = 0;
+			{
+				auxTile = map.getTile(j, i);
+
+				if(auxTile.h < hAtual)
+				{
+					auxTile.skip = false;
+					map.setTile(auxTile);
+				}
+			}
 
 		while(hAtual > 0)
 		{
 			// checa toda a fila
 			while(!fila_vazia(&filaAtual))
 			{
-				atual = remove_fila(&filaAtual); // posição da fila a ser trabalhada
+				Tile queueTile(remove_fila(&filaAtual)); // posição da fila a ser trabalhada
 
 				// checa posições adjacentes a posição atual da fila e as modifica
 				for(i = -1; i <= 1; i++)
 					for(j = -1; j <= 1; j++)
 					{
-						// temp é a posição adjacente nesta iteração
-						temp.x = atual.x + j;
-						temp.y = atual.y + i;
+						// adjPos é a posição adjacente nesta iteração
+						Tile newAdjTile;
 
-						// adjacente está dentro do mapa e é menor que altura atual
-						if(temp.x >= 0 && temp.y >= 0 && temp.x < MAPSIZE && temp.y < MAPSIZE
-							&& hAtual > m[temp.x][temp.y].h)
-							//&& m[temp.x][temp.y].visitado == 0)
+						// pula posição se estiver fora do mapa
+						try
 						{
-							m[temp.x][temp.y].pred = atual; // marca predecessor como posição que foi tirada da fila
-							//m[temp.x][temp.y].visitado = 1;
+							newAdjTile = map.getTile(queueTile.pos.x + j, queueTile.pos.y + i);
+						}
+						catch(bool) { continue; }
+
+						if(hAtual > newAdjTile.h) // adjacente está dentro do mapa e é menor que altura atual
+						   //&& m[adjPos.x][adjPos.y].visitado == 0)
+						{
+							newAdjTile.pred = queueTile.pos; // marca predecessor como posição que foi tirada da fila
+							//newAdjTile.visitado = 1;
 
 							// diminui ou não altura da adjacente baseado na chance de manter do atual
-							if(rand() % 100 <= m[atual.x][atual.y].chance)	// mantem altura e diminui chance dos próximos manterem
+							if(rand() % 100 <= queueTile.chance)	// mantem altura e diminui chance dos próximos manterem
 							{
-								m[temp.x][temp.y].h = hAtual;
-								m[temp.x][temp.y].chance = lowerChance(m, atual.x, atual.y);
+								newAdjTile.h = hAtual;
+								newAdjTile.chance = map.lowerChance(queueTile.pos);
+								newAdjTile.skip = true;
 
-								m[temp.x][temp.y].skip = 1;
-
-								insere_fila(&filaAtual, temp);	// coloca tile de mesma altura na fila de altura atual
+								insere_fila(&filaAtual, newAdjTile.pos);	// coloca tile de mesma altura na fila de altura atual
 							}
 
 							else  // insere na fila da próxima altura (diminui altura)
-								insere_fila(&filaLower, temp);
+								insere_fila(&filaLower, newAdjTile.pos);
+
+							map.setTile(newAdjTile);
 						}
 					} // para todos os adjacentes do membro atual da fila
 			} // enquanto filaAtual não estiver vazia
@@ -140,14 +137,17 @@ int main(int argc, char* args[])
 			// esvazia próxima fila colocando membros não repetidos na fila atual e setando altura/chance de manter
 			while(!fila_vazia(&filaLower))
 			{
-				atual = remove_fila(&filaLower);
+				auxTile = map.getTile(remove_fila(&filaLower));
 
-				if(m[atual.x][atual.y].skip == 0)
+				if(auxTile.skip == false)
 				{
-					m[atual.x][atual.y].skip = 1;
-					m[atual.x][atual.y].h = hAtual;
-					m[atual.x][atual.y].chance = setBaseChance(m, atual.x, atual.y);
-					insere_fila(&filaAtual, atual);
+					auxTile.skip = true;
+					auxTile.h = hAtual;
+					map.setBaseChance(auxTile.pos);
+					
+					insere_fila(&filaAtual, auxTile.pos);
+
+					map.setTile(auxTile);
 				}
 			}
 
@@ -164,22 +164,32 @@ int main(int argc, char* args[])
 
 	//printMap(m);
 
+	/*
 	for(i = 0; i < MAPSIZE; i++)
 		for(j = 0; j < MAPSIZE; j++)
 		{
 			if(m[i][j].h < 10)
 				m[i][j].h = 0;
 		}
+	*/
+
+	if(!SDLStart())
+	{
+		printf("ERRO AO INICIALIZAR SDL");
+
+		return -1;
+	}
 
 	//Clear screen
 	SDL_SetRenderDrawColor(Renderer, 0, 0, 0, 0);
 	SDL_RenderClear(Renderer);
 
 	int contJ = 0, contI = 0;
+
 	//Draw vertical line of yellow dots
 	for(i = 0; i < MAPSIZE; contI++)
 	{
-		if(contI == 4)
+		if(contI == 5)
 		{
 			contI = 0;
 			i++;
@@ -187,14 +197,16 @@ int main(int argc, char* args[])
 
 		for(j = 0; j < MAPSIZE; contJ++)
 		{
-			if(contJ == 4)
+			if(contJ == 5)
 			{
 				contJ = 0;
 				j++;
 			}
 
-			SDL_SetRenderDrawColor(Renderer, m[i][j].h * 10, m[i][j].h * 10, m[i][j].h * 10, 255);
-			SDL_RenderDrawPoint(Renderer, j*4 + contJ, i*4 + contI);
+			int hColor = map.getTile(j, i).h;
+
+			SDL_SetRenderDrawColor(Renderer, hColor * 30, hColor * 30, hColor * 30, 255);
+			SDL_RenderDrawPoint(Renderer, j*5 + contJ, i*5 + contI);
 		}
 	}
 
@@ -227,12 +239,12 @@ int main(int argc, char* args[])
 			for(k = -1; k <= 1; k++)
 				for(l = -1; l <= 1; l++)
 				{
-					temp.x = i + k;
-					temp.y = j + l;
+					tempPos.x = i + k;
+					tempPos.y = j + l;
 
-					if((temp.x >= 0 && temp.y >= 0 && temp.x < MAPSIZE && temp.y < MAPSIZE))
+					if((tempPos.x >= 0 && tempPos.y >= 0 && tempPos.x < MAPSIZE && tempPos.y < MAPSIZE))
 					{
-						if((m[temp.x][temp.y].h - m[i][j].h) > 1 || (m[temp.x][temp.y].h - m[i][j].h) < -1)
+						if((m[tempPos.x][tempPos.y].h - m[i][j].h) > 1 || (m[tempPos.x][tempPos.y].h - m[i][j].h) < -1)
 						{
 							printf("ERRO EM %d %d\n", j, i);
 						}

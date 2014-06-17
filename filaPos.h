@@ -3,6 +3,23 @@
 
 #include "map.h"
 
+/*
+class No
+{
+	private:
+
+	public:
+		
+};
+
+class Fila
+{
+	private:
+
+	public:
+		
+};*/
+
 // nó da fila de posições do mapa a serem alteradas
 typedef struct no
 {

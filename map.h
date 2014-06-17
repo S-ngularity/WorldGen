@@ -1,45 +1,64 @@
 #ifndef MAP
 #define MAP
 
-#define MAPSIZE 250
+#define MAPSIZE 120
 
 #define MULTIPLIER 1
 
-#define MAX_H 25
+#define MAX_H 7
 
-#define NULO -1
-
-// struct de posição
-typedef struct pos
+class Pos
 {
-	int x;
-	int y;
-} Pos;
+	private:
 
-// struct de cada tile do mapa
-typedef struct tile
+	public:
+		int x;
+		int y;
+
+		Pos();
+		Pos(int initX, int initY);
+
+		void setPos(int newX, int newY);
+};
+
+class Tile
 {
-	int h;
-	int chance;
-	Pos pred;
-	int isSeed;
-	int skip;
-	int printPred;
-	int visitado;
-} Tile;
+	private:
 
-// funções de inserção de seeds
-Pos insertSeed(int &h, Tile m[MAPSIZE][MAPSIZE]);
+	public:
+		Pos pos;
+		int h;
+		int chance;
+		Pos pred;
+		bool isSeed;
+		bool skip;
+		int printPred;
+		int visitado;
 
-//set chance de próximos tiles manterem altura
-int setBaseChance(Tile m[MAPSIZE][MAPSIZE], int x, int y); // retorna chance base do tile de acordo com altura dele
-int lowerChance(Tile m[MAPSIZE][MAPSIZE], int oldX, int oldY); // retorna nova chance diminuida baseada na altura e chance de outro tile (anterior)
+		Tile();
+		Tile(int x, int y);
+		Tile(Pos p);
+};
 
-//imprimir tile na cor certa (no Windows)
-void printMap(Tile m[MAPSIZE][MAPSIZE]);
-void printMapWithPreds(Tile m[MAPSIZE][MAPSIZE]);
-void printColor(int n);
-void printSeed(int n);
-void printPred(int n);
+class Map
+{
+	private:
+		Tile map[MAPSIZE][MAPSIZE];
+
+	public:
+		Tile getTile(Pos p) throw(bool);
+		Tile getTile(int x, int y) throw(bool);
+		void setTile(Tile t);
+
+		// funções de inserção de seeds -- retornam posição da seed inserida
+		Pos insertSeed();
+
+		//set chance de próximos tiles manterem altura
+		void setBaseChance(Pos p);
+		// diminui a chance da nova posição baseada na chance da posição anterior, retorna nova chance
+		int lowerChance(Pos oldP);
+
+		bool isInside(Pos p);
+};
 
 #endif
