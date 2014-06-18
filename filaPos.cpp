@@ -1,66 +1,65 @@
 #include <stdlib.h>
 #include "filaPos.h"
 
-
-void inicializa_fila(Fila *fila)
+NoFila::NoFila(Pos p, NoFila* n)
 {
-	fila->head = NULL;
-	fila->tail = NULL;
+	pos = p;
+	next = n;
 }
 
-void insere_fila(Fila *fila, Pos p)
+Fila::Fila()
 {
-	No *novo;
+	head = NULL;
+	tail = NULL;
+}
 
-	novo = (No*) malloc(sizeof(No));
-
-	novo->pos = p;
-	novo->prox = NULL;
-
-	if(fila_vazia(fila))
-		fila->head = novo;
+void Fila::insere_fila(Pos p)
+{
+	if(fila_vazia())
+	{
+		head = new NoFila(p, NULL);
+		tail = head;
+	}
 
 	else
-		fila->tail->prox = novo;
-
-	fila->tail = novo;
-}
-
-Pos remove_fila(Fila *fila)
-{
-	Pos temp_pos;
-	No *temp_no;
-
-	temp_pos = fila->head->pos;
-	temp_no = fila->head;
-
-	fila->head = fila->head->prox;
-
-	if(fila_vazia(fila))
-		fila->tail = NULL;
-
-	free(temp_no);
-
-	return temp_pos;
-}
-
-int fila_vazia(Fila *fila)
-{
-	if(fila->head == NULL)
-		return 1;
-
-	return 0;
-}
-
-void esvazia_fila(Fila *fila)
-{
-	No *temp;
-
-	while(!fila_vazia(fila))
 	{
-		temp = fila->head;
-		fila->head = fila->head->prox;
+		(*tail).next = new NoFila(p, NULL);
+		tail = (*tail).next;
+	}
+}
 
-		free(temp);
+Pos Fila::remove_fila()
+{
+	NoFila* tempNoFila = head;
+	Pos tempPos = (*head).pos;
+
+	head = (*head).next;
+
+	if(fila_vazia())
+		tail = NULL;
+
+	delete tempNoFila;
+
+	return tempPos;
+}
+
+bool Fila::fila_vazia()
+{
+	if(head == NULL)
+		return true;
+
+	return false;
+}
+
+void Fila::esvazia_fila()
+{
+	NoFila *tempNoFila;
+
+	while(!fila_vazia())
+	{
+		tempNoFila = head;
+		head = (*head).next;
+
+		delete tempNoFila;
 	}
 }

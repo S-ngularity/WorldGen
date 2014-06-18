@@ -3,44 +3,31 @@
 
 #include "map.h"
 
-/*
-class No
+class NoFila
 {
 	private:
 
 	public:
-		
+		Pos pos;
+		NoFila *next;
+
+		NoFila(Pos p, NoFila* n);
 };
 
 class Fila
 {
 	private:
+		NoFila *head;
+		NoFila *tail;
 
 	public:
-		
-};*/
+		Fila();
 
-// nó da fila de posições do mapa a serem alteradas
-typedef struct no
-{
-	Pos pos;
-	struct no *prox;
-} No;
-
-// fila de posições do mapa
-typedef struct fila
-{
-	No *head;
-	No *tail;
-} Fila;
-
-typedef No* Lista;
-
-//funções de fila
-void inicializa_fila(Fila *fila);
-void insere_fila(Fila *fila, Pos p);
-Pos remove_fila(Fila *fila);
-int fila_vazia(Fila *fila);
-void esvazia_fila(Fila *fila);
+		void inicializa_fila();
+		void insere_fila(Pos p);
+		Pos remove_fila();
+		bool fila_vazia();
+		void esvazia_fila();
+};
 
 #endif

@@ -32,6 +32,7 @@ class Tile
 		Pos pred;
 		bool isSeed;
 		bool skip;
+		bool visitado;
 
 		//void setPos(int x, int y);
 
@@ -58,6 +59,9 @@ class Tile
 
 		bool getSkip();
 		void setSkip(bool newSkip);
+
+		bool getVisitado();
+		void setVisitado(bool newVisitado);
 };
 
 

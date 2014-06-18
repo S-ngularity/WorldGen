@@ -54,11 +54,11 @@ int main(int argc, char* args[])
 			map.insertLowArtifact();
 	}
 
-	/* para setar todos os tiles com altura abaixo de x para y
+	//* para setar todos os tiles com altura abaixo de x para y
 	for(int i = 0; i < MAPSIZE; i++)
 		for(int j = 0; j < MAPSIZE; j++)
 		{
-			if(map.getTile(j, i).getH() < 2)
+			if(map.getTile(j, i).getH() < 5)
 				map.getTile(j, i).setH(0);
 		}//*/
 
@@ -119,8 +119,7 @@ int main(int argc, char* args[])
 
 	SDLClose();
 
-	//*
-	// imprime erros de quando a diferença entre tiles adjacentes é maior que 1
+	/*// imprime erros de quando a diferença entre tiles adjacentes é maior que 1
 	for(int y = 0; y < MAPSIZE; y++)
 		for(int x = 0; x < MAPSIZE; x++)
 		{
