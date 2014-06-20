@@ -1,7 +1,7 @@
 #ifndef MAP
 #define MAP
 
-#define MAPSIZE 250
+#define MAPSIZE 150
 
 #define MULTIPLIER 1
 
@@ -23,7 +23,7 @@ class Pos
 };
 
 
-class Tile
+class MapTile
 {
 	private:
 		//Pos pos;
@@ -32,12 +32,12 @@ class Tile
 		Pos pred;
 		bool isSeed;
 		bool skip;
-		bool visitado;
+		bool visited;
 
 		//void setPos(int x, int y);
 
 	public:
-		Tile();
+		MapTile();
 
 		//Pos getPos();
 		//int getPosX();
@@ -48,7 +48,7 @@ class Tile
 
 		int getChance();
 		void setBaseChance(); // set chance de próximos tiles manterem altura
-		void lowerChance(Tile prevTile); // diminui a chance da nova posição baseada na chance da posição anterior, retorna nova chance
+		void lowerChance(MapTile prevTile); // diminui a chance da nova posição baseada na chance da posição anterior, retorna nova chance
 
 		Pos getPred();
 		void setPred(Pos newPred);
@@ -60,15 +60,15 @@ class Tile
 		bool getSkip();
 		void setSkip(bool newSkip);
 
-		bool getVisitado();
-		void setVisitado(bool newVisitado);
+		bool getVisited();
+		void setVisited(bool newVisited);
 };
 
 
 class Map
 {
 	private:
-		Tile map[MAPSIZE][MAPSIZE];
+		MapTile map[MAPSIZE][MAPSIZE];
 
 		// funções de inserção de seeds -- retornam posição da seed inserida
 		Pos insertSeedHigh();
@@ -79,8 +79,8 @@ class Map
 
 		bool isPosInside(Pos p);
 
-		Tile& getTile(Pos p);
-		Tile& getTile(int x, int y);
+		MapTile& Tile(Pos p);
+		MapTile& Tile(int x, int y);
 
 		// funções de inserção de artefatos
 		void insertHighArtifact();

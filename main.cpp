@@ -23,9 +23,6 @@ SDL_Renderer *Renderer = NULL;
 bool SDLStart();
 void SDLClose();
 
-void insertHighArtifact();
-void insertLowArtifact();
-
 Map map;
 
 int main(int argc, char* args[])
@@ -54,12 +51,12 @@ int main(int argc, char* args[])
 			map.insertLowArtifact();
 	}
 
-	//* para setar todos os tiles com altura abaixo de x para y
+	/* para setar todos os tiles com altura abaixo de x para y
 	for(int i = 0; i < MAPSIZE; i++)
 		for(int j = 0; j < MAPSIZE; j++)
 		{
-			if(map.getTile(j, i).getH() < 5)
-				map.getTile(j, i).setH(0);
+			if(map.Tile(j, i).getH() < 5)
+				map.Tile(j, i).setH(0);
 		}//*/
 
 	if(!SDLStart())
@@ -92,7 +89,7 @@ int main(int argc, char* args[])
 				j++;
 			}
 
-			int hColor = map.getTile(j, i).getH();
+			int hColor = map.Tile(j, i).getH();
 
 			SDL_SetRenderDrawColor(Renderer, hColor * 25, hColor * 25, hColor * 25, 255);
 			SDL_RenderDrawPoint(Renderer, j*3 + contJ, i*3 + contI);
@@ -119,7 +116,7 @@ int main(int argc, char* args[])
 
 	SDLClose();
 
-	/*// imprime erros de quando a diferença entre tiles adjacentes é maior que 1
+	//*// imprime erros de quando a diferença entre tiles adjacentes é maior que 1
 	for(int y = 0; y < MAPSIZE; y++)
 		for(int x = 0; x < MAPSIZE; x++)
 		{
@@ -131,7 +128,7 @@ int main(int argc, char* args[])
 
 					if(map.isPosInside(adjPos))
 					{
-						if((map.getTile(adjPos).getH() - map.getTile(nowPos).getH() > 1) || (map.getTile(adjPos).getH() - map.getTile(nowPos).getH() < -1))
+						if((map.Tile(adjPos).getH() - map.Tile(nowPos).getH() > 1) || (map.Tile(adjPos).getH() - map.Tile(nowPos).getH() < -1))
 						{
 							printf("ERRO EM %d %d\n", x, y);
 						}
