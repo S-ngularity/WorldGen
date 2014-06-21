@@ -10,8 +10,11 @@
 
 using namespace std;
 
-const int SCREEN_WIDTH = MAPSIZE * 3;
-const int SCREEN_HEIGHT = MAPSIZE * 3;
+#define MULTIPLIER_SCREENSIZE 3
+#define MULTIPLIER_COLOR 255 / MAX_H
+
+const int SCREEN_WIDTH = MAPSIZE * MULTIPLIER_SCREENSIZE;
+const int SCREEN_HEIGHT = MAPSIZE * MULTIPLIER_SCREENSIZE;
 
 //The window we'll be rendering to
 SDL_Window *Window = NULL;
@@ -40,23 +43,69 @@ int main(int argc, char* args[])
 
 	cout << "Iterations: ";
 	cin >> numIts;
+	while(numIts < 1)
+	{
+		cout << "Number of iterations must be higher than 0: " << endl;
+		cin >> numIts;
+	}
 	cout << endl;
+
+	float multHigh = 100, multLow = 100;
 
 	for(int iterations = 0; iterations < numIts; iterations++)
 	{
+		if((float)iterations / numIts > 0.8)
+			{multHigh = multLow = 15;}
+
+		else if((float)iterations / numIts > 0.65)
+			{multHigh = multLow = 25;}
+
+		else if((float)iterations / numIts > 0.4)
+			{multHigh = multLow = 50;}
+
+		else if((float)iterations / numIts > 0)
+			{multHigh = multLow = 100;}
+
 		if(rand() % 2 == 0)
-			map.insertHighArtifact();
+		{
+			map.insertHighArtifact(multHigh);
+			contHigh++;
+		}
 
 		else
-			map.insertLowArtifact();
+		{
+			map.insertLowArtifact(multLow);
+			contLow++;
+		}
 	}
 
-	/* para setar todos os tiles com altura abaixo de x para y
+	//* para setar todos os tiles com altura abaixo de x para y
 	for(int i = 0; i < MAPSIZE; i++)
 		for(int j = 0; j < MAPSIZE; j++)
 		{
-			if(map.Tile(j, i).getH() < 5)
+			if(map.Tile(j, i).getH() < MAX_H / 2)
 				map.Tile(j, i).setH(0);
+		}//*/
+
+	/*// imprime erros de quando a diferença entre tiles adjacentes é maior que 1
+	for(int y = 0; y < MAPSIZE; y++)
+		for(int x = 0; x < MAPSIZE; x++)
+		{
+			for(int yOffset = -1; yOffset <= 1; yOffset++)
+				for(int xOffset = -1; xOffset <= 1; xOffset++)
+				{
+					Pos nowPos(x, y);
+					Pos adjPos(x + xOffset, y + yOffset);
+
+					if(map.isPosInside(adjPos))
+					{
+						if((map.Tile(adjPos).getH() - map.Tile(nowPos).getH() > 1) || (map.Tile(adjPos).getH() - map.Tile(nowPos).getH() < -1))
+						{
+							printf("ERRO EM %d %d\n", x, y);
+						}
+					}
+				}
+
 		}//*/
 
 	if(!SDLStart())
@@ -75,7 +124,7 @@ int main(int argc, char* args[])
 	//Draw vertical line of yellow dots
 	for(int i = 0; i < MAPSIZE; contI++)
 	{
-		if(contI == 3)
+		if(contI == MULTIPLIER_SCREENSIZE)
 		{
 			contI = 0;
 			i++;
@@ -83,16 +132,27 @@ int main(int argc, char* args[])
 
 		for(int j = 0; j < MAPSIZE; contJ++)
 		{
-			if(contJ == 3)
+			if(contJ == MULTIPLIER_SCREENSIZE)
 			{
 				contJ = 0;
 				j++;
 			}
 
+/*
+			if(map.Tile(j, i).getIsSeed() == true && map.Tile(j, i).seedLow == true)
+				SDL_SetRenderDrawColor(Renderer, 0, 255, 0, 255);
+
+			else if(map.Tile(j, i).getIsSeed() == true && map.Tile(j, i).seedLow == false)
+				SDL_SetRenderDrawColor(Renderer, 255, 0, 0, 255);
+
+			else
+			{//*/
 			int hColor = map.Tile(j, i).getH();
 
-			SDL_SetRenderDrawColor(Renderer, hColor * 25, hColor * 25, hColor * 25, 255);
-			SDL_RenderDrawPoint(Renderer, j*3 + contJ, i*3 + contI);
+			SDL_SetRenderDrawColor(Renderer, hColor * MULTIPLIER_COLOR, hColor * MULTIPLIER_COLOR, hColor * MULTIPLIER_COLOR, 255);
+			//}
+
+			SDL_RenderDrawPoint(Renderer, j*MULTIPLIER_SCREENSIZE + contJ, i*MULTIPLIER_SCREENSIZE + contI);
 		}
 	}
 
@@ -116,27 +176,6 @@ int main(int argc, char* args[])
 
 	SDLClose();
 
-	//*// imprime erros de quando a diferença entre tiles adjacentes é maior que 1
-	for(int y = 0; y < MAPSIZE; y++)
-		for(int x = 0; x < MAPSIZE; x++)
-		{
-			for(int yOffset = -1; yOffset <= 1; yOffset++)
-				for(int xOffset = -1; xOffset <= 1; xOffset++)
-				{
-					Pos nowPos(x, y);
-					Pos adjPos(x + xOffset, y + yOffset);
-
-					if(map.isPosInside(adjPos))
-					{
-						if((map.Tile(adjPos).getH() - map.Tile(nowPos).getH() > 1) || (map.Tile(adjPos).getH() - map.Tile(nowPos).getH() < -1))
-						{
-							printf("ERRO EM %d %d\n", x, y);
-						}
-					}
-				}
-
-		}//*/
-
 	return 0;
 }
 
@@ -150,11 +189,6 @@ bool SDLStart()
 
 		return false;
 	}
-
-	//if(!SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "1"))
-	//{
-	//	printf("Warning: Linear texture filtering not enabled!");
-	//}
 
 	//Create window
 	Window = SDL_CreateWindow("WorldGen", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, SCREEN_WIDTH, SCREEN_HEIGHT, SDL_WINDOW_SHOWN);

@@ -1,11 +1,13 @@
 #ifndef MAP
 #define MAP
 
-#define MAPSIZE 150
+#define MAPSIZE 255
 
 #define MULTIPLIER 1
 
-#define MAX_H 11
+#define MAX_H 51
+
+#define INIT_H MAX_H / 2
 
 class Pos
 {
@@ -37,6 +39,8 @@ class MapTile
 		//void setPos(int x, int y);
 
 	public:
+		bool seedLow;
+
 		MapTile();
 
 		//Pos getPos();
@@ -71,8 +75,8 @@ class Map
 		MapTile map[MAPSIZE][MAPSIZE];
 
 		// funções de inserção de seeds -- retornam posição da seed inserida
-		Pos insertSeedHigh();
-		Pos insertSeedLow();
+		Pos insertSeedHigh(float deltaH);
+		Pos insertSeedLow(float deltaH);
 
 	public:
 		//Map();
@@ -83,8 +87,8 @@ class Map
 		MapTile& Tile(int x, int y);
 
 		// funções de inserção de artefatos
-		void insertHighArtifact();
-		void insertLowArtifact();
+		void insertHighArtifact(int deltaH);
+		void insertLowArtifact(int deltaH);
 };
 
 #endif
