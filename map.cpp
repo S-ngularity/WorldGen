@@ -131,7 +131,7 @@ void MapTile::setVisited(bool newVisited)
 
 bool Map::isPosInside(Pos p)
 {
-	if(p.getX() >= 0 && p.getY() >= 0 && p.getX() < MAPSIZE && p.getY() < MAPSIZE)
+	if(p.getX() >= 0 && p.getY() >= 0 && p.getX() < MAPWIDTH && p.getY() < MAPHEIGHT)
 		return true;
 
 	else
@@ -160,7 +160,7 @@ Pos Map::insertSeedHigh(float highMultplier)
 	Pos seedPos;
 	int seedH;
 
-	seedPos.setPos((rand() % MAPSIZE), (rand() % MAPSIZE ));
+	seedPos.setPos((rand() % MAPWIDTH), (rand() % MAPHEIGHT));
 
 	int deltaRange = (MAX_H - Tile(seedPos).getH()) * (highMultplier / 100);
 	
@@ -175,7 +175,7 @@ Pos Map::insertSeedHigh(float highMultplier)
 	Tile(seedPos).setBaseChance();
 	Tile(seedPos).setPred(NULO, NULO);
 	Tile(seedPos).setIsSeed(true);
-	Tile(seedPos).setVisited(true);
+	Tile(seedPos).setSkip(true);
 
 	return seedPos;
 }
@@ -185,7 +185,7 @@ Pos Map::insertSeedLow(float lowMultiplier)
 	Pos seedPos;
 	int seedH;
 
-	seedPos.setPos((rand() % MAPSIZE), (rand() % MAPSIZE ));
+	seedPos.setPos((rand() % MAPWIDTH), (rand() % MAPHEIGHT));
 
 	int deltaRange = ((Tile(seedPos).getH() + 1)) * (lowMultiplier / 100);
 
@@ -201,7 +201,7 @@ Tile(seedPos).seedLow = true;
 	Tile(seedPos).setBaseChance();
 	Tile(seedPos).setPred(NULO, NULO);
 	Tile(seedPos).setIsSeed(true);
-	Tile(seedPos).setVisited(true);
+	Tile(seedPos).setSkip(true);
 
 	return seedPos;
 }
@@ -271,9 +271,9 @@ void Map::insertHighArtifact(int deltaH)
 			currentQueue.clearAll();
 	} // enquanto currentQueue não estiver vazia
 
-	for(int i = 0; i < MAPSIZE; i++)
-		for(int j = 0; j < MAPSIZE; j++)
-				Tile(j, i).setSkip(false);
+	for(int y = 0;  y < MAPHEIGHT; y++)
+		for(int x = 0; x < MAPWIDTH; x++)
+				Tile(x, y).setSkip(false);
 }
 
 
@@ -341,187 +341,8 @@ void Map::insertLowArtifact(int deltaH)
 			currentQueue.clearAll();
 	} // enquanto currentQueue não estiver vazia
 
-	for(int i = 0; i < MAPSIZE; i++)
-		for(int j = 0; j < MAPSIZE; j++)
-				Tile(j, i).setSkip(false);
+	for(int y = 0;  y < MAPHEIGHT; y++)
+		for(int x = 0; x < MAPWIDTH; x++)
+				Tile(x, y).setSkip(false);
 }
 //*/
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-// IMPLEMENTAÇÃO DE INSERT ARTIFACTS COM DUAS FILAS EM VEZ DE BST
-
-/*
-void Map::insertHighArtifact()
-{
-	PosQueue currentQueue, PosQueueLower;	// Fila de posições
-
-	Pos auxPos = insertSeedHigh();
-
-	int hCurrent = Tile(auxPos).getH(); // altura sendo trabalhada; começa com do seed
-
-	currentQueue.insert(auxPos);
-
-	// zera skips de altura abaixo da sendo trabalhada
-	for(int i = 0; i < MAPSIZE; i++)
-		for(int j = 0; j < MAPSIZE; j++)
-			if(Tile(j, i).getH() < hCurrent)
-				Tile(j, i).setSkip(false);
-
-	for(int i = 0; i < MAPSIZE; i++)
-		for(int j = 0; j < MAPSIZE; j++)
-				Tile(j, i).setVisited(false);
-
-	while(hCurrent > 0)
-	{
-		// checa toda a PosQueue
-		while(!currentQueue.empty())
-		{
-			Pos queuePos = currentQueue.remove();
-
-			// checa posições adjacentes a posição Current da PosQueue
-			for(int yOffset = -1; yOffset <= 1; yOffset++)
-				for(int xOffset = -1; xOffset <= 1; xOffset++)
-				{
-					Pos adjPos(queuePos.getX() + xOffset, queuePos.getY() + yOffset);
-
-					if(isPosInside(adjPos) && hCurrent > Tile(adjPos).getH() && Tile(adjPos).getVisited() == 0) // adjacente está dentro do mapa e é menor que altura Current
-					{
-						Tile(adjPos).setPred(queuePos);
-						Tile(adjPos).setVisited(true);
-
-						// diminui ou não altura da adjacente baseado na chance de manter do Current
-						if(rand() % 100 <= Tile(queuePos).getChance()) // mantem altura e diminui chance dos próximos manterem
-						{
-							Tile(adjPos).setH(hCurrent);
-							Tile(adjPos).lowerChance(Tile(queuePos));
-							//Tile(adjPos).setSkip(true);
-
-							currentQueue.insert(adjPos); // coloca tile de mesma altura na PosQueue de altura Current
-						}
-
-						else 
-							PosQueueLower.insert(adjPos);
-					}
-				}
-		}
-
-		hCurrent--;
-
-		// esvazia próxima PosQueue colocando membros não repetidos na PosQueue Current e setando altura/chance de manter
-		while(!PosQueueLower.empty())
-		{
-			Pos auxPos = PosQueueLower.remove();
-
-			if(Tile(auxPos).getSkip() == false)
-			{
-				Tile(auxPos).setSkip(true);
-				Tile(auxPos).setH(hCurrent);
-				Tile(auxPos).setBaseChance();
-				
-				currentQueue.insert(auxPos);
-			}
-		}
-
-		if(hCurrent == 0) // se chegou no fim das inserções dessa seed, zera PosQueue Current
-			currentQueue.clearAll();
-	} // enquanto currentQueue não estiver vazia
-}
-
-
-void Map::insertLowArtifact()
-{
-	PosQueue currentQueue, PosQueueLower;	// Fila de posições
-
-	//PosBST nextPosTree;
-
-	Pos auxPos = insertSeedLow();
-
-	int hCurrent = Tile(auxPos).getH(); // altura sendo trabalhada; começa com do seed
-
-	currentQueue.insert(auxPos);
-
-	// zera skips de altura abaixo da sendo trabalhada
-	for(int i = 0; i < MAPSIZE; i++)
-		for(int j = 0; j < MAPSIZE; j++)
-			if(Tile(j, i).getH() > hCurrent)
-				Tile(j, i).setSkip(false);
-
-	for(int i = 0; i < MAPSIZE; i++)
-		for(int j = 0; j < MAPSIZE; j++)
-				Tile(j, i).setVisited(false);
-
-	while(hCurrent < MAX_H)
-	{
-		// checa toda a PosQueue
-		while(!currentQueue.empty())
-		{
-			Pos queuePos = currentQueue.remove();
-
-			// checa posições adjacentes a posição Current da PosQueue
-			for(int yOffset = -1; yOffset <= 1; yOffset++)
-				for(int xOffset = -1; xOffset <= 1; xOffset++)
-				{
-					Pos adjPos(queuePos.getX() + xOffset, queuePos.getY() + yOffset);
-
-					if(isPosInside(adjPos) && hCurrent < Tile(adjPos).getH() && Tile(adjPos).getVisited() == 0) // adjacente está dentro do mapa e é menor que altura Current
-					{
-						Tile(adjPos).setPred(queuePos);
-						Tile(adjPos).setVisited(true);
-
-						// diminui ou não altura da adjacente baseado na chance de manter do Current
-						if(rand() % 100 <= Tile(queuePos).getChance()) // mantem altura e diminui chance dos próximos manterem
-						{
-							Tile(adjPos).setH(hCurrent);
-							Tile(adjPos).lowerChance(Tile(queuePos));
-							Tile(adjPos).setSkip(true);
-
-							currentQueue.insert(adjPos); // coloca tile de mesma altura na PosQueue de altura Current
-						}
-
-						else 
-							PosQueueLower.insert(adjPos);
-					}
-				}
-		}
-
-		hCurrent++;
-
-		// esvazia próxima PosQueue colocando membros não repetidos na PosQueue Current e setando altura/chance de manter
-		while(!PosQueueLower.empty())
-		{
-			Pos auxPos = PosQueueLower.remove();
-
-			if(Tile(auxPos).getSkip() == false)
-			{
-				Tile(auxPos).setSkip(true);
-				Tile(auxPos).setH(hCurrent);
-				Tile(auxPos).setBaseChance();
-				
-				currentQueue.insert(auxPos);
-			}
-		}
-
-		if(hCurrent == 0) // se chegou no fim das inserções dessa seed, zera PosQueue Current
-			currentQueue.clearAll();
-	} // enquanto currentQueue não estiver vazia
-}
-*/

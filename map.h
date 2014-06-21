@@ -1,11 +1,12 @@
 #ifndef MAP
 #define MAP
 
-#define MAPSIZE 255
+#define MAPHEIGHT 200
+#define MAPWIDTH 320
 
 #define MULTIPLIER 1
 
-#define MAX_H 51
+#define MAX_H 35
 
 #define INIT_H MAX_H / 2
 
@@ -72,7 +73,7 @@ class MapTile
 class Map
 {
 	private:
-		MapTile map[MAPSIZE][MAPSIZE];
+		MapTile map[MAPWIDTH][MAPHEIGHT];
 
 		// funções de inserção de seeds -- retornam posição da seed inserida
 		Pos insertSeedHigh(float deltaH);

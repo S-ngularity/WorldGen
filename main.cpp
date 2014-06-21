@@ -10,11 +10,11 @@
 
 using namespace std;
 
-#define MULTIPLIER_SCREENSIZE 3
+#define MULTIPLIER_SCREENSIZE 4
 #define MULTIPLIER_COLOR 255 / MAX_H
 
-const int SCREEN_WIDTH = MAPSIZE * MULTIPLIER_SCREENSIZE;
-const int SCREEN_HEIGHT = MAPSIZE * MULTIPLIER_SCREENSIZE;
+const int SCREEN_WIDTH = MAPWIDTH * MULTIPLIER_SCREENSIZE;
+const int SCREEN_HEIGHT = MAPHEIGHT * MULTIPLIER_SCREENSIZE;
 
 //The window we'll be rendering to
 SDL_Window *Window = NULL;
@@ -50,46 +50,48 @@ int main(int argc, char* args[])
 	}
 	cout << endl;
 
-	float multHigh = 100, multLow = 100;
+	float mult;
 
 	for(int iterations = 0; iterations < numIts; iterations++)
 	{
 		if((float)iterations / numIts > 0.8)
-			{multHigh = multLow = 15;}
+			mult = 15;
 
-		else if((float)iterations / numIts > 0.65)
-			{multHigh = multLow = 25;}
+		else if((float)iterations / numIts > 0.7)
+			mult = 25;
 
-		else if((float)iterations / numIts > 0.4)
-			{multHigh = multLow = 50;}
-
-		else if((float)iterations / numIts > 0)
-			{multHigh = multLow = 100;}
-
-		if(rand() % 2 == 0)
-		{
-			map.insertHighArtifact(multHigh);
-			contHigh++;
-		}
+		else if((float)iterations / numIts > 0.6)
+			mult = 50;
 
 		else
-		{
-			map.insertLowArtifact(multLow);
-			contLow++;
-		}
+			mult = 100;
+
+
+		if(rand() % 2 == 0)
+			map.insertHighArtifact(mult);
+
+		else
+			map.insertLowArtifact(mult);
 	}
-
+int highestH = 0, lowestH = MAX_H;
 	//* para setar todos os tiles com altura abaixo de x para y
-	for(int i = 0; i < MAPSIZE; i++)
-		for(int j = 0; j < MAPSIZE; j++)
+	for(int y = 0; y < MAPHEIGHT; y++)
+		for(int x = 0; x < MAPWIDTH; x++)
 		{
-			if(map.Tile(j, i).getH() < MAX_H / 2)
-				map.Tile(j, i).setH(0);
-		}//*/
+			if(map.Tile(x, y).getH() > highestH)
+				highestH = map.Tile(x, y).getH();
 
+			if(map.Tile(x, y).getH() < lowestH)
+				lowestH = map.Tile(x, y).getH();
+
+			if(map.Tile(x, y).getH() < MAX_H / 2)
+				map.Tile(x, y).setH(0);
+		}//*/
+printf("highestH = %d\n", highestH);
+printf("lowestH = %d\n", lowestH);
 	/*// imprime erros de quando a diferença entre tiles adjacentes é maior que 1
-	for(int y = 0; y < MAPSIZE; y++)
-		for(int x = 0; x < MAPSIZE; x++)
+	for(int y = 0; y < MAPHEIGHT; y++)
+		for(int x = 0; x < MAPWIDTH; x++)
 		{
 			for(int yOffset = -1; yOffset <= 1; yOffset++)
 				for(int xOffset = -1; xOffset <= 1; xOffset++)
@@ -119,40 +121,40 @@ int main(int argc, char* args[])
 	SDL_SetRenderDrawColor(Renderer, 255, 255, 255, 255);
 	SDL_RenderClear(Renderer);
 
-	int contJ = 0, contI = 0;
+	int contX = 0, contY = 0;
 
 	//Draw vertical line of yellow dots
-	for(int i = 0; i < MAPSIZE; contI++)
+	for(int y = 0; y < MAPHEIGHT; contY++)
 	{
-		if(contI == MULTIPLIER_SCREENSIZE)
+		if(contY == MULTIPLIER_SCREENSIZE)
 		{
-			contI = 0;
-			i++;
+			contY = 0;
+			y++;
 		}
 
-		for(int j = 0; j < MAPSIZE; contJ++)
+		for(int x = 0; x < MAPWIDTH; contX++)
 		{
-			if(contJ == MULTIPLIER_SCREENSIZE)
+			if(contX == MULTIPLIER_SCREENSIZE)
 			{
-				contJ = 0;
-				j++;
+				contX = 0;
+				x++;
 			}
 
 /*
-			if(map.Tile(j, i).getIsSeed() == true && map.Tile(j, i).seedLow == true)
+			if(map.Tile(x, y).getIsSeed() == true && map.Tile(x, y).seedLow == true)
 				SDL_SetRenderDrawColor(Renderer, 0, 255, 0, 255);
 
-			else if(map.Tile(j, i).getIsSeed() == true && map.Tile(j, i).seedLow == false)
+			else if(map.Tile(x, y).getIsSeed() == true && map.Tile(x, y).seedLow == false)
 				SDL_SetRenderDrawColor(Renderer, 255, 0, 0, 255);
 
 			else
 			{//*/
-			int hColor = map.Tile(j, i).getH();
+			int hColor = map.Tile(x, y).getH();
 
 			SDL_SetRenderDrawColor(Renderer, hColor * MULTIPLIER_COLOR, hColor * MULTIPLIER_COLOR, hColor * MULTIPLIER_COLOR, 255);
 			//}
 
-			SDL_RenderDrawPoint(Renderer, j*MULTIPLIER_SCREENSIZE + contJ, i*MULTIPLIER_SCREENSIZE + contI);
+			SDL_RenderDrawPoint(Renderer, x * MULTIPLIER_SCREENSIZE + contX, y * MULTIPLIER_SCREENSIZE + contY);
 		}
 	}
 
