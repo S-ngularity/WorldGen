@@ -74,7 +74,7 @@ void MapTile::setBaseChance()
 
 void MapTile::lowerChance(MapTile prevTile)
 {
-	chance = prevTile.getChance() * ((rand() % 51 + 50) / 100) * MULTIPLIER;
+	chance = prevTile.getChance() * ((rand() % 101) / 100) * MULTIPLIER;
 }
 
 // pred
@@ -129,38 +129,99 @@ void MapTile::setVisited(bool newVisited)
 
 // ----- ----- ----- ----- ----- ----- ----- ----- //
 
-bool Map::isPosInside(Pos p)
+Map::Map()
 {
-	if(p.getX() >= 0 && p.getY() >= 0 && p.getX() < MAPWIDTH && p.getY() < MAPHEIGHT)
-		return true;
+	map = new MapTile*[MAPWIDTH];
 
-	else
-		return false;
+	for(int i = 0; i < MAPWIDTH; i++)
+		map[i] = new MapTile[MAPHEIGHT];
+}
+
+Map::~Map()
+{
+	for(int i = 0; i < MAPWIDTH; i++)
+		delete [] map[i];
+
+	delete [] map;
 }
 
 MapTile& Map::Tile(Pos p)
 {
-	return map[p.getX()][p.getY()];
+	if(isPosInsideWrap(p))
+	{
+		if(p.getX() < 0)
+			p.setPos(MAPWIDTH + p.getX(), p.getY());
+
+		else if(p.getX() >= MAPWIDTH)
+			p.setPos(0 + (p.getX() - MAPWIDTH), p.getY());
+	}
+
+/*if(isPosInsideWrap(p)) // WRAP IN Y (mudar isPosInsideWrap para só true)
+{
+	if(p.getY() < 0)
+		p.setPos(p.getX(), MAPHEIGHT + p.getY());
+
+	else if(p.getY() >= MAPHEIGHT)
+		p.setPos(p.getX(), 0 + (p.getY() - MAPHEIGHT));
+}//*/
+
+	if(isPosInsideNoWrap(p))
+		return map[p.getX()][p.getY()];
+
+	else
+		return map[0][0];
 }
 
 MapTile& Map::Tile(int x, int y)
 {
 	Pos tempPos(x, y);
 
-	if(isPosInside(tempPos))
-		return map[x][y];
+	if(isPosInsideWrap(tempPos))
+	{
+		if(tempPos.getX() < 0)
+			tempPos.setPos(MAPWIDTH + tempPos.getX(), tempPos.getY());
+
+		else if(tempPos.getX() >= MAPWIDTH)
+			tempPos.setPos(0 + (tempPos.getX() - MAPWIDTH), tempPos.getY());
+	}
+
+/*if(isPosInsideWrap(tempPos)) // WRAP IN Y
+{
+	if(tempPos.getY() < 0)
+		tempPos.setPos(tempPos.getX(), MAPHEIGHT + tempPos.getY());
+
+	else if(tempPos.getY() >= MAPHEIGHT)
+		tempPos.setPos(tempPos.getX(), 0 + (tempPos.getY() - MAPHEIGHT));
+}//*/
+
+	if(isPosInsideNoWrap(tempPos))
+		return map[tempPos.getX()][tempPos.getY()];
 
 	else
 		return map[0][0];
 }
 
-
-Pos Map::insertSeedHigh(float highMultplier)
+bool Map::isPosInsideNoWrap(Pos p)
 {
-	Pos seedPos;
-	int seedH;
+	if(p.getX() >= 0 && p.getY() >= 0 && p.getX() < MAPWIDTH && p.getY() < MAPHEIGHT)
+		return true;
 
-	seedPos.setPos((rand() % MAPWIDTH), (rand() % MAPHEIGHT));
+	else
+		return false;
+}	
+
+bool Map::isPosInsideWrap(Pos p)
+{
+	if(p.getY() >= 0 && p.getY() < MAPHEIGHT)
+		return true;
+
+	else
+		return false;
+}	
+
+Pos Map::insertSeedHigh(Pos seedPos, float highMultplier)
+{
+	int seedH;
 
 	int deltaRange = (MAX_H - Tile(seedPos).getH()) * (highMultplier / 100);
 	
@@ -180,12 +241,9 @@ Pos Map::insertSeedHigh(float highMultplier)
 	return seedPos;
 }
 
-Pos Map::insertSeedLow(float lowMultiplier)
+Pos Map::insertSeedLow(Pos seedPos, float lowMultiplier)
 {
-	Pos seedPos;
 	int seedH;
-
-	seedPos.setPos((rand() % MAPWIDTH), (rand() % MAPHEIGHT));
 
 	int deltaRange = ((Tile(seedPos).getH() + 1)) * (lowMultiplier / 100);
 
@@ -207,19 +265,19 @@ Tile(seedPos).seedLow = true;
 }
 
 //*
-void Map::insertHighArtifact(int deltaH)
+void Map::insertHighArtifact(Pos seedPos, int deltaH)
 {
 	PosQueue currentQueue; //PosQueueLower	// Fila de posições
 
 	PosBST nextPosTree;
 
-	Pos auxPos = insertSeedHigh(deltaH);
+	Pos auxPos = insertSeedHigh(seedPos, deltaH);
 
 	int hCurrent = Tile(auxPos).getH(); // altura sendo trabalhada; começa com do seed
 
 	currentQueue.insert(auxPos);
 
-	while(hCurrent > 0)
+	while(hCurrent >= INIT_H)
 	{
 		while(!currentQueue.empty()) // checa toda a PosQueue
 		{
@@ -231,17 +289,17 @@ void Map::insertHighArtifact(int deltaH)
 				{
 					Pos adjPos(queuePos.getX() + xOffset, queuePos.getY() + yOffset);
 
-					if(isPosInside(adjPos) && hCurrent > Tile(adjPos).getH() && Tile(adjPos).getSkip() == false) // adjacente está dentro do mapa e é menor que altura Current
+					if(isPosInsideWrap(adjPos) && hCurrent > Tile(adjPos).getH() && Tile(adjPos).getSkip() == false) // adjacente está dentro do mapa e é menor que altura Current
 					{
 						Tile(adjPos).setPred(queuePos);
-						Tile(adjPos).setSkip(true);
+						//Tile(adjPos).setSkip(true);
 
 						// diminui ou não altura da adjacente baseado na chance de manter do Current
 						if(rand() % 100 <= Tile(queuePos).getChance()) // mantem altura e diminui chance dos próximos manterem
 						{
 							Tile(adjPos).setH(hCurrent);
 							Tile(adjPos).lowerChance(Tile(queuePos));
-							//Tile(adjPos).setSkip(true);
+							Tile(adjPos).setSkip(true);
 
 							currentQueue.insert(adjPos); // coloca tile de mesma altura na PosQueue de altura Current
 						}
@@ -277,13 +335,13 @@ void Map::insertHighArtifact(int deltaH)
 }
 
 
-void Map::insertLowArtifact(int deltaH)
+void Map::insertLowArtifact(Pos seedPos, int deltaH)
 {
 	PosQueue currentQueue;//, PosQueueLower;	// Fila de posições
 
 	PosBST nextPosTree;
 
-	Pos auxPos = insertSeedLow(deltaH);
+	Pos auxPos = insertSeedLow(seedPos, deltaH);
 
 	int hCurrent = Tile(auxPos).getH(); // altura sendo trabalhada; começa com do seed
 
@@ -301,17 +359,17 @@ void Map::insertLowArtifact(int deltaH)
 				{
 					Pos adjPos(queuePos.getX() + xOffset, queuePos.getY() + yOffset);
 
-					if(isPosInside(adjPos) && hCurrent < Tile(adjPos).getH() && Tile(adjPos).getSkip() == false) // adjacente está dentro do mapa e é menor que altura Current
+					if(isPosInsideWrap(adjPos) && hCurrent < Tile(adjPos).getH() && Tile(adjPos).getSkip() == false) // adjacente está dentro do mapa e é menor que altura Current
 					{
 						Tile(adjPos).setPred(queuePos);
-						Tile(adjPos).setSkip(true);
+						//Tile(adjPos).setSkip(true);
 
 						// diminui ou não altura da adjacente baseado na chance de manter do Current
 						if(rand() % 100 <= Tile(queuePos).getChance()) // mantem altura e diminui chance dos próximos manterem
 						{
 							Tile(adjPos).setH(hCurrent);
 							Tile(adjPos).lowerChance(Tile(queuePos));
-							//Tile(adjPos).setSkip(true);
+							Tile(adjPos).setSkip(true);
 
 							currentQueue.insert(adjPos); // coloca tile de mesma altura na PosQueue de altura Current
 						}
