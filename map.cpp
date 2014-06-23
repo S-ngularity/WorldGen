@@ -337,7 +337,7 @@ void Map::insertHighArtifact(Pos seedPos, int deltaH)
 			currentQueue.insert(auxPos);
 		}
 
-		if(hCurrent == 0) // se chegou no fim das inserções dessa seed, zera PosQueue Current
+		if(hCurrent < 0) // se chegou no fim das inserções dessa seed, zera PosQueue Current
 			currentQueue.clearAll();
 	} // enquanto currentQueue não estiver vazia
 
