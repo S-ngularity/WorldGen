@@ -38,11 +38,10 @@ void Pos::setPos(int newX, int newY)
 
 // ----- ----- ----- ----- ----- ----- ----- ----- //
 
-MapTile::MapTile()
+MapTile::MapTile() : pred(NULO, NULO)
 {
 	h = INIT_H;
 	chance = 0;
-	pred.setPos(NULO, NULO);
 	isSeed = false;
 	skip = false;
 	error = false;
