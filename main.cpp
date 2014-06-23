@@ -21,16 +21,21 @@ SDL_Window *Window = NULL;
 //The window renderer
 SDL_Renderer *Renderer = NULL;
 
+SDL_Event event;
+
 //funções SDL
 bool SDLStart();
 void SDLClose();
+
+void erosion(int numIts);
+void tectonics(int numIts);
+
+void renderMap();
 
 Map map;
 
 int main(int argc, char* args[])
 {
-	int numIts; // iterações de inserção de artefatos
-
 	/*// seed manual (barra no começo dessa linha para mudar)
 	int seed;
 	cout << "Seed: ";
@@ -40,7 +45,10 @@ int main(int argc, char* args[])
 	srand(seed);
 	/*/srand(time(NULL));//*/
 
-	cout << "Iterations: ";
+
+	int numIts;
+
+	cout << "Tectonics iterations (~30-60): ";
 	cin >> numIts;
 	while(numIts < 1)
 	{
@@ -49,108 +57,26 @@ int main(int argc, char* args[])
 	}
 	cout << endl;
 
-	int percentComplete = 0;
-	float floatComplete = 0;
-
-	int state = 0, lastState = -1;
-	int multValue = 100;
-	Pos seedPos;
-
-	cout << "0%";
-
-	for(int iterations = 0; iterations < numIts; iterations++)
+	if(!SDLStart())
 	{
-		floatComplete = (float)iterations / (float)numIts;
+		printf("ERRO AO INICIALIZAR SDL");
 
-		if(floatComplete < 0.05)
-		{
-			state = 0;
-			multValue = 100;
-		}
-
-		else if(floatComplete < 0.25)
-		{
-			//lastState = 0;
-			state = 1;
-			multValue = 100;
-		}
-
-		else if(floatComplete < 0.35)
-		{
-			state = 2;
-			multValue = 30;
-		}
-
-		else if(floatComplete < 0.75)
-		{
-			state = 3;
-			multValue = 20;
-		}
-
-		else
-		{
-			state = 4;
-			multValue = 10;
-		}
-
-		/*
-		if(state > lastState + 1) // zera todos os tiles com altura abaixo de X quando passa de estado
-		{
-			lastState = state - 1;
-
-			for(int y = 0; y < MAPHEIGHT; y++)
-				for(int x = 0; x < MAPWIDTH; x++)
-					if(map.Tile(x, y).getH() < SEA)
-						map.Tile(x, y).setH(0);
-		}//*/
-
-		if(state == 0)
-		{
-			seedPos.setPos((rand() % MAPWIDTH), (rand() % MAPHEIGHT));
-			map.insertHighArtifact(seedPos, multValue);
-		}
-
-		else if(state == 1)
-		{
-			if(rand() % 2 == 0)
-			{
-				seedPos.setPos((rand() % MAPWIDTH), (rand() % MAPHEIGHT));
-				map.insertHighArtifact(seedPos, multValue);
-			}
-
-			else
-			{
-				do{
-					seedPos.setPos((rand() % MAPWIDTH), (rand() % MAPHEIGHT));
-				}while(map.Tile(seedPos.getX(), seedPos.getY()).getH() <= SEA);
-
-				map.insertLowArtifact(seedPos, multValue);
-			}
-		}
-
-		else
-		{
-			do{
-				seedPos.setPos((rand() % MAPWIDTH), (rand() % MAPHEIGHT));
-			}while(map.Tile(seedPos.getX(), seedPos.getY()).getH() <= SEA);
-
-			if(rand() % 2 == 0)
-				map.insertHighArtifact(seedPos, multValue);
-
-			else
-				map.insertLowArtifact(seedPos, multValue);
-		}
-
-
-		if((int)(100 * floatComplete) > percentComplete)
-		{
-			percentComplete = (int)(100 * floatComplete);
-
-			cout << "\b\b\b" << percentComplete << "%";
-		}
+		return -1;
 	}
 
-	cout << "\b\b\b" << "100%" << endl << endl;
+	tectonics(numIts);
+
+	cout << "Erosion iterations (~500-5000): ";
+	cin >> numIts;
+	while(numIts < 1)
+	{
+		cout << "Number of iterations must be higher than 0: " << endl;
+		cin >> numIts;
+	}
+	cout << endl;
+
+	erosion(numIts);
+
 
 	int highestH = 0;
 	
@@ -162,7 +88,7 @@ int main(int argc, char* args[])
 	cout << "highest tile = " << highestH << endl;
 	cout << "sea = " << SEA << endl;
 
-	/*// imprime erros de quando a diferença entre tiles adjacentes é maior que 1
+	//*// imprime erros de quando a diferença entre tiles adjacentes é maior que 1
 	for(int y = 0; y < MAPHEIGHT; y++)
 		for(int x = 0; x < MAPWIDTH; x++)
 		{
@@ -172,64 +98,20 @@ int main(int argc, char* args[])
 					Pos nowPos(x, y);
 					Pos adjPos(x + xOffset, y + yOffset);
 
-					if(map.isPosInside(adjPos))
+					if(map.isPosInsideWrap(adjPos))
 					{
 						if((map.Tile(adjPos).getH() - map.Tile(nowPos).getH() > 1) || (map.Tile(adjPos).getH() - map.Tile(nowPos).getH() < -1))
 						{
-							printf("ERRO EM %d %d\n", x, y);
+							map.Tile(nowPos).setError(true);
+							//printf("ERRO EM %d %d\n", x, y);
 						}
 					}
 				}
 
 		}//*/
 
-	if(!SDLStart())
-	{
-		printf("ERRO AO INICIALIZAR SDL");
 
-		return -1;
-	}
-
-	//Clear screen
-	SDL_SetRenderDrawColor(Renderer, 255, 255, 255, 255);
-	SDL_RenderClear(Renderer);
-
-	int baseColor = 100;
-	int MULTIPLIER_COLOR = (255 - baseColor) / (highestH - SEA);
-
-	//Draw vertical line of yellow dots
-	for(int y = 0; y < MAPHEIGHT; y++)
-	{
-
-		for(int x = 0; x < MAPWIDTH; x++)
-		{/*
-			if(map.Tile(x, y).getIsSeed() == true && map.Tile(x, y).seedLow == true)
-				SDL_SetRenderDrawColor(Renderer, 0, 255, 0, 255);
-
-			else if(map.Tile(x, y).getIsSeed() == true && map.Tile(x, y).seedLow == false)
-				SDL_SetRenderDrawColor(Renderer, 255, 0, 0, 255);
-
-			else
-			{//*/
-
-			if(map.Tile(x, y).getH() <= SEA)
-				SDL_SetRenderDrawColor(Renderer, 25, 45, 85, 255);//SDL_SetRenderDrawColor(Renderer, 0, 0, 0, 255);//
-			else
-			{
-				int hColor = (map.Tile(x, y).getH() - SEA) * MULTIPLIER_COLOR;
-
-				SDL_SetRenderDrawColor(Renderer, baseColor + hColor, baseColor + hColor, baseColor + hColor, 255);
-			}
-
-			SDL_RenderDrawPoint(Renderer, x, y);
-		}
-	}
-
-	//Update screen
-	SDL_RenderPresent(Renderer);
-
-	//Event handler
-	SDL_Event e;
+	renderMap();
 
 	bool quit;
 
@@ -237,9 +119,9 @@ int main(int argc, char* args[])
 	while(!quit)
 	{
 		//Handle events on queue
-		SDL_PollEvent(&e);
+		SDL_PollEvent(&event);
 
-		if(e.type == SDL_QUIT)
+		if(event.type == SDL_QUIT)
 			quit = true;
 
 		SDL_RenderPresent(Renderer);
@@ -250,6 +132,149 @@ int main(int argc, char* args[])
 	return 0;
 }
 
+void tectonics(int numIts)
+{
+	cout << "0%";
+
+	for(int iterations = 0, percentComplete = 0; iterations < numIts; iterations++)
+	{
+		Pos seedPos;
+
+		float floatComplete = (float)iterations / (float)numIts;
+
+		if(floatComplete < 0.1)
+		{
+			seedPos.setPos((rand() % MAPWIDTH), (rand() % MAPHEIGHT));
+			map.insertHighArtifact(seedPos, 100);
+		}
+
+		else
+		{
+			if(rand() % 2 == 0)
+			{
+				seedPos.setPos((rand() % MAPWIDTH), (rand() % MAPHEIGHT));
+				map.insertHighArtifact(seedPos, 100);
+			}
+
+			else
+			{
+				//do{
+					seedPos.setPos((rand() % MAPWIDTH), (rand() % MAPHEIGHT));
+				//}while(map.Tile(seedPos.getX(), seedPos.getY()).getH() <= SEA);
+
+				map.insertLowArtifact(seedPos, 100);
+			}
+		}
+
+		if((int)(100 * floatComplete) > percentComplete)
+		{
+			percentComplete = (int)(100 * floatComplete);
+
+			cout << "\b\b\b" << percentComplete << "%";
+
+			renderMap();
+		}
+
+		SDL_PollEvent(&event);
+	}
+
+	cout << "\b\b\b" << "100%" << endl << endl;
+}
+
+void erosion(int numIts)
+{
+	cout << "0%";
+
+	for(int iterations = 0, percentComplete = 0; iterations < numIts; iterations++)
+	{
+		int multValue;
+		Pos seedPos;
+
+		float floatComplete = (float)iterations / (float)numIts;
+
+		if(floatComplete < 0.30)
+			multValue = 30;
+
+		else if(floatComplete < 0.60)
+			multValue = 20;
+
+		else
+			multValue = 10;
+
+		do{
+			seedPos.setPos((rand() % MAPWIDTH), (rand() % MAPHEIGHT));
+		}while(map.Tile(seedPos.getX(), seedPos.getY()).getH() <= SEA - SEA * 0.2);
+
+		if(rand() % 2 == 0)
+			map.insertHighArtifact(seedPos, multValue);
+
+		else
+			map.insertLowArtifact(seedPos, multValue);
+
+
+		if((int)(100 * floatComplete) > percentComplete)
+		{
+			percentComplete = (int)(100 * floatComplete);
+
+			cout << "\b\b\b" << percentComplete << "%";
+
+			renderMap();
+		}
+
+		SDL_PollEvent(&event);
+	}
+
+	cout << "\b\b\b" << "100%" << endl << endl;
+}
+
+void renderMap()
+{
+	int highestH = 0;
+	
+	for(int y = 0; y < MAPHEIGHT; y++)
+		for(int x = 0; x < MAPWIDTH; x++)
+			if(map.Tile(x, y).getH() > highestH)
+				highestH = map.Tile(x, y).getH();
+
+	//Clear screen
+	SDL_SetRenderDrawColor(Renderer, 255, 255, 255, 255);
+	SDL_RenderClear(Renderer);
+
+	int baseColor = 100;
+	int MULTIPLIER_COLOR = (255 - baseColor) / (highestH - SEA);
+
+	//Draw vertical line of yellow dots
+	for(int y = 0; y < MAPHEIGHT; y++)
+		for(int x = 0; x < MAPWIDTH; x++)
+		{
+			if(map.Tile(x, y).getError() == true)
+				SDL_SetRenderDrawColor(Renderer, 100, 0, 0, 255);
+			/*
+			if(map.Tile(x, y).getIsSeed() == true && map.Tile(x, y).seedLow == true)
+				SDL_SetRenderDrawColor(Renderer, 0, 255, 0, 255);
+
+			else if(map.Tile(x, y).getIsSeed() == true && map.Tile(x, y).seedLow == false)
+				SDL_SetRenderDrawColor(Renderer, 255, 0, 0, 255);
+
+			else
+			{//*/
+
+			else if(map.Tile(x, y).getH() <= SEA)
+				SDL_SetRenderDrawColor(Renderer, 25, 45, 85, 255);//SDL_SetRenderDrawColor(Renderer, 0, 0, 0, 255);//
+
+			else
+			{
+				int hColor = (map.Tile(x, y).getH() - SEA) * MULTIPLIER_COLOR;
+
+				SDL_SetRenderDrawColor(Renderer, baseColor + hColor, baseColor + hColor, baseColor + hColor, 255);
+			}
+
+			SDL_RenderDrawPoint(Renderer, x, y);
+		}
+
+	//Update screen
+	SDL_RenderPresent(Renderer);
+}
 
 bool SDLStart()
 {

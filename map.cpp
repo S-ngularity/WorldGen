@@ -45,7 +45,7 @@ MapTile::MapTile()
 	pred.setPos(NULO, NULO);
 	isSeed = false;
 	skip = false;
-	visited = false;
+	error = false;
 	seedLow = false;
 }
 
@@ -116,14 +116,14 @@ void MapTile::setSkip(bool newSkip)
 	skip = newSkip;
 }
 
-bool MapTile::getVisited()
+bool MapTile::getError()
 {
-	return visited;
+	return error;
 }
 
-void MapTile::setVisited(bool newVisited)
+void MapTile::setError(bool newError)
 {
-	visited = newVisited;
+	error = newError;
 }
 
 
@@ -219,11 +219,17 @@ bool Map::isPosInsideWrap(Pos p)
 		return false;
 }	
 
-Pos Map::insertSeedHigh(Pos seedPos, float highMultplier)
+Pos Map::insertSeedHigh(Pos seedPos, float highMultiplier)
 {
 	int seedH;
 
-	int deltaRange = (MAX_H - Tile(seedPos).getH()) * (highMultplier / 100);
+	int deltaRange;// = (MAX_H - Tile(seedPos).getH()) * (highMultplier / 100);
+
+	if(Tile(seedPos).getH() > MAX_H / 2)
+		deltaRange = (MAX_H - Tile(seedPos).getH()) * (highMultiplier / 100);
+
+	else
+		deltaRange = (Tile(seedPos).getH() + 1) * (highMultiplier / 100);
 	
 	if(deltaRange == 0)
 		deltaRange = 1;
@@ -245,7 +251,13 @@ Pos Map::insertSeedLow(Pos seedPos, float lowMultiplier)
 {
 	int seedH;
 
-	int deltaRange = ((Tile(seedPos).getH() + 1)) * (lowMultiplier / 100);
+	int deltaRange;
+
+	if(Tile(seedPos).getH() > MAX_H / 2)
+		deltaRange = (MAX_H - Tile(seedPos).getH()) * (lowMultiplier / 100);
+
+	else
+		deltaRange = (Tile(seedPos).getH() + 1) * (lowMultiplier / 100);
 
 	if(deltaRange < 1)
 		deltaRange = 1;
@@ -277,7 +289,7 @@ void Map::insertHighArtifact(Pos seedPos, int deltaH)
 
 	currentQueue.insert(auxPos);
 
-	while(hCurrent >= INIT_H)
+	while(hCurrent >= 0)
 	{
 		while(!currentQueue.empty()) // checa toda a PosQueue
 		{

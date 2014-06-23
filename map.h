@@ -37,7 +37,7 @@ class MapTile
 		Pos pred;
 		bool isSeed;
 		bool skip;
-		bool visited;
+		bool error;
 
 		//void setPos(int x, int y);
 
@@ -63,8 +63,8 @@ class MapTile
 		bool getSkip();
 		void setSkip(bool newSkip);
 
-		bool getVisited();
-		void setVisited(bool newVisited);
+		bool getError();
+		void setError(bool newError);
 };
 
 
@@ -74,8 +74,8 @@ class Map
 		MapTile **map;
 
 		// funções de inserção de seeds -- retornam posição da seed inserida
-		Pos insertSeedHigh(Pos seedPos, float deltaH);
-		Pos insertSeedLow(Pos seedPos, float deltaH);
+		Pos insertSeedHigh(Pos seedPos, float highMultiplier);
+		Pos insertSeedLow(Pos seedPos, float lowMultiplier);
 
 	public:
 		Map();
