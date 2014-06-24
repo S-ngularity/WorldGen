@@ -37,6 +37,8 @@ class PosBST
 
 		Pos removeLowest();
 
+		Pos removeHead();
+
 		bool empty();
 };
 

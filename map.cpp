@@ -327,7 +327,7 @@ void Map::insertHighArtifact(Pos seedPos, int deltaH)
 		// esvazia próxima PosQueue colocando membros não repetidos na PosQueue Current e setando altura/chance de manter
 		while(!nextPosTree.empty()) //!PosQueueLower.empty())
 		{
-			Pos auxPos = nextPosTree.removeLowest(); //Pos auxPos = PosQueueLower.remove();
+			Pos auxPos = nextPosTree.removeHead(); //nextPosTree.removeLowest(); //Pos auxPos = PosQueueLower.remove();
 
 			Tile(auxPos).setH(hCurrent);
 			Tile(auxPos).setBaseChance();
@@ -397,7 +397,7 @@ void Map::insertLowArtifact(Pos seedPos, int deltaH)
 		// esvazia próxima PosQueue colocando membros não repetidos na PosQueue Current e setando altura/chance de manter
 		while(!nextPosTree.empty()) //!PosQueueLower.empty())
 		{
-			Pos auxPos = nextPosTree.removeLowest(); //Pos auxPos = PosQueueLower.remove();
+			Pos auxPos = nextPosTree.removeHead(); //nextPosTree.removeLowest(); //Pos auxPos = PosQueueLower.remove();
 
 			Tile(auxPos).setH(hCurrent);
 			Tile(auxPos).setBaseChance();

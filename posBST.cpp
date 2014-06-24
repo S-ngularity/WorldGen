@@ -263,6 +263,15 @@ Pos PosBST::removeLowest()
 	return remPos;
 }
 
+Pos PosBST::removeHead()
+{
+	Pos remPos = head->pos;
+
+	remove(remPos);
+
+	return remPos;
+}
+
 bool PosBST::empty()
 {
 	if(head == NULL)

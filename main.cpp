@@ -297,7 +297,7 @@ void renderMap()
 	SDL_RenderClear(Renderer);
 
 	int baseColor = 100;
-	int MULTIPLIER_COLOR = (255 - baseColor) / (highestH - SEA);
+	int multiplierColor = (255 - baseColor) / (highestH - SEA);
 
 	//Draw vertical line of yellow dots
 	for(int y = 0, contY = 0; y < MAPHEIGHT; contY++)
@@ -333,7 +333,7 @@ void renderMap()
 
 			else
 			{
-				int hColor = (map.Tile(x, y).getH() - SEA) * MULTIPLIER_COLOR;
+				int hColor = (map.Tile(x, y).getH() - SEA) * multiplierColor;
 
 				SDL_SetRenderDrawColor(Renderer, baseColor + hColor, baseColor + hColor, baseColor + hColor, 255);
 			}
@@ -357,7 +357,7 @@ void renderMapNoSea()
 	SDL_RenderClear(Renderer);
 
 	int baseColor = 0;
-	int MULTIPLIER_COLOR = (255 - baseColor) / MAX_H;
+	int multiplierColor = (255 - baseColor) / MAX_H;
 
 	//Draw vertical line of yellow dots
 	for(int y = 0, contY = 0; y < MAPHEIGHT; contY++)
@@ -393,7 +393,7 @@ void renderMapNoSea()
 
 			else
 			{
-				int hColor = map.Tile(x, y).getH() * MULTIPLIER_COLOR;
+				int hColor = map.Tile(x, y).getH() * multiplierColor;
 
 				SDL_SetRenderDrawColor(Renderer, baseColor + hColor, baseColor + hColor, baseColor + hColor, 255);
 			}
@@ -414,7 +414,7 @@ bool SDLStart()
 	}
 
 	//Create window
-	Window = SDL_CreateWindow("WorldGen", 200, 200, SCREEN_WIDTH, SCREEN_HEIGHT, SDL_WINDOW_RESIZABLE);
+	Window = SDL_CreateWindow("WorldGen", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, SCREEN_WIDTH, SCREEN_HEIGHT, SDL_WINDOW_RESIZABLE);
 	if(Window == NULL)
 	{
 		printf("Window could not be created! SDL Error: %s\n", SDL_GetError());
@@ -431,7 +431,7 @@ bool SDLStart()
 		return false;
 	}
 
-	SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "linear");  // make the scaled rendering look smoother.
+	//SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "linear");  // make the scaled rendering look smoother.
 	SDL_RenderSetLogicalSize(Renderer, SCREEN_WIDTH, SCREEN_HEIGHT);
 
 	//Initialize renderer color
