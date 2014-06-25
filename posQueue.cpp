@@ -1,9 +1,8 @@
 #include <stdlib.h>
 #include "posQueue.h"
 
-NodePosQueue::NodePosQueue(Pos p, NodePosQueue* n)
+NodePosQueue::NodePosQueue(Pos p, NodePosQueue* n) : pos(p)
 {
-	pos = p;
 	next = n;
 }
 

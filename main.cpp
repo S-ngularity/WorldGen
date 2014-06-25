@@ -103,10 +103,10 @@ int main(int argc, char* args[])
 
 				percentComplete = (int)(100 * ((float)iteration / (float)numIts));
 
+				cout << "\b\b\b" << percentComplete << "%";
+
 				if(percentComplete % printWhenMod == 0)
 					renderMapNoSea();
-
-				cout << "\b\b\b" << percentComplete << "%";
 			}
 
 			if(iteration == numIts)
@@ -152,10 +152,10 @@ int main(int argc, char* args[])
 			{
 				percentComplete = (int)(100 * ((float)iteration / (float)numIts));
 
+				cout << "\b\b\b" << percentComplete << "%";
+
 				if(percentComplete % printWhenMod == 0)
 					renderMapNoSea();
-
-				cout << "\b\b\b" << percentComplete << "%";
 			}
 
 			if(iteration == numIts)

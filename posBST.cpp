@@ -2,9 +2,8 @@
 #include <stdio.h>
 #include "posBST.h"
 
-NodePosBST::NodePosBST(Pos p, NodePosBST *l, NodePosBST *r)
+NodePosBST::NodePosBST(Pos p, NodePosBST *l, NodePosBST *r) : pos(p)
 {
-	pos = p;
 	left = l;
 	right = r;
 }
