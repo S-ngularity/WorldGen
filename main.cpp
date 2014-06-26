@@ -1,4 +1,5 @@
 #include <iostream>
+#include <iomanip>
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -34,9 +35,12 @@ void renderMap();
 void renderMapNoSea();
 
 Map map;
+int seaLevel;
+int highestH;
 
 int main(int argc, char* args[])
 {
+	seaLevel = SEA;
 	/*// seed manual (barra no começo dessa linha para mudar)
 	int seed;
 	cout << "Seed: ";
@@ -59,18 +63,15 @@ int main(int argc, char* args[])
 	bool readTectonics = true, readErosion = false;
 	bool doTectonics = false, doErosion = false;
 	int iteration, numIts, percentComplete;
-	int printWhenMod = 10;
+	int printWhenMod = 50;
 
 	//While application is running
 	while(!quit)
 	{
-		//Handle events on queue
-		SDL_PollEvent(&event);
-
 		if(readTectonics == true)
 		{
 			do{
-				cout << endl <<  "Tectonics iterations (~30-60): " << endl;
+				cout << endl <<  "Tectonics iterations (~30-60): ";
 				cin >> numIts;
 				cout << endl;
 			}while(numIts < 0);
@@ -113,13 +114,25 @@ int main(int argc, char* args[])
 			{
 				doTectonics = false;
 				readErosion = true;
+
+				highestH = 0;
+
+				for(int y = 0; y < MAPHEIGHT; y++)
+					for(int x = 0; x < MAPWIDTH; x++)
+						if(map.Tile(x, y).getH() > highestH)
+							highestH = map.Tile(x, y).getH();
+
+				cout << endl << endl << "Highest point: " << highestH << endl << endl;
+
+				renderMapNoSea();
+				SDL_RenderPresent(Renderer);
 			}
 		}
 
 		if(readErosion == true)
 		{
 			do{
-				cout << endl << "Erosion iterations (~500-5000): " << endl;
+				cout << endl << "Erosion iterations (~500-5000): ";
 				cin >> numIts;
 				cout << endl;
 			}while(numIts < 0);
@@ -162,24 +175,56 @@ int main(int argc, char* args[])
 			{
 				doErosion = false;
 				readTectonics = false;
+
+				highestH = 0;
+
+				for(int y = 0; y < MAPHEIGHT; y++)
+					for(int x = 0; x < MAPWIDTH; x++)
+						if(map.Tile(x, y).getH() > highestH)
+							highestH = map.Tile(x, y).getH();
+
+				cout << endl << endl << "Highest point: " << highestH << endl << endl;
+
+				renderMapNoSea();
+				SDL_RenderPresent(Renderer);
 			}
 		}
 		
-
-		if(event.type == SDL_QUIT)
-			quit = true;
-
-		else if(event.type == SDL_KEYDOWN)
+		//Handle events on queue
+		while(SDL_PollEvent(&event))
 		{
-			//Select surfaces based on key press
-			switch(event.key.keysym.sym)
+			switch(event.type)
 			{
-				case SDLK_UP:
-					renderMap();
+				case SDL_QUIT:
+					quit = true;
 				break;
 
-				case SDLK_DOWN:
-					renderMapNoSea();
+				case SDL_KEYDOWN:
+					switch(event.key.keysym.sym)
+					{
+						case SDLK_UP:
+							if(!(event.key.keysym.mod & KMOD_SHIFT) && seaLevel + 1 < highestH)
+							{
+								seaLevel += 1;
+								cout << "\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b" << "Sea Level : " << setw(3) << setfill('0') << seaLevel;
+							}
+
+							renderMap();
+						break;
+
+						case SDLK_DOWN:
+							if(!(event.key.keysym.mod & KMOD_SHIFT) && seaLevel + 1 < highestH)
+							{
+								seaLevel -= 1;
+								cout << "\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b" << "Sea Level : " << setw(3) << setfill('0') << seaLevel;
+
+								renderMap();
+							}
+
+							else
+								renderMapNoSea();
+						break;
+					}
 				break;
 			}
 		}
@@ -247,9 +292,7 @@ void tectonics(int iteration, int numIts)
 
 		else
 		{
-			//do{
-				seedPos.setPos((rand() % MAPWIDTH), (rand() % MAPHEIGHT));
-			//}while(map.Tile(seedPos.getX(), seedPos.getY()).getH() <= SEA);
+			seedPos.setPos((rand() % MAPWIDTH), (rand() % MAPHEIGHT));
 
 			map.insertLowArtifact(seedPos, 100);
 		}
@@ -285,21 +328,13 @@ void erosion(int iteration, int numIts)
 
 void renderMap()
 {
-	int highestH = 0;
-	
-	for(int y = 0; y < MAPHEIGHT; y++)
-		for(int x = 0; x < MAPWIDTH; x++)
-			if(map.Tile(x, y).getH() > highestH)
-				highestH = map.Tile(x, y).getH();
-
 	//Clear screen
 	SDL_SetRenderDrawColor(Renderer, 255, 255, 255, 255);
 	SDL_RenderClear(Renderer);
 
 	int baseColor = 100;
-	int multiplierColor = (255 - baseColor) / (highestH - SEA);
+	float multiplierColor = (255 - baseColor) / (highestH - seaLevel);
 
-	//Draw vertical line of yellow dots
 	for(int y = 0, contY = 0; y < MAPHEIGHT; contY++)
 	{
 		if(contY == MULTIPLIER_SCREENSIZE)
@@ -328,12 +363,12 @@ void renderMap()
 			else
 			{//*/
 
-			else if(map.Tile(x, y).getH() <= SEA)
+			else if(map.Tile(x, y).getH() <= seaLevel)
 				SDL_SetRenderDrawColor(Renderer, 25, 45, 85, 255);//SDL_SetRenderDrawColor(Renderer, 0, 0, 0, 255);//
 
 			else
 			{
-				int hColor = (map.Tile(x, y).getH() - SEA) * multiplierColor;
+				int hColor = (map.Tile(x, y).getH() - seaLevel) * multiplierColor;
 
 				SDL_SetRenderDrawColor(Renderer, baseColor + hColor, baseColor + hColor, baseColor + hColor, 255);
 			}
@@ -345,13 +380,6 @@ void renderMap()
 
 void renderMapNoSea()
 {
-	int highestH = 0;
-	
-	for(int y = 0; y < MAPHEIGHT; y++)
-		for(int x = 0; x < MAPWIDTH; x++)
-			if(map.Tile(x, y).getH() > highestH)
-				highestH = map.Tile(x, y).getH();
-
 	//Clear screen
 	SDL_SetRenderDrawColor(Renderer, 255, 255, 255, 255);
 	SDL_RenderClear(Renderer);
@@ -359,7 +387,6 @@ void renderMapNoSea()
 	int baseColor = 0;
 	int multiplierColor = (255 - baseColor) / MAX_H;
 
-	//Draw vertical line of yellow dots
 	for(int y = 0, contY = 0; y < MAPHEIGHT; contY++)
 	{
 		if(contY == MULTIPLIER_SCREENSIZE)
