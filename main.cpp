@@ -5,7 +5,7 @@
 #include <stdlib.h>
 #include <time.h>
 
-#include "map.h"
+#include "Map.h"
 
 #include <SDL2/SDL.h>
 
@@ -57,13 +57,13 @@ int main(int argc, char* args[])
 		return -1;
 	}
 
-	renderMap();
+	renderMapNoSea();
 
 	bool quit;
 	bool readTectonics = true, readErosion = false;
 	bool doTectonics = false, doErosion = false;
 	int iteration, numIts, percentComplete;
-	int printWhenMod = 50;
+	int printWhenMod = 10;
 
 	//While application is running
 	while(!quit)
@@ -385,7 +385,7 @@ void renderMapNoSea()
 	SDL_RenderClear(Renderer);
 
 	int baseColor = 0;
-	int multiplierColor = (255 - baseColor) / MAX_H;
+	float multiplierColor = (255 - baseColor) / MAX_H;
 
 	for(int y = 0, contY = 0; y < MAPHEIGHT; contY++)
 	{
@@ -441,7 +441,7 @@ bool SDLStart()
 	}
 
 	//Create window
-	Window = SDL_CreateWindow("WorldGen", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, SCREEN_WIDTH, SCREEN_HEIGHT, SDL_WINDOW_RESIZABLE);
+	Window = SDL_CreateWindow("WorldGen", 20, 40, SCREEN_WIDTH, SCREEN_HEIGHT, SDL_WINDOW_RESIZABLE);
 	if(Window == NULL)
 	{
 		printf("Window could not be created! SDL Error: %s\n", SDL_GetError());

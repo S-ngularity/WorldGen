@@ -1,7 +1,7 @@
 #ifndef POSBST
 #define POSBST
 
-#include "map.h"
+#include "Pos.h"
 
 class NodePosBST
 {

@@ -1,132 +1,10 @@
-#include <stdio.h>
+//#include <stdio.h>
 #include <stdlib.h>
-#include "map.h"
-#include "posQueue.h"
-#include "posBST.h"
+#include "Map.h"
+#include "PosQueue.h"
+#include "PosBst.h"
 
 #define NULO -1
-
-// ----- ----- ----- ----- ----- ----- ----- ----- //
-
-Pos::Pos()
-{
-	x = 0;
-	y = 0;
-}
-
-Pos::Pos(int initX, int initY)
-{
-	x = initX;
-	y = initY;
-}
-
-int Pos::getX()
-{
-	return x;
-}
-
-int Pos::getY()
-{
-	return y;
-}
-
-void Pos::setPos(int newX, int newY)
-{
-	x = newX;
-	y = newY;
-}
-
-// ----- ----- ----- ----- ----- ----- ----- ----- //
-
-MapTile::MapTile() : pred(NULO, NULO)
-{
-	h = INIT_H;
-	chance = 0;
-	isSeed = false;
-	skip = false;
-	error = false;
-	seedLow = false;
-}
-
-// h
-int MapTile::getH()
-{
-	return h;
-}
-
-void MapTile::setH(int newH)
-{
-	h = newH;
-}
-
-
-// chance
-int MapTile::getChance()
-{
-	return chance;
-}
-
-void MapTile::setBaseChance()
-{
-	chance = rand() % 101;
-}
-
-void MapTile::lowerChance(MapTile prevTile)
-{
-	chance = prevTile.getChance() * ((rand() % 101) / 100) * MULTIPLIER;
-}
-
-// pred
-Pos MapTile::getPred()
-{
-	return pred;
-}
-
-void MapTile::setPred(Pos newPred)
-{
-	pred = newPred;
-}
-
-void MapTile::setPred(int predX, int predY)
-{
-	pred.setPos(predX, predY);
-}
-
-// isSeed
-bool MapTile::getIsSeed()
-{
-	return isSeed;
-}
-
-void MapTile::setIsSeed(bool newIsSeed)
-{
-	isSeed = newIsSeed;
-}
-
-
-// skip
-bool MapTile::getSkip()
-{
-	return skip;
-}
-
-void MapTile::setSkip(bool newSkip)
-{
-	skip = newSkip;
-}
-
-bool MapTile::getError()
-{
-	return error;
-}
-
-void MapTile::setError(bool newError)
-{
-	error = newError;
-}
-
-
-// ----- ----- ----- ----- ----- ----- ----- ----- //
 
 Map::Map()
 {
@@ -134,6 +12,10 @@ Map::Map()
 
 	for(int i = 0; i < MAPWIDTH; i++)
 		map[i] = new MapTile[MAPHEIGHT];
+
+	for(int y = 0; y < MAPHEIGHT; y++)
+		for(int x = 0; x < MAPWIDTH; x++)
+			Tile(x, y).setH(INIT_H);
 }
 
 Map::~Map()
@@ -146,29 +28,7 @@ Map::~Map()
 
 MapTile& Map::Tile(Pos p)
 {
-	if(isPosInsideWrap(p))
-	{
-		if(p.getX() < 0)
-			p.setPos(MAPWIDTH + p.getX(), p.getY());
-
-		else if(p.getX() >= MAPWIDTH)
-			p.setPos(0 + (p.getX() - MAPWIDTH), p.getY());
-	}
-
-/*if(isPosInsideWrap(p)) // WRAP IN Y (mudar isPosInsideWrap para só true)
-{
-	if(p.getY() < 0)
-		p.setPos(p.getX(), MAPHEIGHT + p.getY());
-
-	else if(p.getY() >= MAPHEIGHT)
-		p.setPos(p.getX(), 0 + (p.getY() - MAPHEIGHT));
-}//*/
-
-	if(isPosInsideNoWrap(p))
-		return map[p.getX()][p.getY()];
-
-	else
-		return map[0][0];
+	return Tile(p.getX(), p.getY());
 }
 
 MapTile& Map::Tile(int x, int y)
@@ -184,7 +44,7 @@ MapTile& Map::Tile(int x, int y)
 			tempPos.setPos(0 + (tempPos.getX() - MAPWIDTH), tempPos.getY());
 	}
 
-/*if(isPosInsideWrap(tempPos)) // WRAP IN Y
+/*if(isPosInsideWrap(tempPos)) // WRAP IN Y (mudar isPosInsideWrap para só true)
 {
 	if(tempPos.getY() < 0)
 		tempPos.setPos(tempPos.getX(), MAPHEIGHT + tempPos.getY());
@@ -228,9 +88,9 @@ Pos Map::insertSeedHigh(Pos seedPos, float highMultiplier)
 		deltaRange = (MAX_H - Tile(seedPos).getH()) * (highMultiplier / 100);
 
 	else
-		deltaRange = (Tile(seedPos).getH() + 1) * (highMultiplier / 100);
+		deltaRange = Tile(seedPos).getH() * (highMultiplier / 100);
 	
-	if(deltaRange == 0)
+	if(deltaRange < 1)
 		deltaRange = 1;
 
 	int deltaH = rand() % deltaRange;
@@ -256,7 +116,7 @@ Pos Map::insertSeedLow(Pos seedPos, float lowMultiplier)
 		deltaRange = (MAX_H - Tile(seedPos).getH()) * (lowMultiplier / 100);
 
 	else
-		deltaRange = (Tile(seedPos).getH() + 1) * (lowMultiplier / 100);
+		deltaRange = Tile(seedPos).getH() * (lowMultiplier / 100);
 
 	if(deltaRange < 1)
 		deltaRange = 1;
@@ -265,7 +125,6 @@ Pos Map::insertSeedLow(Pos seedPos, float lowMultiplier)
 
 	seedH = Tile(seedPos).getH() - deltaH;
 
-Tile(seedPos).seedLow = true;
 	Tile(seedPos).setH(seedH);
 	Tile(seedPos).setBaseChance();
 	Tile(seedPos).setPred(NULO, NULO);
@@ -278,7 +137,7 @@ Tile(seedPos).seedLow = true;
 //*
 void Map::insertHighArtifact(Pos seedPos, int deltaH)
 {
-	PosQueue currentQueue; //PosQueueLower	// Fila de posições
+	PosQueue currentQueue; //, PosQueueLower;	// Fila de posições
 
 	PosBST nextPosTree;
 
@@ -348,7 +207,7 @@ void Map::insertHighArtifact(Pos seedPos, int deltaH)
 
 void Map::insertLowArtifact(Pos seedPos, int deltaH)
 {
-	PosQueue currentQueue;//, PosQueueLower;	// Fila de posições
+	PosQueue currentQueue; //, PosQueueLower;	// Fila de posições
 
 	PosBST nextPosTree;
 
@@ -406,7 +265,7 @@ void Map::insertLowArtifact(Pos seedPos, int deltaH)
 			currentQueue.insert(auxPos);
 		}
 
-		if(hCurrent == 0) // se chegou no fim das inserções dessa seed, zera PosQueue Current
+		if(hCurrent == MAX_H) // se chegou no fim das inserções dessa seed, zera PosQueue Current
 			currentQueue.clearAll();
 	} // enquanto currentQueue não estiver vazia
 

@@ -1,7 +1,7 @@
 #ifndef POSQUEUE
 #define POSQUEUE
 
-#include "map.h"
+#include "Pos.h"
 
 class NodePosQueue
 {

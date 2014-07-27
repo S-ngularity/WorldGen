@@ -1,6 +1,5 @@
 #include <stdlib.h>
-#include <stdio.h>
-#include "posBST.h"
+#include "PosBst.h"
 
 NodePosBST::NodePosBST(Pos p, NodePosBST *l, NodePosBST *r) : pos(p)
 {

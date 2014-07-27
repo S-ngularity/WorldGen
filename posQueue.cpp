@@ -1,5 +1,5 @@
 #include <stdlib.h>
-#include "posQueue.h"
+#include "PosQueue.h"
 
 NodePosQueue::NodePosQueue(Pos p, NodePosQueue* n) : pos(p)
 {
