@@ -63,7 +63,7 @@ int main(int argc, char* args[])
 	bool readTectonics = true, readErosion = false;
 	bool doTectonics = false, doErosion = false;
 	int iteration, numIts, percentComplete;
-	int printWhenMod = 10;
+	int printWhenMod = 20;
 
 	//While application is running
 	while(!quit)
@@ -185,7 +185,8 @@ int main(int argc, char* args[])
 
 				cout << endl << endl << "Highest point: " << highestH << endl << endl;
 
-				renderMapNoSea();
+				//renderMapNoSea();
+				renderMap();
 				SDL_RenderPresent(Renderer);
 			}
 		}
@@ -213,7 +214,7 @@ int main(int argc, char* args[])
 						break;
 
 						case SDLK_DOWN:
-							if(!(event.key.keysym.mod & KMOD_SHIFT) && seaLevel + 1 < highestH)
+							if(!(event.key.keysym.mod & KMOD_SHIFT) && seaLevel - 1 > 0)
 							{
 								seaLevel -= 1;
 								cout << "\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b" << "Sea Level : " << setw(3) << setfill('0') << seaLevel;
