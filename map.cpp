@@ -153,32 +153,55 @@ void Map::insertHighArtifact(Pos seedPos, int deltaH)
 		{
 			Pos queuePos = currentQueue.remove();
 
-			// checa posições adjacentes a posição Current da PosQueue
-			for(int yOffset = -1; yOffset <= 1; yOffset++)
-				for(int xOffset = -1; xOffset <= 1; xOffset++)
+			for(int state = 1; state <= 4; state++)
+			{
+				int xOffset, yOffset;
+				
+				switch(state)
 				{
-					Pos adjPos(queuePos.getX() + xOffset, queuePos.getY() + yOffset);
+					case 1:
+						xOffset = 0;
+						yOffset = -1;
+					break;
 
-					if(isPosInsideWrap(adjPos) && hCurrent > Tile(adjPos).getH() && Tile(adjPos).getSkip() == false) // adjacente está dentro do mapa e é menor que altura Current
-					{
-						Tile(adjPos).setPred(queuePos);
-						//Tile(adjPos).setSkip(true);
+					case 2:
+						xOffset = 0;
+						yOffset = 1;
+					break;
 
-						// diminui ou não altura da adjacente baseado na chance de manter do Current
-						if(rand() % 100 <= Tile(queuePos).getChance()) // mantem altura e diminui chance dos próximos manterem
-						{
-							Tile(adjPos).setH(hCurrent);
-							Tile(adjPos).lowerChance(Tile(queuePos));
-							Tile(adjPos).setSkip(true);
+					case 3:
+						xOffset = -1;
+						yOffset = 0;
+					break;
 
-							currentQueue.insert(adjPos); // coloca tile de mesma altura na PosQueue de altura Current
-						}
-
-						else 
-							nextPosTree.insert(adjPos); // insere na PosQueue da próxima altura (diminui altura)
-							//PosQueueLower.insert(adjPos);
-					}
+					case 4:
+						xOffset = 1;
+						yOffset = 0;
+					break;
 				}
+
+				Pos adjPos(queuePos.getX() + xOffset, queuePos.getY() + yOffset);
+
+				if(isPosInsideWrap(adjPos) && hCurrent > Tile(adjPos).getH() && Tile(adjPos).getSkip() == false) // adjacente está dentro do mapa e é menor que altura Current
+				{
+					Tile(adjPos).setPred(queuePos);
+					//Tile(adjPos).setSkip(true);
+
+					// diminui ou não altura da adjacente baseado na chance de manter do Current
+					if(rand() % 100 <= Tile(queuePos).getChance()) // mantem altura e diminui chance dos próximos manterem
+					{
+						Tile(adjPos).setH(hCurrent);
+						Tile(adjPos).lowerChance(Tile(queuePos));
+						Tile(adjPos).setSkip(true);
+
+						currentQueue.insert(adjPos); // coloca tile de mesma altura na PosQueue de altura Current
+					}
+
+					else 
+						nextPosTree.insert(adjPos); // insere na PosQueue da próxima altura (diminui altura)
+						//PosQueueLower.insert(adjPos);
+				}
+			}
 		}
 
 		hCurrent--;
@@ -223,32 +246,55 @@ void Map::insertLowArtifact(Pos seedPos, int deltaH)
 		{
 			Pos queuePos = currentQueue.remove();
 
-			// checa posições adjacentes a posição Current da PosQueue
-			for(int yOffset = -1; yOffset <= 1; yOffset++)
-				for(int xOffset = -1; xOffset <= 1; xOffset++)
+			for(int state = 1; state <= 4; state++)
+			{
+				int xOffset, yOffset;
+
+				switch(state)
 				{
-					Pos adjPos(queuePos.getX() + xOffset, queuePos.getY() + yOffset);
+					case 1:
+						xOffset = 0;
+						yOffset = -1;
+					break;
 
-					if(isPosInsideWrap(adjPos) && hCurrent < Tile(adjPos).getH() && Tile(adjPos).getSkip() == false) // adjacente está dentro do mapa e é menor que altura Current
-					{
-						Tile(adjPos).setPred(queuePos);
-						//Tile(adjPos).setSkip(true);
+					case 2:
+						xOffset = 0;
+						yOffset = 1;
+					break;
 
-						// diminui ou não altura da adjacente baseado na chance de manter do Current
-						if(rand() % 100 <= Tile(queuePos).getChance()) // mantem altura e diminui chance dos próximos manterem
-						{
-							Tile(adjPos).setH(hCurrent);
-							Tile(adjPos).lowerChance(Tile(queuePos));
-							Tile(adjPos).setSkip(true);
+					case 3:
+						xOffset = -1;
+						yOffset = 0;
+					break;
 
-							currentQueue.insert(adjPos); // coloca tile de mesma altura na PosQueue de altura Current
-						}
-
-						else 
-							nextPosTree.insert(adjPos); // insere na PosQueue da próxima altura (diminui altura)
-							//PosQueueLower.insert(adjPos);
-					}
+					case 4:
+						xOffset = 1;
+						yOffset = 0;
+					break;
 				}
+				
+				Pos adjPos(queuePos.getX() + xOffset, queuePos.getY() + yOffset);
+
+				if(isPosInsideWrap(adjPos) && hCurrent < Tile(adjPos).getH() && Tile(adjPos).getSkip() == false) // adjacente está dentro do mapa e é menor que altura Current
+				{
+					Tile(adjPos).setPred(queuePos);
+					//Tile(adjPos).setSkip(true);
+
+					// diminui ou não altura da adjacente baseado na chance de manter do Current
+					if(rand() % 100 <= Tile(queuePos).getChance()) // mantem altura e diminui chance dos próximos manterem
+					{
+						Tile(adjPos).setH(hCurrent);
+						Tile(adjPos).lowerChance(Tile(queuePos));
+						Tile(adjPos).setSkip(true);
+
+						currentQueue.insert(adjPos); // coloca tile de mesma altura na PosQueue de altura Current
+					}
+
+					else 
+						nextPosTree.insert(adjPos); // insere na PosQueue da próxima altura (diminui altura)
+						//PosQueueLower.insert(adjPos);
+				}
+			}
 		}
 
 		hCurrent++;
