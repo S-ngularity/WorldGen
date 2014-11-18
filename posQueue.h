@@ -25,7 +25,7 @@ class PosQueue
 
 		void insert(Pos p);
 		Pos remove();
-		bool empty();
+		bool isEmpty();
 		void clearAll();
 };
 

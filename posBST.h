@@ -39,7 +39,7 @@ class PosBST
 
 		Pos removeHead();
 
-		bool empty();
+		bool isEmpty();
 };
 
 #endif

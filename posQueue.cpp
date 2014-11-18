@@ -14,7 +14,7 @@ PosQueue::PosQueue()
 
 void PosQueue::insert(Pos p)
 {
-	if(empty())
+	if(isEmpty())
 	{
 		head = new NodePosQueue(p, NULL);
 		tail = head;
@@ -34,7 +34,7 @@ Pos PosQueue::remove()
 
 	head = head->next;
 
-	if(empty())
+	if(isEmpty())
 		tail = NULL;
 
 	delete tempNode;
@@ -42,7 +42,7 @@ Pos PosQueue::remove()
 	return tempPos;
 }
 
-bool PosQueue::empty()
+bool PosQueue::isEmpty()
 {
 	if(head == NULL)
 		return true;
@@ -54,7 +54,7 @@ void PosQueue::clearAll()
 {
 	NodePosQueue *tempNode;
 
-	while(!empty())
+	while(!isEmpty())
 	{
 		tempNode = head;
 		head = head->next;

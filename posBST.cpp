@@ -270,7 +270,7 @@ Pos PosBST::removeHead()
 	return remPos;
 }
 
-bool PosBST::empty()
+bool PosBST::isEmpty()
 {
 	if(head == NULL)
 		return true;

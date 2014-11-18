@@ -11,7 +11,7 @@
 
 using namespace std;
 
-#define MULTIPLIER_SCREENSIZE 2
+#define MULTIPLIER_SCREENSIZE 1
 
 const int SCREEN_WIDTH = MAPWIDTH * MULTIPLIER_SCREENSIZE;
 const int SCREEN_HEIGHT = MAPHEIGHT * MULTIPLIER_SCREENSIZE;
@@ -184,6 +184,7 @@ int main(int argc, char* args[])
 							highestH = map.Tile(x, y).getH();
 
 				cout << endl << endl << "Highest point: " << highestH << endl << endl;
+				cout << "Sea Level : " << setw(3) << setfill('0') << seaLevel;
 
 				//renderMapNoSea();
 				renderMap();
