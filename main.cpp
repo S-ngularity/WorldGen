@@ -335,7 +335,7 @@ void renderMap()
 	SDL_RenderClear(Renderer);
 
 	int baseColor = 100;
-	float multiplierColor = (255 - baseColor) / (highestH - seaLevel);
+	float multiplierColor = (float)(255 - baseColor) / (highestH - seaLevel);
 
 	for(int y = 0, contY = 0; y < MAPHEIGHT; contY++)
 	{
@@ -387,7 +387,7 @@ void renderMapNoSea()
 	SDL_RenderClear(Renderer);
 
 	int baseColor = 0;
-	float multiplierColor = (255 - baseColor) / MAX_H;
+	float multiplierColor = (float)(255 - baseColor) / MAX_H;
 
 	for(int y = 0, contY = 0; y < MAPHEIGHT; contY++)
 	{
