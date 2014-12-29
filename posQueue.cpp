@@ -12,6 +12,11 @@ PosQueue::PosQueue()
 	tail = NULL;
 }
 
+PosQueue::~PosQueue()
+{
+	clearAll();
+}
+
 void PosQueue::insert(Pos p)
 {
 	if(isEmpty())

@@ -22,6 +22,7 @@ class PosQueue
 
 	public:
 		PosQueue();
+		~PosQueue();
 
 		void insert(Pos p);
 		Pos remove();
