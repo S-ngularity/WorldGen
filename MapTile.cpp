@@ -1,6 +1,8 @@
 #include <stdlib.h>
 #include "MapTile.h"
 
+#include "Pos.h" // pred
+
 #define NULO -1
 
 MapTile::MapTile() : pred(NULO, NULO)

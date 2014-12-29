@@ -1,7 +1,7 @@
 #ifndef MAPTILE
 #define MAPTILE
 
-#include "Pos.h"
+#include "Pos.h" // pred
 
 #define MULTIPLIER 1
 
@@ -26,7 +26,7 @@ class MapTile
 
 		int getChance();
 		void setBaseChance(); // set chance de próximos tiles manterem altura
-		void lowerChance(MapTile prevTile); // diminui a chance da nova posição baseada na chance da posição anterior, retorna nova chance
+		void lowerChance(MapTile prevTile); // diminui a chance desse tile baseada na chance do tile passado
 
 		Pos getPred();
 		void setPred(Pos newPred);

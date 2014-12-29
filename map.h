@@ -18,10 +18,6 @@ class Map
 	private:
 		MapTile **map;
 
-		// funções de inserção de seeds -- retornam posição da seed inserida
-		Pos insertSeedHigh(Pos seedPos, float highMultiplier);
-		Pos insertSeedLow(Pos seedPos, float lowMultiplier);
-
 	public:
 		Map();
 		~Map();
@@ -31,10 +27,6 @@ class Map
 
 		bool isPosInsideNoWrap(Pos p);
 		bool isPosInsideWrap(Pos p);
-
-		// funções de inserção de artefatos
-		void insertHighArtifact(Pos seedPos, int deltaH);
-		void insertLowArtifact(Pos seedPos, int deltaH);
 };
 
 #endif
