@@ -130,8 +130,8 @@ void renderMap()
 	SDL_SetRenderDrawColor(Renderer, 255, 255, 255, 255);
 	SDL_RenderClear(Renderer);
 
-	int baseColor = 100;
-	float multiplierColor = (float)(255 - baseColor) / (highestH - seaLevel);
+	//int baseColor = 100;
+	//float multiplierColor = (float)(255 - baseColor) / (highestH - seaLevel);
 
 	for(int y = 0, contY = 0; y < MAPHEIGHT; contY++)
 	{
@@ -159,12 +159,26 @@ void renderMap()
 			else if(map.Tile(x, y).getH() <= seaLevel)
 				SDL_SetRenderDrawColor(Renderer, 25, 45, 85, 255);//SDL_SetRenderDrawColor(Renderer, 0, 0, 0, 255);//
 
-			else
+			/*
+			else // BRANCO VARIAVEL
 			{
+				int baseColor = 100;
+				float multiplierColor = (float)(255 - baseColor) / (highestH - seaLevel);
 				int hColor = (map.Tile(x, y).getH() - seaLevel) * multiplierColor;
 
 				SDL_SetRenderDrawColor(Renderer, baseColor + hColor, baseColor + hColor, baseColor + hColor, 255);
-			}
+			}//*/
+			//*
+			else // BRANCO FIXO
+			{
+				int baseColor = 0;
+				//float multiplierColor = (float)(255 - baseColor) / MAX_H;
+				//int hColor = map.Tile(x, y).getH() * multiplierColor;
+				float multiplierColor = (float)(255 - baseColor) / (MAX_H - seaLevel);
+				int hColor = (map.Tile(x, y).getH() - seaLevel) * multiplierColor;
+
+				SDL_SetRenderDrawColor(Renderer, baseColor + hColor, baseColor + hColor, baseColor + hColor, 255);
+			}//*/
 
 			SDL_RenderDrawPoint(Renderer, x * MULTIPLIER_SCREENSIZE + contX, y * MULTIPLIER_SCREENSIZE + contY);
 		}

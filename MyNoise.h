@@ -42,8 +42,8 @@ class MyNoise
 		Pos insertSeedLow(Pos seedPos, float rangeMultiplier);
 
 		// funções de inserção de artefatos
-		void insertHighArtifact(Pos seedPos, int rangeMultiplier);
-		void insertLowArtifact(Pos seedPos, int rangeMultiplier);
+		void insertHighArtifact(Pos seedPos, float rangeMultiplier);
+		void insertLowArtifact(Pos seedPos, float rangeMultiplier);
 
 	public:
 		MyNoise(Map &theMap);

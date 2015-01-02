@@ -199,7 +199,7 @@ void MyNoise::tectonics()
 	if(floatComplete < 0.1)
 	{
 		seedPos.setPos((rand() % MAPWIDTH), (rand() % MAPHEIGHT));
-		insertHighArtifact(seedPos, 100);
+		insertHighArtifact(seedPos, 1);
 	}
 
 	else
@@ -207,43 +207,55 @@ void MyNoise::tectonics()
 		if(rand() % 2 == 0)
 		{
 			seedPos.setPos((rand() % MAPWIDTH), (rand() % MAPHEIGHT));
-			insertHighArtifact(seedPos, 100);
+			insertHighArtifact(seedPos, 1);
 		}
 
 		else
 		{
 			seedPos.setPos((rand() % MAPWIDTH), (rand() % MAPHEIGHT));
 
-			insertLowArtifact(seedPos, 100);
+			insertLowArtifact(seedPos, 1);
 		}
 	}
 }
 
 void MyNoise::erosion()
 {
-	int rangeMultiplier;
+	float rangeMultiplier;
 	Pos seedPos;
 
 	float floatComplete = ((float)iteration / numIts);
 
 	if(floatComplete < 0.30)
-		rangeMultiplier = 30;
+		rangeMultiplier = 0.3;
 
 	else if(floatComplete < 0.60)
-		rangeMultiplier = 20;
+		rangeMultiplier = 0.2;
 
 	else
-		rangeMultiplier = 10;
+		rangeMultiplier = 0.1;
 
-	do{
-		seedPos.setPos((rand() % MAPWIDTH), (rand() % MAPHEIGHT));
-	}while(map.Tile(seedPos.getX(), seedPos.getY()).getH() <= SEA - SEA * 0.2);
+
 
 	if(rand() % 2 == 0)
+	{
+		// evita criar montanhas submarinas que não tenham possibilidade de virar ilhas (mas faz mapa tender a alturas maiores no geral)
+		do{
+			seedPos.setPos((rand() % MAPWIDTH), (rand() % MAPHEIGHT));
+		}while(map.Tile(seedPos.getX(), seedPos.getY()).getH() <= SEA - SEA * 0.5 * rangeMultiplier);
+
 		insertHighArtifact(seedPos, rangeMultiplier);
+	}
 
 	else
+	{
+		// adicionei por simetria àcima, porém não sei porque torna (ou não) mapas melhores (mais altura entre mar e pico mais alto)
+		//do{
+			seedPos.setPos((rand() % MAPWIDTH), (rand() % MAPHEIGHT));
+		//}while(map.Tile(seedPos.getX(), seedPos.getY()).getH() <= SEA - SEA * 0.5);// - SEA * 0.5);
+
 		insertLowArtifact(seedPos, rangeMultiplier);
+	}
 }
 
 
@@ -258,10 +270,10 @@ Pos MyNoise::insertSeedHigh(Pos seedPos, float rangeMultiplier)
 	int deltaRange;// = (MAX_H - map.Tile(seedPos).getH()) * (highMultplier / 100);
 
 	if(map.Tile(seedPos).getH() > MAX_H / 2)
-		deltaRange = (MAX_H - map.Tile(seedPos).getH()) * (rangeMultiplier / 100);
+		deltaRange = (MAX_H - map.Tile(seedPos).getH()) * rangeMultiplier;
 
 	else
-		deltaRange = map.Tile(seedPos).getH() * (rangeMultiplier / 100);
+		deltaRange = map.Tile(seedPos).getH() * rangeMultiplier;
 	
 	if(deltaRange < 1)
 		deltaRange = 1;
@@ -284,10 +296,10 @@ Pos MyNoise::insertSeedLow(Pos seedPos, float rangeMultiplier)
 	int deltaRange;
 
 	if(map.Tile(seedPos).getH() > MAX_H / 2)
-		deltaRange = (MAX_H - map.Tile(seedPos).getH()) * (rangeMultiplier / 100);
+		deltaRange = (MAX_H - map.Tile(seedPos).getH()) * rangeMultiplier;
 
 	else
-		deltaRange = map.Tile(seedPos).getH() * (rangeMultiplier / 100);
+		deltaRange = map.Tile(seedPos).getH() * rangeMultiplier;
 
 	if(deltaRange < 1)
 		deltaRange = 1;
@@ -304,7 +316,7 @@ Pos MyNoise::insertSeedLow(Pos seedPos, float rangeMultiplier)
 }
 
 //*
-void MyNoise::insertHighArtifact(Pos seedPos, int rangeMultiplier)
+void MyNoise::insertHighArtifact(Pos seedPos, float rangeMultiplier)
 {
 	PosQueue currentQueue, nextQueue;	// filas de posições
 
@@ -357,14 +369,17 @@ void MyNoise::insertHighArtifact(Pos seedPos, int rangeMultiplier)
 					// diminui ou não altura da adjacente baseado na chance de manter do hCurrent
 					if(rand() % 100 <= map.Tile(currentPos).getChance()) // mantem altura e diminui chance dos próximos manterem
 					{
-						map.Tile(adjPos).setH(hCurrent);
+						map.Tile(adjPos).setH(hCurrent); // também evita reroll
 						map.Tile(adjPos).lowerChance(map.Tile(currentPos));
 
 						currentQueue.insert(adjPos); // coloca tile de mesma altura na currentQueue de altura Current
 					}
 
-					else 
-						nextQueue.insert(adjPos); // insere na PosBST da próxima altura (se não for repetido)
+					else
+					{
+						map.Tile(adjPos).setH(hCurrent); // "FLAG" PARA EVITAR REROLL, SERÁ REESCRITA COM ALTURA MENOR NA PASSAGEM DE NEXTQUEUE PRA CURRENTQUEUE
+						nextQueue.insert(adjPos); // insere na queue da próxima altura
+					}
 				}
 			} // para todos os vizinhos
 		} // de cada um dos tiles da current queue
@@ -385,7 +400,7 @@ void MyNoise::insertHighArtifact(Pos seedPos, int rangeMultiplier)
 }
 
 
-void MyNoise::insertLowArtifact(Pos seedPos, int rangeMultiplier)
+void MyNoise::insertLowArtifact(Pos seedPos, float rangeMultiplier)
 {
 	PosQueue currentQueue, nextQueue;	// filas de posições
 
@@ -444,8 +459,11 @@ void MyNoise::insertLowArtifact(Pos seedPos, int rangeMultiplier)
 						currentQueue.insert(adjPos); // coloca tile de mesma altura na currentQueue de altura Current
 					}
 
-					else 
-						nextQueue.insert(adjPos); // insere na PosBST da próxima altura (se não for repetido)
+					else
+					{
+						map.Tile(adjPos).setH(hCurrent); // "FLAG" PARA EVITAR REROLL, SERÁ REESCRITA COM ALTURA MENOR NA PASSAGEM DE NEXTQUEUE PRA CURRENTQUEUE
+						nextQueue.insert(adjPos); // insere na queue da próxima altura
+					}
 				}
 			} // para todos os vizinhos
 		} // de cada um dos tiles da current queue
