@@ -2,6 +2,7 @@
 #include <iomanip>
 
 #include <stdlib.h>
+#include <stdio.h>
 #include <time.h>
 
 #include "MyNoise.h"
@@ -15,6 +16,7 @@ using namespace std;
 
 MyNoise::MyNoise(Map &theMap) : map(theMap)
 {
+	alreadySaved = false;
 	state = readTect;
 	shouldUpdateScreen = NO;
 
@@ -170,6 +172,20 @@ void MyNoise::runOnce()
 		break;
 
 		case done:
+			if(!alreadySaved) // SALVAR UMA VEZ RESULTADO EM TGA
+			{
+				unsigned char *imageData;
+				imageData = (unsigned char*)malloc(sizeof(unsigned char) * MAPWIDTH * MAPHEIGHT);
+
+				for(int y = 0; y < MAPHEIGHT; y++)
+					for(int x = 0; x < MAPWIDTH; x++)
+						imageData[y * MAPWIDTH + x] = (unsigned char)((int)(((float)map.Tile(x, y).getH() / MAX_H) * 256.0));
+
+				tgaSave("t.tga", MAPWIDTH, MAPHEIGHT, 8, imageData);
+
+				alreadySaved = true;
+
+			}
 		break;
 	}
 }
@@ -636,3 +652,64 @@ void MyNoise::insertLowArtifact(Pos seedPos, int deltaH)
 				map.Tile(x, y).setSkip(false);
 }
 //*/
+
+
+// função para salvar em tga, adaptada de "Antonio Ramires Fernandes ajbrf@yahoo.com" - http://www.lighthouse3d.com/opengl/terrain/index.php3?tgalib
+int MyNoise::tgaSave(char			*filename, 
+			 short int		width, 
+			 short int		height, 
+			 unsigned char	pixelDepth,
+			 unsigned char	*imageData) {
+
+	unsigned char cGarbage = 0, type,mode,aux;
+	short int iGarbage = 0;
+	int i;
+	FILE *file;
+
+// open file and check for errors
+	file = fopen(filename, "wb");
+	if (file == NULL) {
+		return(-1);
+	}
+
+// compute image type: 2 for RGB(A), 3 for greyscale
+	mode = pixelDepth / 8;
+	if ((pixelDepth == 24) || (pixelDepth == 32))
+		type = 2;
+	else
+		type = 3;
+
+// write the header
+	fwrite(&cGarbage, sizeof(unsigned char), 1, file);
+	fwrite(&cGarbage, sizeof(unsigned char), 1, file);
+
+	fwrite(&type, sizeof(unsigned char), 1, file);
+
+	fwrite(&iGarbage, sizeof(short int), 1, file);
+	fwrite(&iGarbage, sizeof(short int), 1, file);
+	fwrite(&cGarbage, sizeof(unsigned char), 1, file);
+	fwrite(&iGarbage, sizeof(short int), 1, file);
+	fwrite(&iGarbage, sizeof(short int), 1, file);
+
+	fwrite(&width, sizeof(short int), 1, file);
+	fwrite(&height, sizeof(short int), 1, file);
+	fwrite(&pixelDepth, sizeof(unsigned char), 1, file);
+
+	fwrite(&cGarbage, sizeof(unsigned char), 1, file);
+
+// convert the image data from RGB(a) to BGR(A)
+	if (mode >= 3)
+	for (i=0; i < width * height * mode ; i+= mode) {
+		aux = imageData[i];
+		imageData[i] = imageData[i+2];
+		imageData[i+2] = aux;
+	}
+
+// save the image data
+	fwrite(imageData, sizeof(unsigned char), width * height * mode, file);
+	fclose(file);
+// release the memory
+	free(imageData);
+
+	return(0);
+}

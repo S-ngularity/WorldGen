@@ -16,6 +16,8 @@ typedef enum {readTect = 0, doTect, readEro, doEro, done} State;
 class MyNoise
 {
 	private:
+		bool alreadySaved; // PARA SALVAR IMAGEM UMA VEZ
+
 		Map &map;
 
 		State state;
@@ -53,6 +55,13 @@ class MyNoise
 		int askingForScreenUpdate();
 
 		int getHighestH();
+
+		// função adaptada da tgaLib
+		int tgaSave(char			*filename, 
+			 short int		width, 
+			 short int		height, 
+			 unsigned char	pixelDepth,
+			 unsigned char	*imageData);
 };
 
 #endif
