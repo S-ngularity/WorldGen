@@ -12,10 +12,8 @@
 
 using namespace std;
 
-#define MULTIPLIER_SCREENSIZE 1
-
-const int SCREEN_WIDTH = MAPWIDTH * MULTIPLIER_SCREENSIZE;
-const int SCREEN_HEIGHT = MAPHEIGHT * MULTIPLIER_SCREENSIZE;
+const int SCREEN_WIDTH = MAPWIDTH;
+const int SCREEN_HEIGHT = MAPHEIGHT;
 
 //The window we'll be rendering to
 SDL_Window *Window = NULL;
@@ -133,22 +131,9 @@ void renderMap()
 	//int baseColor = 100;
 	//float multiplierColor = (float)(255 - baseColor) / (highestH - seaLevel);
 
-	for(int y = 0, contY = 0; y < MAPHEIGHT; contY++)
-	{
-		if(contY == MULTIPLIER_SCREENSIZE)
+	for(int y = 0; y < MAPHEIGHT; y++)
+		for(int x = 0; x < MAPWIDTH; x++)
 		{
-			contY = 0;
-			y++;
-		}
-
-		for(int x = 0, contX = 0; x < MAPWIDTH; contX++)
-		{
-			if(contX == MULTIPLIER_SCREENSIZE)
-			{
-				contX = 0;
-				x++;
-			}
-
 			if(map.Tile(x, y).getError() == true)
 				SDL_SetRenderDrawColor(Renderer, 100, 0, 0, 255);
 			/*
@@ -180,9 +165,8 @@ void renderMap()
 				SDL_SetRenderDrawColor(Renderer, baseColor + hColor, baseColor + hColor, baseColor + hColor, 255);
 			}//*/
 
-			SDL_RenderDrawPoint(Renderer, x * MULTIPLIER_SCREENSIZE + contX, y * MULTIPLIER_SCREENSIZE + contY);
+			SDL_RenderDrawPoint(Renderer, x, y);
 		}
-	}
 }
 
 void renderMapNoSea()
@@ -194,22 +178,9 @@ void renderMapNoSea()
 	int baseColor = 0;
 	float multiplierColor = (float)(255 - baseColor) / MAX_H;
 
-	for(int y = 0, contY = 0; y < MAPHEIGHT; contY++)
-	{
-		if(contY == MULTIPLIER_SCREENSIZE)
+	for(int y = 0; y < MAPHEIGHT; y++)
+		for(int x = 0; x < MAPWIDTH; x++)
 		{
-			contY = 0;
-			y++;
-		}
-
-		for(int x = 0, contX = 0; x < MAPWIDTH; contX++)
-		{
-			if(contX == MULTIPLIER_SCREENSIZE)
-			{
-				contX = 0;
-				x++;
-			}
-
 			if(map.Tile(x, y).getError() == true)
 				SDL_SetRenderDrawColor(Renderer, 100, 0, 0, 255);
 			/*
@@ -227,9 +198,8 @@ void renderMapNoSea()
 				SDL_SetRenderDrawColor(Renderer, baseColor + hColor, baseColor + hColor, baseColor + hColor, 255);
 			}
 
-			SDL_RenderDrawPoint(Renderer, x * MULTIPLIER_SCREENSIZE + contX, y * MULTIPLIER_SCREENSIZE + contY);
+			SDL_RenderDrawPoint(Renderer, x, y);
 		}
-	}
 }
 
 bool SDLStart()
