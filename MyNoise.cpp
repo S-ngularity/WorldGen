@@ -5,12 +5,13 @@
 #include <stdio.h>
 #include <time.h>
 
+#include <queue>
+
 #include "MyNoise.h"
 
 #include "Map.h"
 #include "MapTile.h"
 #include "Pos.h"
-#include "PosQueue.h"
 
 using namespace std;
 
@@ -179,7 +180,13 @@ void MyNoise::runOnce()
 
 				for(int y = 0; y < MAPHEIGHT; y++)
 					for(int x = 0; x < MAPWIDTH; x++)
-						imageData[y * MAPWIDTH + x] = (unsigned char)((int)(((float)map.Tile(x, y).getH() / MAX_H) * 256.0));
+					{
+						if(map.Tile(x, y).getH() <= SEA)
+							imageData[y * MAPWIDTH + x] = (unsigned char)(((float)(SEA - 1) / MAX_H) * 256.0);
+
+						else
+							imageData[y * MAPWIDTH + x] = (unsigned char)((int)(((float)map.Tile(x, y).getH() / MAX_H) * 256.0));
+					}
 
 				tgaSave("t.tga", MAPWIDTH, MAPHEIGHT, 8, imageData);
 
@@ -334,19 +341,20 @@ Pos MyNoise::insertSeedLow(Pos seedPos, float rangeMultiplier)
 //*
 void MyNoise::insertHighArtifact(Pos seedPos, float rangeMultiplier)
 {
-	PosQueue currentQueue, nextQueue;	// filas de posições
+	queue<Pos> currentQueue, nextQueue;	// filas de posições
 
 	Pos currentPos = insertSeedHigh(seedPos, rangeMultiplier);
 
 	int hCurrent = map.Tile(currentPos).getH(); // altura sendo trabalhada; começa com do seed
 
-	currentQueue.insert(currentPos);
+	currentQueue.push(currentPos);
 
-	while(hCurrent >= 0 && !currentQueue.isEmpty())
+	while(hCurrent >= 0 && !currentQueue.empty())
 	{
-		while(!currentQueue.isEmpty()) // checa toda a currentQueue
+		while(!currentQueue.empty()) // checa toda a currentQueue
 		{
-			currentPos = currentQueue.remove();
+			currentPos = currentQueue.front();
+			currentQueue.pop();
 
 			for(int state = 1; state <= 4; state++)
 			{
@@ -388,13 +396,13 @@ void MyNoise::insertHighArtifact(Pos seedPos, float rangeMultiplier)
 						map.Tile(adjPos).setH(hCurrent); // também evita reroll
 						map.Tile(adjPos).lowerChance(map.Tile(currentPos));
 
-						currentQueue.insert(adjPos); // coloca tile de mesma altura na currentQueue de altura Current
+						currentQueue.push(adjPos); // coloca tile de mesma altura na currentQueue de altura Current
 					}
 
 					else
 					{
 						map.Tile(adjPos).setH(hCurrent); // "FLAG" PARA EVITAR REROLL, SERÁ REESCRITA COM ALTURA MENOR NA PASSAGEM DE NEXTQUEUE PRA CURRENTQUEUE
-						nextQueue.insert(adjPos); // insere na queue da próxima altura
+						nextQueue.push(adjPos); // insere na queue da próxima altura
 					}
 				}
 			} // para todos os vizinhos
@@ -403,14 +411,15 @@ void MyNoise::insertHighArtifact(Pos seedPos, float rangeMultiplier)
 		hCurrent--;
 
 		// passa tiles da próxima altura pra fila atual
-		while(!nextQueue.isEmpty())
+		while(!nextQueue.empty())
 		{
-			Pos auxPos = nextQueue.remove();
+			Pos auxPos = nextQueue.front();
+			nextQueue.pop();
 
 			map.Tile(auxPos).setH(hCurrent);
 			map.Tile(auxPos).setBaseChance();
 			
-			currentQueue.insert(auxPos);
+			currentQueue.push(auxPos);
 		}
 	} // enquanto não chegar no limite min/max de altura e tiver vizinhos válidos
 }
@@ -418,19 +427,20 @@ void MyNoise::insertHighArtifact(Pos seedPos, float rangeMultiplier)
 
 void MyNoise::insertLowArtifact(Pos seedPos, float rangeMultiplier)
 {
-	PosQueue currentQueue, nextQueue;	// filas de posições
+	queue<Pos> currentQueue, nextQueue;	// filas de posições
 
 	Pos currentPos = insertSeedLow(seedPos, rangeMultiplier);
 
 	int hCurrent = map.Tile(currentPos).getH(); // altura sendo trabalhada; começa com do seed
 
-	currentQueue.insert(currentPos);
+	currentQueue.push(currentPos);
 
-	while(hCurrent < MAX_H && !currentQueue.isEmpty())
+	while(hCurrent < MAX_H && !currentQueue.empty())
 	{
-		while(!currentQueue.isEmpty()) // checa toda a currentQueue
+		while(!currentQueue.empty()) // checa toda a currentQueue
 		{
-			currentPos = currentQueue.remove();
+			currentPos = currentQueue.front();
+			currentQueue.pop();
 
 			for(int state = 1; state <= 4; state++)
 			{
@@ -472,13 +482,13 @@ void MyNoise::insertLowArtifact(Pos seedPos, float rangeMultiplier)
 						map.Tile(adjPos).setH(hCurrent);
 						map.Tile(adjPos).lowerChance(map.Tile(currentPos));
 
-						currentQueue.insert(adjPos); // coloca tile de mesma altura na currentQueue de altura Current
+						currentQueue.push(adjPos); // coloca tile de mesma altura na currentQueue de altura Current
 					}
 
 					else
 					{
 						map.Tile(adjPos).setH(hCurrent); // "FLAG" PARA EVITAR REROLL, SERÁ REESCRITA COM ALTURA MENOR NA PASSAGEM DE NEXTQUEUE PRA CURRENTQUEUE
-						nextQueue.insert(adjPos); // insere na queue da próxima altura
+						nextQueue.push(adjPos); // insere na queue da próxima altura
 					}
 				}
 			} // para todos os vizinhos
@@ -487,14 +497,15 @@ void MyNoise::insertLowArtifact(Pos seedPos, float rangeMultiplier)
 		hCurrent++;
 
 		// passa tiles da próxima altura pra fila atual
-		while(!nextQueue.isEmpty())
+		while(!nextQueue.empty())
 		{
-			Pos auxPos = nextQueue.remove();
+			Pos auxPos = nextQueue.front();
+			nextQueue.pop();
 
 			map.Tile(auxPos).setH(hCurrent);
 			map.Tile(auxPos).setBaseChance();
 			
-			currentQueue.insert(auxPos);
+			currentQueue.push(auxPos);
 		}
 	} // enquanto não chegar no limite min/max de altura e tiver vizinhos válidos
 }
@@ -508,11 +519,12 @@ void MyNoise::insertHighArtifact(Pos seedPos, int deltaH)
 
 	Pos auxPos = insertSeedHigh(seedPos, deltaH);
 
-	currentQueue.insert(auxPos);
+	currentQueue.push(auxPos);
 
-	while(!currentQueue.isEmpty()) // checa toda a PosQueue
+	while(!currentQueue.empty()) // checa toda a PosQueue
 	{
-		Pos currentPos = currentQueue.remove();
+		Pos currentPos = currentQueue.front();
+		currentQueue.pop();
 
 		for(int state = 1; state <= 4; state++)
 		{
@@ -564,7 +576,7 @@ void MyNoise::insertHighArtifact(Pos seedPos, int deltaH)
 					map.Tile(adjPos).setBaseChance();
 				}
 
-				currentQueue.insert(adjPos); // coloca tile de mesma altura na PosQueue de altura Current
+				currentQueue.push(adjPos); // coloca tile de mesma altura na PosQueue de altura Current
 			}
 		}
 	}
@@ -584,11 +596,12 @@ void MyNoise::insertLowArtifact(Pos seedPos, int deltaH)
 
 	Pos auxPos = insertSeedLow(seedPos, deltaH);
 
-	currentQueue.insert(auxPos);
+	currentQueue.push(auxPos);
 
-	while(!currentQueue.isEmpty()) // checa toda a PosQueue
+	while(!currentQueue.empty()) // checa toda a PosQueue
 	{
-		Pos currentPos = currentQueue.remove();
+		Pos currentPos = currentQueue.front();
+		currentQueue.pop();
 
 		for(int state = 1; state <= 4; state++)
 		{
@@ -640,7 +653,7 @@ void MyNoise::insertLowArtifact(Pos seedPos, int deltaH)
 					map.Tile(adjPos).setBaseChance();
 				}
 
-				currentQueue.insert(adjPos); // coloca tile de mesma altura na PosQueue de altura Current
+				currentQueue.push(adjPos); // coloca tile de mesma altura na PosQueue de altura Current
 			}
 		}
 	}

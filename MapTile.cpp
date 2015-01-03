@@ -34,7 +34,7 @@ int MapTile::getChance()
 
 void MapTile::setBaseChance()
 {
-	chance = rand() % 101;
+	chance = 50 + rand() % 51;
 }
 
 void MapTile::lowerChance(MapTile prevTile)
