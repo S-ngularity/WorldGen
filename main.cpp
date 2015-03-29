@@ -15,30 +15,36 @@ using namespace std;
 const int SCREEN_WIDTH = MAPWIDTH;
 const int SCREEN_HEIGHT = MAPHEIGHT;
 
-//The window we'll be rendering to
+// ask for update at every X percent completed
+#define UPDATE_AT_PERCENT 20
+
+// map sea & land render modes
+#define NO_SEA 0
+#define WITH_SEA 1
+#define VARYING_HIGHEST 0
+#define VARYING_MAX 1
+#define FIXED 2
+
 SDL_Window *Window = NULL;
-
-//The window renderer
 SDL_Renderer *Renderer = NULL;
-
+SDL_Texture *mapTexture = NULL;
 SDL_Event event;
+
+Uint32 *mapPixels = (Uint32*) malloc(sizeof(Uint32) * MAPWIDTH * MAPHEIGHT);
 
 //funções SDL
 bool SDLStart();
 void SDLClose();
 
-void renderMap();
-void renderMapNoSea();
+void renderMapTex(int seaMode, int landMode);
 
 Map map;
 MyNoise noise(map);
 
-int seaLevel;
-int highestH;
+int seaLevel = SEA_LEVEL;
 
 int main(int argc, char* args[])
 {
-	seaLevel = SEA;
 	/*// seed manual (barra no começo dessa linha para mudar)
 	int seed;
 	cout << "Seed: ";
@@ -55,25 +61,57 @@ int main(int argc, char* args[])
 		return -1;
 	}
 
-	renderMapNoSea();
+	int seaRenderMode = NO_SEA, landRenderMode = FIXED;
 
+	renderMapTex(seaRenderMode, landRenderMode);
+
+	bool alreadyUpdated = false;
+	int shownPercent = 0;
+	bool updateTexture = false;
 	bool quit;
-	int asking;
 
 	//While application is running
 	while(!quit)
 	{
-		noise.runOnce();
+		if(!noise.isDone()) // noise iterations
+		{
+			noise.runOnce();
 
-		highestH = noise.getHighestH();
+			if(noise.getPercentComplete() != shownPercent)
+			{
+				shownPercent = noise.getPercentComplete();
 
-		asking = noise.askingForScreenUpdate();
+				cout << "\b\b\b\b" << shownPercent << "%";
 
-		if(asking == WITHOUT_SEA)
-			renderMapNoSea();
+				if(shownPercent == 100) // show highest at each phase
+					cout << endl << endl << "Highest point: " << noise.getHighestH() << endl << endl;
 
-		else if(asking == WITH_SEA)
-			renderMap();
+				bool shouldUpdate = shownPercent % UPDATE_AT_PERCENT == 0;
+				
+				if(shouldUpdate && !alreadyUpdated) // update only once per percent
+				{
+					alreadyUpdated = true;
+
+					if(!noise.isDone()) // no sea while not done
+					{
+						seaRenderMode = NO_SEA;
+						landRenderMode = FIXED;
+						updateTexture = true;
+					}
+
+					else
+					{
+						seaRenderMode = WITH_SEA;
+						landRenderMode = VARYING_HIGHEST;
+						updateTexture = true; // last noise print
+						cout << "Sea Level : " << setw(3) << setfill('0') << SEA_LEVEL;
+					}
+				}
+
+				else if (!shouldUpdate)
+					alreadyUpdated = false;
+			}
+		}
 		
 		//Handle events on queue
 		while(SDL_PollEvent(&event))
@@ -88,118 +126,157 @@ int main(int argc, char* args[])
 					switch(event.key.keysym.sym)
 					{
 						case SDLK_UP:
-							if(!(event.key.keysym.mod & KMOD_SHIFT) && seaLevel + 1 < highestH)
+							// up always shows sea
+							if(seaRenderMode != WITH_SEA)
+							{
+								seaRenderMode = WITH_SEA;
+								updateTexture = true;
+							}
+
+							// up = +1 sea_lvl when with_sea
+							else if(!(event.key.keysym.mod & KMOD_SHIFT) && seaLevel + 1 < noise.getHighestH())
 							{
 								seaLevel += 1;
 								cout << "\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b" << "Sea Level : " << setw(3) << setfill('0') << seaLevel;
+								
+								seaRenderMode = WITH_SEA;
+								updateTexture = true;
 							}
-
-							renderMap();
 						break;
 
 						case SDLK_DOWN:
-							if(!(event.key.keysym.mod & KMOD_SHIFT) && seaLevel - 1 > 0)
+							// shift+down = no_sea (no update when not needed)
+							if(event.key.keysym.mod & KMOD_SHIFT && seaRenderMode != NO_SEA)
+							{
+								seaRenderMode = NO_SEA;
+								landRenderMode = FIXED;
+								updateTexture = true;
+							}
+
+							// down = -1 sealvl when with_sea
+							else if(!(event.key.keysym.mod & KMOD_SHIFT) && seaLevel - 1 > 0 && seaRenderMode == WITH_SEA)
 							{
 								seaLevel -= 1;
 								cout << "\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b" << "Sea Level : " << setw(3) << setfill('0') << seaLevel;
 
-								renderMap();
+								seaRenderMode = WITH_SEA;
+								updateTexture = true;
 							}
+						break;
 
-							else
-								renderMapNoSea();
+						case SDLK_f:
+							if(seaRenderMode != NO_SEA)
+							{
+								landRenderMode = FIXED;
+								updateTexture = true;
+							}
+						break;
+
+						case SDLK_h:
+							if(seaRenderMode != NO_SEA)
+							{
+								landRenderMode = VARYING_HIGHEST;
+								updateTexture = true;
+							}
+						break;
+
+						case SDLK_m:
+							if(seaRenderMode != NO_SEA)
+							{
+								landRenderMode = VARYING_MAX;
+								updateTexture = true;
+							}
 						break;
 					}
 				break;
 			}
 		}
 
+		if(updateTexture)
+		{
+			renderMapTex(seaRenderMode, landRenderMode);
+			updateTexture = false;
+		}
+
 		SDL_RenderPresent(Renderer);
 	}
 
 	SDLClose();
+	free(mapPixels);
 
 	return 0;
 }
 
-void renderMap()
+void renderMapTex(int seaMode, int landMode)
 {
 	//Clear screen
 	SDL_SetRenderDrawColor(Renderer, 255, 255, 255, 255);
 	SDL_RenderClear(Renderer);
 
-	//int baseColor = 100;
-	//float multiplierColor = (float)(255 - baseColor) / (highestH - seaLevel);
+	Uint32 *pixelIt = mapPixels;
+	Uint8 r, g, b, a = 255;
 
 	for(int y = 0; y < MAPHEIGHT; y++)
 		for(int x = 0; x < MAPWIDTH; x++)
 		{
+			Uint8 baseColor, hColor;
+
 			if(map.Tile(x, y).getError() == true)
-				SDL_SetRenderDrawColor(Renderer, 100, 0, 0, 255);
+			{
+				r = 100;
+				g = 0;
+				b = 0;
+			}
 			/*
 			else if(map.Tile(x, y).getIsSeed() == true)// && map.Tile(x, y).seedLow == true)
 				SDL_SetRenderDrawColor(Renderer, 0, 255, 0, 255);
 			//*/
 
-			else if(map.Tile(x, y).getH() <= seaLevel)
-				SDL_SetRenderDrawColor(Renderer, 25, 45, 85, 255);//SDL_SetRenderDrawColor(Renderer, 0, 0, 0, 255);//
-
-			/*
-			else // BRANCO VARIAVEL
+			else if(seaMode == WITH_SEA && map.Tile(x, y).getH() <= seaLevel)
 			{
-				int baseColor = 100;
-				float multiplierColor = (float)(255 - baseColor) / (highestH - seaLevel);
-				int hColor = (map.Tile(x, y).getH() - seaLevel) * multiplierColor;
-
-				SDL_SetRenderDrawColor(Renderer, baseColor + hColor, baseColor + hColor, baseColor + hColor, 255);
-			}//*/
-			//*
-			else // BRANCO FIXO
-			{
-				int baseColor = 0;
-				//float multiplierColor = (float)(255 - baseColor) / MAX_H;
-				//int hColor = map.Tile(x, y).getH() * multiplierColor;
-				float multiplierColor = (float)(255 - baseColor) / (MAX_H - seaLevel);
-				int hColor = (map.Tile(x, y).getH() - seaLevel) * multiplierColor;
-
-				SDL_SetRenderDrawColor(Renderer, baseColor + hColor, baseColor + hColor, baseColor + hColor, 255);
-			}//*/
-
-			SDL_RenderDrawPoint(Renderer, x, y);
-		}
-}
-
-void renderMapNoSea()
-{
-	//Clear screen
-	SDL_SetRenderDrawColor(Renderer, 255, 255, 255, 255);
-	SDL_RenderClear(Renderer);
-
-	int baseColor = 0;
-	float multiplierColor = (float)(255 - baseColor) / MAX_H;
-
-	for(int y = 0; y < MAPHEIGHT; y++)
-		for(int x = 0; x < MAPWIDTH; x++)
-		{
-			if(map.Tile(x, y).getError() == true)
-				SDL_SetRenderDrawColor(Renderer, 100, 0, 0, 255);
-			/*
-			else if(map.Tile(x, y).getIsSeed() == true)// && map.Tile(x, y).seedLow == true)
-				SDL_SetRenderDrawColor(Renderer, 0, 255, 0, 255);
-			//*/
-
-			//else if(map.Tile(x, y).getH() <= SEA)
-			//	SDL_SetRenderDrawColor(Renderer, 25, 45, 85, 255);//SDL_SetRenderDrawColor(Renderer, 0, 0, 0, 255);//
+				r = 25;
+				g = 45;
+				b = 85;
+			}
 
 			else
 			{
-				int hColor = map.Tile(x, y).getH() * multiplierColor;
+				if(landMode == VARYING_HIGHEST) // BRANCO VARIAVEL seaLevel até HighestH
+				{
+					baseColor = 100;
+					float multiplierColor = (float)(255 - baseColor) / (noise.getHighestH() - seaLevel);
+					
+					hColor = (map.Tile(x, y).getH() - seaLevel) * multiplierColor;
+				}//*/
+				//*
+				else if(landMode == VARYING_MAX) // BRANCO VARIAVEL seaLevel até MAX_H
+				{
+					baseColor = 100;
+					float multiplierColor = (float)(255 - baseColor) / (MAX_H - seaLevel);
+					
+					hColor = (map.Tile(x, y).getH() - seaLevel) * multiplierColor;
+				}//*/
 
-				SDL_SetRenderDrawColor(Renderer, baseColor + hColor, baseColor + hColor, baseColor + hColor, 255);
+				else if(landMode == FIXED) // BRANCO FIXO
+				{
+					baseColor = 0;
+					float multiplierColor = (float)(255 - baseColor) / MAX_H;
+
+					hColor = map.Tile(x, y).getH() * multiplierColor;
+				}
+
+				r = baseColor + hColor;
+				g = baseColor + hColor;
+				b = baseColor + hColor;
 			}
 
-			SDL_RenderDrawPoint(Renderer, x, y);
+			*pixelIt = r << 24 | g << 16 | b << 8 | a;
+
+			pixelIt++;
 		}
+
+	SDL_UpdateTexture(mapTexture, NULL, mapPixels, SCREEN_WIDTH * sizeof (Uint32));
+	SDL_RenderCopy(Renderer, mapTexture, NULL, NULL);
 }
 
 bool SDLStart()
@@ -236,6 +313,11 @@ bool SDLStart()
 	//Initialize renderer color
 	SDL_SetRenderDrawColor(Renderer, 0, 0, 0, 0);
 
+	mapTexture = SDL_CreateTexture(Renderer, 
+								SDL_PIXELFORMAT_RGBA8888, 
+								SDL_TEXTUREACCESS_STREAMING, 
+								SCREEN_WIDTH, SCREEN_HEIGHT);
+
 	return true;
 }
 
@@ -244,8 +326,10 @@ void SDLClose()
 	//Destroy window	
 	SDL_DestroyRenderer(Renderer);
 	SDL_DestroyWindow(Window);
+	SDL_DestroyTexture(mapTexture);
 	Window = NULL;
 	Renderer = NULL;
+	mapTexture = NULL;
 
 	//Quit SDL subsystems
 	SDL_Quit();

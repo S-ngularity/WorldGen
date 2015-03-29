@@ -17,9 +17,12 @@ using namespace std;
 
 MyNoise::MyNoise(Map &theMap) : map(theMap)
 {
+	numIts = 0;
+	iteration = 0;
+	percentComplete = 0;
+	highestH = 0;
 	alreadySaved = false;
 	state = readTect;
-	shouldUpdateScreen = NO;
 
 	srand(time(NULL));
 }
@@ -85,14 +88,7 @@ void MyNoise::doErosion()
 void MyNoise::updatePercent()
 {
 	if((int)(100 * ((float)iteration / numIts)) > percentComplete)
-	{
 		percentComplete = 100 * ((float)iteration / numIts);
-
-		cout << "\b\b\b" << percentComplete << "%";
-
-		if(percentComplete % UPDATE_AT_PERCENT == 0)
-			shouldUpdateScreen = WITHOUT_SEA; //renderMapNoSea();
-	}
 }
 
 void MyNoise::checkIfFinished()
@@ -106,20 +102,13 @@ void MyNoise::checkIfFinished()
 				if(map.Tile(x, y).getH() > highestH)
 					highestH = map.Tile(x, y).getH();
 
-		cout << endl << endl << "Highest point: " << highestH << endl << endl;
+		//cout << endl << endl << "Highest point: " << highestH << endl << endl;
 
 		if(state == doTect)
-		{
-			shouldUpdateScreen = WITHOUT_SEA; //renderMapNoSea();
-											  //SDL_RenderPresent(Renderer);
-
 			state = readEro;
-		}
 
 		else if (state == doEro)
 		{
-			cout << "Sea Level : " << setw(3) << setfill('0') << SEA;
-
 			/* // imprime erros de quando a diferença entre tiles adjacentes é maior que 1
 			for(int y = 0; y < MAPHEIGHT; y++)
 				for(int x = 0; x < MAPWIDTH; x++)
@@ -141,9 +130,6 @@ void MyNoise::checkIfFinished()
 						}
 
 				}//*/
-
-			shouldUpdateScreen = WITH_SEA; //renderMap();
-										   //SDL_RenderPresent(Renderer);
 
 			state = done;
 		}
@@ -181,8 +167,8 @@ void MyNoise::runOnce()
 				for(int y = 0; y < MAPHEIGHT; y++)
 					for(int x = 0; x < MAPWIDTH; x++)
 					{
-						if(map.Tile(x, y).getH() <= SEA)
-							imageData[y * MAPWIDTH + x] = (unsigned char)(((float)(SEA - 1) / MAX_H) * 256.0);
+						if(map.Tile(x, y).getH() <= SEA_LEVEL)
+							imageData[y * MAPWIDTH + x] = (unsigned char)(((float)(SEA_LEVEL - 1) / MAX_H) * 256.0);
 
 						else
 							imageData[y * MAPWIDTH + x] = (unsigned char)((int)(((float)map.Tile(x, y).getH() / MAX_H) * 256.0));
@@ -197,19 +183,23 @@ void MyNoise::runOnce()
 	}
 }
 
-int MyNoise::askingForScreenUpdate()
+int MyNoise::getPercentComplete()
 {
-	int temp = shouldUpdateScreen;
+	return percentComplete;
+}
 
-	shouldUpdateScreen = NO;
-
-	return temp;
+bool MyNoise::isDone()
+{
+	return state == done ? true : false;
 }
 
 int MyNoise::getHighestH()
 {
 	return highestH;
 }
+
+
+
 
 
 
@@ -265,7 +255,7 @@ void MyNoise::erosion()
 		// evita criar montanhas submarinas que não tenham possibilidade de virar ilhas (mas faz mapa tender a alturas maiores no geral)
 		do{
 			seedPos.setPos((rand() % MAPWIDTH), (rand() % MAPHEIGHT));
-		}while(map.Tile(seedPos.getX(), seedPos.getY()).getH() <= SEA - SEA * 0.5 * rangeMultiplier);
+		}while(map.Tile(seedPos.getX(), seedPos.getY()).getH() <= SEA_LEVEL - SEA_LEVEL * 0.5 * rangeMultiplier);
 
 		insertHighArtifact(seedPos, rangeMultiplier);
 	}
@@ -275,7 +265,7 @@ void MyNoise::erosion()
 		// adicionei por simetria àcima, porém não sei porque torna (ou não) mapas melhores (mais altura entre mar e pico mais alto)
 		//do{
 			seedPos.setPos((rand() % MAPWIDTH), (rand() % MAPHEIGHT));
-		//}while(map.Tile(seedPos.getX(), seedPos.getY()).getH() <= SEA - SEA * 0.5);// - SEA * 0.5);
+		//}while(map.Tile(seedPos.getX(), seedPos.getY()).getH() <= SEA_LEVEL - SEA_LEVEL * 0.5);// - SEA_LEVEL * 0.5);
 
 		insertLowArtifact(seedPos, rangeMultiplier);
 	}
@@ -512,7 +502,7 @@ void MyNoise::insertLowArtifact(Pos seedPos, float rangeMultiplier)
 //*/
 
 // função para salvar em tga, adaptada de "Antonio Ramires Fernandes ajbrf@yahoo.com" - http://www.lighthouse3d.com/opengl/terrain/index.php3?tgalib
-int MyNoise::tgaSave(char			*filename, 
+int MyNoise::tgaSave(char const	*filename, 
 			 short int		width, 
 			 short int		height, 
 			 unsigned char	pixelDepth,

@@ -11,7 +11,7 @@
 
 #define INIT_H ((MAX_H / 2) - 1)
 
-#define SEA (MAX_H / 2)
+#define SEA_LEVEL (MAX_H / 2)
 
 class Map
 {

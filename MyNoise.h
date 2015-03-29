@@ -3,14 +3,6 @@
 
 #include "Map.h"
 
-// ask for update at every X percent completed
-#define UPDATE_AT_PERCENT 20
-
-// askingForScreenUpdate return values
-#define NO 0
-#define WITHOUT_SEA 1
-#define WITH_SEA 2
-
 typedef enum {readTect = 0, doTect, readEro, doEro, done} State;
 
 class MyNoise
@@ -21,7 +13,6 @@ class MyNoise
 		Map &map;
 
 		State state;
-		int shouldUpdateScreen;
 
 		int numIts, iteration;
 		int percentComplete;
@@ -52,12 +43,13 @@ class MyNoise
 
 		void runOnce();
 
-		int askingForScreenUpdate();
+		int getPercentComplete();
+		bool isDone();
 
 		int getHighestH();
 
 		// função adaptada da tgaLib
-		int tgaSave(char			*filename, 
+		int tgaSave(char const *filename, 
 			 short int		width, 
 			 short int		height, 
 			 unsigned char	pixelDepth,
