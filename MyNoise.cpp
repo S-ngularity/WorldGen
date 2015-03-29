@@ -131,6 +131,26 @@ void MyNoise::checkIfFinished()
 
 				}//*/
 
+			if(!alreadySaved) // SALVAR UMA VEZ RESULTADO EM TGA
+			{
+				unsigned char *imageData;
+				imageData = (unsigned char*)malloc(sizeof(unsigned char) * MAPWIDTH * MAPHEIGHT);
+
+				for(int y = 0; y < MAPHEIGHT; y++)
+					for(int x = 0; x < MAPWIDTH; x++)
+					{
+						if(map.Tile(x, y).getH() <= SEA_LEVEL)
+							imageData[(MAPHEIGHT - y) * MAPWIDTH + x] = (unsigned char)(((float)(SEA_LEVEL - 1) / MAX_H) * 256.0);
+
+						else
+							imageData[(MAPHEIGHT - y) * MAPWIDTH + x] = (unsigned char)((int)(((float)map.Tile(x, y).getH() / MAX_H) * 256.0));
+					}
+
+				tgaSave("t.tga", MAPWIDTH, MAPHEIGHT, 8, imageData);
+
+				alreadySaved = true;
+			}
+
 			state = done;
 		}
 	}
@@ -159,26 +179,6 @@ void MyNoise::runOnce()
 		break;
 
 		case done:
-			if(!alreadySaved) // SALVAR UMA VEZ RESULTADO EM TGA
-			{
-				unsigned char *imageData;
-				imageData = (unsigned char*)malloc(sizeof(unsigned char) * MAPWIDTH * MAPHEIGHT);
-
-				for(int y = 0; y < MAPHEIGHT; y++)
-					for(int x = 0; x < MAPWIDTH; x++)
-					{
-						if(map.Tile(x, y).getH() <= SEA_LEVEL)
-							imageData[y * MAPWIDTH + x] = (unsigned char)(((float)(SEA_LEVEL - 1) / MAX_H) * 256.0);
-
-						else
-							imageData[y * MAPWIDTH + x] = (unsigned char)((int)(((float)map.Tile(x, y).getH() / MAX_H) * 256.0));
-					}
-
-				tgaSave("t.tga", MAPWIDTH, MAPHEIGHT, 8, imageData);
-
-				alreadySaved = true;
-
-			}
 		break;
 	}
 }
