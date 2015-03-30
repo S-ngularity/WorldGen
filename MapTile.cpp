@@ -1,16 +1,13 @@
 #include <stdlib.h>
 #include "MapTile.h"
 
-#include "Pos.h" // pred
-
 #define NULO -1
 
-MapTile::MapTile() : pred(NULO, NULO)
+MapTile::MapTile()
 {
 	h = 0;
 	chance = 0;
 	isSeed = false;
-	skip = false;
 	error = false;
 }
 
@@ -43,22 +40,6 @@ void MapTile::lowerChance(MapTile prevTile)
 	//chance = 0;
 }
 
-// pred
-Pos MapTile::getPred()
-{
-	return pred;
-}
-
-void MapTile::setPred(Pos newPred)
-{
-	pred = newPred;
-}
-
-void MapTile::setPred(int predX, int predY)
-{
-	pred.setPos(predX, predY);
-}
-
 // isSeed
 bool MapTile::getIsSeed()
 {
@@ -68,18 +49,6 @@ bool MapTile::getIsSeed()
 void MapTile::setIsSeed(bool newIsSeed)
 {
 	isSeed = newIsSeed;
-}
-
-
-// skip
-bool MapTile::getSkip()
-{
-	return skip;
-}
-
-void MapTile::setSkip(bool newSkip)
-{
-	skip = newSkip;
 }
 
 bool MapTile::getError()

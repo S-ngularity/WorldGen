@@ -17,8 +17,8 @@ using namespace std;
 
 MyNoise::MyNoise(Map &theMap) : map(theMap)
 {
-	numIts = 0;
-	iteration = 0;
+	totalIts = 0;
+	doneIts = 0;
 	percentComplete = 0;
 	highestH = 0;
 	alreadySaved = false;
@@ -28,29 +28,28 @@ MyNoise::MyNoise(Map &theMap) : map(theMap)
 }
 
 
-
 void MyNoise::readTectonics()
 {
 	do{
 		cout << endl <<  "Tectonics iterations (~50-200): ";
-		cin >> numIts;
+		cin >> totalIts;
 		cout << endl;
-	}while(numIts < 0);
+	}while(totalIts < 0);
 
-	if(numIts == 0)
+	if(totalIts == 0)
 		state = readEro;
 
 	else
 		state = doTect;
 	
-	iteration = 0;
+	doneIts = 0;
 	percentComplete = 0;
 }
 
 void MyNoise::doTectonics()
 {
 	tectonics();
-	iteration++;
+	doneIts++;
 
 	updatePercent();
 	checkIfFinished();
@@ -60,24 +59,24 @@ void MyNoise::readErosion()
 {
 	do{
 		cout << endl << "Erosion iterations (~1500-50000): ";
-		cin >> numIts;
+		cin >> totalIts;
 		cout << endl;
-	}while(numIts < 0);
+	}while(totalIts < 0);
 
-	if(numIts == 0)
+	if(totalIts == 0)
 		state = done;
 
 	else
 		state = doEro;
 
-	iteration = 0;
+	doneIts = 0;
 	percentComplete = 0;
 }
 
 void MyNoise::doErosion()
 {
 	erosion();
-	iteration++;
+	doneIts++;
 
 	updatePercent();
 	checkIfFinished();
@@ -87,13 +86,13 @@ void MyNoise::doErosion()
 
 void MyNoise::updatePercent()
 {
-	if((int)(100 * ((float)iteration / numIts)) > percentComplete)
-		percentComplete = 100 * ((float)iteration / numIts);
+	if((int)(100 * ((float)doneIts / totalIts)) > percentComplete)
+		percentComplete = 100 * ((float)doneIts / totalIts);
 }
 
 void MyNoise::checkIfFinished()
 {
-	if(iteration == numIts && (state == doTect || state == doEro))
+	if(doneIts == totalIts && (state == doTect || state == doEro))
 	{
 		highestH = 0;
 
@@ -101,8 +100,6 @@ void MyNoise::checkIfFinished()
 			for(int x = 0; x < MAPWIDTH; x++)
 				if(map.Tile(x, y).getH() > highestH)
 					highestH = map.Tile(x, y).getH();
-
-		//cout << endl << endl << "Highest point: " << highestH << endl << endl;
 
 		if(state == doTect)
 			state = readEro;
@@ -206,30 +203,15 @@ int MyNoise::getHighestH()
 void MyNoise::tectonics()
 {
 	Pos seedPos;
+	seedPos.setPos((rand() % MAPWIDTH), (rand() % MAPHEIGHT));
 
-	float floatComplete = (float)iteration / numIts;
+	float floatComplete = (float)doneIts / totalIts;
 
-	if(floatComplete < 0.1)
-	{
-		seedPos.setPos((rand() % MAPWIDTH), (rand() % MAPHEIGHT));
+	if(floatComplete < 0.1 || rand() % 2 == 0)
 		insertHighArtifact(seedPos, 1);
-	}
 
 	else
-	{
-		if(rand() % 2 == 0)
-		{
-			seedPos.setPos((rand() % MAPWIDTH), (rand() % MAPHEIGHT));
-			insertHighArtifact(seedPos, 1);
-		}
-
-		else
-		{
-			seedPos.setPos((rand() % MAPWIDTH), (rand() % MAPHEIGHT));
-
-			insertLowArtifact(seedPos, 1);
-		}
-	}
+		insertLowArtifact(seedPos, 1);
 }
 
 void MyNoise::erosion()
@@ -237,7 +219,7 @@ void MyNoise::erosion()
 	float rangeMultiplier;
 	Pos seedPos;
 
-	float floatComplete = ((float)iteration / numIts);
+	float floatComplete = ((float)doneIts / totalIts);
 
 	if(floatComplete < 0.30)
 		rangeMultiplier = 0.3;
@@ -247,7 +229,6 @@ void MyNoise::erosion()
 
 	else
 		rangeMultiplier = 0.1;
-
 
 
 	if(rand() % 2 == 0)
@@ -270,10 +251,6 @@ void MyNoise::erosion()
 		insertLowArtifact(seedPos, rangeMultiplier);
 	}
 }
-
-
-
-
 
 
 Pos MyNoise::insertSeedHigh(Pos seedPos, float rangeMultiplier)
@@ -378,8 +355,6 @@ void MyNoise::insertHighArtifact(Pos seedPos, float rangeMultiplier)
 				if(map.isPosInsideWrap(adjPos)				// adjacente está dentro do mapa
 					&& hCurrent > map.Tile(adjPos).getH())	// e é menor que altura hCurrent
 				{
-					map.Tile(adjPos).setPred(currentPos);
-
 					// diminui ou não altura da adjacente baseado na chance de manter do hCurrent
 					if(rand() % 100 <= map.Tile(currentPos).getChance()) // mantem altura e diminui chance dos próximos manterem
 					{
@@ -464,8 +439,6 @@ void MyNoise::insertLowArtifact(Pos seedPos, float rangeMultiplier)
 				if(map.isPosInsideWrap(adjPos)				// adjacente está dentro do mapa
 					&& hCurrent < map.Tile(adjPos).getH())	// e é menor que altura hCurrent
 				{
-					map.Tile(adjPos).setPred(currentPos);
-
 					// diminui ou não altura da adjacente baseado na chance de manter do hCurrent
 					if(rand() % 100 <= map.Tile(currentPos).getChance()) // mantem altura e diminui chance dos próximos manterem
 					{

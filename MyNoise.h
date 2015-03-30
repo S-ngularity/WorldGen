@@ -8,13 +8,13 @@ typedef enum {readTect = 0, doTect, readEro, doEro, done} State;
 class MyNoise
 {
 	private:
-		bool alreadySaved; // PARA SALVAR IMAGEM UMA VEZ
-
 		Map &map;
 
 		State state;
 
-		int numIts, iteration;
+		bool alreadySaved; // PARA SALVAR IMAGEM UMA VEZ
+
+		int totalIts, doneIts;
 		int percentComplete;
 		int highestH;
 
