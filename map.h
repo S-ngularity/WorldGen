@@ -27,6 +27,9 @@ class Map
 
 		bool isPosInsideNoWrap(Pos p);
 		bool isPosInsideWrap(Pos p);
+
+		bool isPosInsideNoWrap(int x, int y);
+		bool isPosInsideWrap(int x, int y);
 };
 
 #endif

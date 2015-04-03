@@ -18,9 +18,6 @@ class MyNoise
 		int percentComplete;
 		int highestH;
 
-		void tectonics();
-		void erosion();
-		
 		void readTectonics();
 		void doTectonics();
 		void readErosion();
@@ -29,6 +26,8 @@ class MyNoise
 		void updatePercent();
 		void checkIfFinished();
 
+		void tectonics();
+		void erosion();
 
 		// funções de inserção de seeds -- retornam posição da seed inserida
 		Pos insertSeedHigh(Pos seedPos, float rangeMultiplier);
@@ -37,6 +36,13 @@ class MyNoise
 		// funções de inserção de artefatos
 		void insertHighArtifact(Pos seedPos, float rangeMultiplier);
 		void insertLowArtifact(Pos seedPos, float rangeMultiplier);
+
+		// função adaptada da tgaLib
+		int tgaSave(char const *filename, 
+			 short int		width, 
+			 short int		height, 
+			 unsigned char	pixelDepth,
+			 unsigned char	*imageData);
 
 	public:
 		MyNoise(Map &theMap);
@@ -47,13 +53,6 @@ class MyNoise
 		bool isDone();
 
 		int getHighestH();
-
-		// função adaptada da tgaLib
-		int tgaSave(char const *filename, 
-			 short int		width, 
-			 short int		height, 
-			 unsigned char	pixelDepth,
-			 unsigned char	*imageData);
 };
 
 #endif

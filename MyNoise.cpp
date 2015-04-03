@@ -27,6 +27,46 @@ MyNoise::MyNoise(Map &theMap) : map(theMap)
 	srand(time(NULL));
 }
 
+void MyNoise::runOnce()
+{
+	switch(state)
+	{
+		case readTect:
+			readTectonics();
+		break;
+
+		case doTect:
+			doTectonics();
+		break;
+
+		case readEro:
+			readErosion();
+		break;
+
+		case doEro:
+			doErosion();
+		break;
+
+		case done:
+		break;
+	}
+}
+
+int MyNoise::getPercentComplete()
+{
+	return percentComplete;
+}
+
+bool MyNoise::isDone()
+{
+	return state == done ? true : false;
+}
+
+int MyNoise::getHighestH()
+{
+	return highestH;
+}
+
 
 void MyNoise::readTectonics()
 {
@@ -152,53 +192,6 @@ void MyNoise::checkIfFinished()
 		}
 	}
 }
-
-
-
-void MyNoise::runOnce()
-{
-	switch(state)
-	{
-		case readTect:
-			readTectonics();
-		break;
-
-		case doTect:
-			doTectonics();
-		break;
-
-		case readEro:
-			readErosion();
-		break;
-
-		case doEro:
-			doErosion();
-		break;
-
-		case done:
-		break;
-	}
-}
-
-int MyNoise::getPercentComplete()
-{
-	return percentComplete;
-}
-
-bool MyNoise::isDone()
-{
-	return state == done ? true : false;
-}
-
-int MyNoise::getHighestH()
-{
-	return highestH;
-}
-
-
-
-
-
 
 void MyNoise::tectonics()
 {
@@ -352,8 +345,8 @@ void MyNoise::insertHighArtifact(Pos seedPos, float rangeMultiplier)
 
 				Pos adjPos(currentPos.getX() + xOffset, currentPos.getY() + yOffset);
 
-				if(map.isPosInsideWrap(adjPos)				// adjacente está dentro do mapa
-					&& hCurrent > map.Tile(adjPos).getH())	// e é menor que altura hCurrent
+				if(map.isPosInsideWrap(adjPos) &&		// adjacente está dentro do mapa
+					map.Tile(adjPos).getH() < hCurrent)	// e é menor que altura hCurrent
 				{
 					// diminui ou não altura da adjacente baseado na chance de manter do hCurrent
 					if(rand() % 100 <= map.Tile(currentPos).getChance()) // mantem altura e diminui chance dos próximos manterem
@@ -436,8 +429,8 @@ void MyNoise::insertLowArtifact(Pos seedPos, float rangeMultiplier)
 
 				Pos adjPos(currentPos.getX() + xOffset, currentPos.getY() + yOffset);
 
-				if(map.isPosInsideWrap(adjPos)				// adjacente está dentro do mapa
-					&& hCurrent < map.Tile(adjPos).getH())	// e é menor que altura hCurrent
+				if(map.isPosInsideWrap(adjPos) && 				// adjacente está dentro do mapa
+					map.Tile(adjPos).getH() > hCurrent)	// e é menor que altura hCurrent
 				{
 					// diminui ou não altura da adjacente baseado na chance de manter do hCurrent
 					if(rand() % 100 <= map.Tile(currentPos).getChance()) // mantem altura e diminui chance dos próximos manterem

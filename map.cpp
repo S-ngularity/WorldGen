@@ -29,28 +29,26 @@ MapTile& Map::Tile(Pos p)
 
 MapTile& Map::Tile(int x, int y)
 {
-	Pos tempPos(x, y);
-
-	if(isPosInsideWrap(tempPos))
+	if(isPosInsideWrap(x, y))
 	{
-		if(tempPos.getX() < 0)
-			tempPos.setPos(MAPWIDTH + tempPos.getX(), tempPos.getY());
+		if(x < 0)
+			x = MAPWIDTH + x % MAPWIDTH;
 
-		else if(tempPos.getX() >= MAPWIDTH)
-			tempPos.setPos(0 + (tempPos.getX() - MAPWIDTH), tempPos.getY());
+		else if(x >= MAPWIDTH)
+			x = x % MAPWIDTH;
 	}
 
-/*if(isPosInsideWrap(tempPos)) // WRAP IN Y (mudar isPosInsideWrap para só true)
+/*if(isPosInsideWrap(x, y)) // WRAP IN Y (mudar isPosInsideWrap para só true)
 {
-	if(tempPos.getY() < 0)
-		tempPos.setPos(tempPos.getX(), MAPHEIGHT + tempPos.getY());
+	if(y < 0)
+		y = MAPHEIGHT + y;
 
-	else if(tempPos.getY() >= MAPHEIGHT)
-		tempPos.setPos(tempPos.getX(), 0 + (tempPos.getY() - MAPHEIGHT));
+	else if(y >= MAPHEIGHT)
+		y = 0 + (y - MAPHEIGHT));
 }//*/
 
-	if(isPosInsideNoWrap(tempPos))
-		return map[tempPos.getX()][tempPos.getY()];
+	if(isPosInsideNoWrap(x, y))
+		return map[x][y];
 
 	else
 		return map[0][0];
@@ -68,6 +66,24 @@ bool Map::isPosInsideNoWrap(Pos p)
 bool Map::isPosInsideWrap(Pos p)
 {
 	if(p.getY() >= 0 && p.getY() < MAPHEIGHT)
+		return true;
+
+	else
+		return false;
+}
+
+bool Map::isPosInsideNoWrap(int x, int y)
+{
+	if(x >= 0 && y >= 0 && x < MAPWIDTH && y < MAPHEIGHT)
+		return true;
+
+	else
+		return false;
+}	
+
+bool Map::isPosInsideWrap(int x, int y)
+{
+	if(y >= 0 && y < MAPHEIGHT)
 		return true;
 
 	else

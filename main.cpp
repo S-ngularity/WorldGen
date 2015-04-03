@@ -86,9 +86,9 @@ int main(int argc, char* args[])
 				if(shownPercent == 100) // show highest at each phase
 					cout << endl << endl << "Highest point: " << noise.getHighestH() << endl << endl;
 
+				// update only once per percent
 				bool shouldUpdate = shownPercent % UPDATE_AT_PERCENT == 0;
-				
-				if(shouldUpdate && !alreadyUpdated) // update only once per percent
+				if(shouldUpdate && !alreadyUpdated)
 				{
 					alreadyUpdated = true;
 
@@ -219,8 +219,6 @@ void renderMapTex(int seaMode, int landMode)
 	for(int y = 0; y < MAPHEIGHT; y++)
 		for(int x = 0; x < MAPWIDTH; x++)
 		{
-			Uint8 baseColor, hColor;
-
 			if(map.Tile(x, y).getError() == true)
 			{
 				r = 100;
@@ -241,6 +239,8 @@ void renderMapTex(int seaMode, int landMode)
 
 			else
 			{
+				Uint8 baseColor, hColor;
+				
 				if(landMode == VARYING_HIGHEST) // BRANCO VARIAVEL seaLevel até HighestH
 				{
 					baseColor = 100;
