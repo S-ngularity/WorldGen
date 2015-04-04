@@ -177,10 +177,10 @@ void MyNoise::checkIfFinished()
 					for(int x = 0; x < MAPWIDTH; x++)
 					{
 						if(map.Tile(x, y).getH() <= SEA_LEVEL)
-							imageData[(MAPHEIGHT - y) * MAPWIDTH + x] = (unsigned char)(((float)(SEA_LEVEL - 1) / MAX_H) * 256.0);
+							imageData[(MAPHEIGHT - y) * MAPWIDTH + x] = 0;//(unsigned char)(((float)(SEA_LEVEL - 1) / MAX_H) * 256.0);
 
 						else
-							imageData[(MAPHEIGHT - y) * MAPWIDTH + x] = (unsigned char)((int)(((float)map.Tile(x, y).getH() / MAX_H) * 256.0));
+							imageData[(MAPHEIGHT - y) * MAPWIDTH + x] = (unsigned char)((int)((map.Tile(x, y).getH() - SEA_LEVEL) / (float)(MAX_H - SEA_LEVEL) * 255.0)); //(unsigned char)((int)(((float)map.Tile(x, y).getH() / MAX_H) * 256.0));
 					}
 
 				tgaSave("t.tga", MAPWIDTH, MAPHEIGHT, 8, imageData);

@@ -1,14 +1,21 @@
 #include <iostream>
 #include <iomanip>
 
+#include <string>
+#include <sstream>
+
+#include <unordered_map>
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
 
 #include "Map.h"
 #include "MyNoise.h"
+#include "SdlClasses/SdlTexture.h"
 
 #include <SDL2/SDL.h>
+#include <SDL2/SDL_ttf.h>
 
 using namespace std;
 
@@ -27,21 +34,26 @@ const int SCREEN_HEIGHT = MAPHEIGHT;
 
 SDL_Window *Window = NULL;
 SDL_Renderer *Renderer = NULL;
-SDL_Texture *mapTexture = NULL;
 SDL_Event event;
 
+TTF_Font *Font = NULL;
+
 Uint32 *mapPixels = (Uint32*) malloc(sizeof(Uint32) * MAPWIDTH * MAPHEIGHT);
+
+unordered_map<string, SdlTexture*> textureMap;
 
 //funções SDL
 bool SDLStart();
 void SDLClose();
 
-void renderMapTex(int seaMode, int landMode);
+void updateMapTex();
+void updateInfoTex(int x, int y);
 
 Map map;
 MyNoise noise(map);
 
 int seaLevel = SEA_LEVEL;
+int seaRenderMode = NO_SEA, landRenderMode = FIXED;
 
 int main(int argc, char* args[])
 {
@@ -61,13 +73,21 @@ int main(int argc, char* args[])
 		return -1;
 	}
 
-	int seaRenderMode = NO_SEA, landRenderMode = FIXED;
+	textureMap.emplace("heightInfo", new SdlTexture);
+	textureMap.emplace("mapTexture", new SdlTexture);
+	/*textureMap.emplace("mapTexture", new SdlTexture(SDL_CreateTexture(Renderer, 
+																	SDL_PIXELFORMAT_RGBA8888, 
+																	SDL_TEXTUREACCESS_STREAMING, 
+																	SCREEN_WIDTH, SCREEN_HEIGHT),
+													SCREEN_WIDTH, SCREEN_HEIGHT));*/
 
-	renderMapTex(seaRenderMode, landRenderMode);
+	updateMapTex();
+	textureMap["mapTexture"]->render(Renderer, 0, 0);
+	SDL_RenderPresent(Renderer);
 
 	bool alreadyUpdated = false;
 	int shownPercent = 0;
-	bool updateTexture = false;
+	bool updateTexture = false, render = false;
 	bool quit;
 
 	//While application is running
@@ -189,17 +209,48 @@ int main(int argc, char* args[])
 						break;
 					}
 				break;
+
+				case SDL_MOUSEMOTION:
+					int x, y;
+					SDL_GetMouseState(&x, &y);
+					updateInfoTex(x, y);
+					render = true;
+				break;
 			}
 		}
 
 		if(updateTexture)
 		{
-			renderMapTex(seaRenderMode, landRenderMode);
+			int x, y;
+			SDL_GetMouseState(&x, &y);
+			updateInfoTex(x, y);
+			
+			updateMapTex();
+
+			render = true;
 			updateTexture = false;
 		}
 
-		SDL_RenderPresent(Renderer);
+		if(render)
+		{
+
+			int x, y;
+			SDL_GetMouseState(&x, &y);
+
+			//Clear screen
+			//SDL_SetRenderDrawColor(Renderer, 255, 255, 255, 255);
+			//SDL_RenderClear(Renderer);
+			
+			textureMap["mapTexture"]->render(Renderer, 0, 0);
+			textureMap["heightInfo"]->render(Renderer, x, y + 15);
+
+			SDL_RenderPresent(Renderer);
+
+			render = false;
+		}
 	}
+
+	textureMap.clear();
 
 	SDLClose();
 	free(mapPixels);
@@ -207,11 +258,12 @@ int main(int argc, char* args[])
 	return 0;
 }
 
-void renderMapTex(int seaMode, int landMode)
+void updateMapTex()
 {
-	//Clear screen
-	SDL_SetRenderDrawColor(Renderer, 255, 255, 255, 255);
-	SDL_RenderClear(Renderer);
+	SDL_Texture *temp = SDL_CreateTexture(Renderer, 
+										SDL_PIXELFORMAT_RGBA8888, 
+										SDL_TEXTUREACCESS_STREAMING, 
+										SCREEN_WIDTH, SCREEN_HEIGHT);
 
 	Uint32 *pixelIt = mapPixels;
 	Uint8 r, g, b, a = 255;
@@ -230,7 +282,7 @@ void renderMapTex(int seaMode, int landMode)
 				SDL_SetRenderDrawColor(Renderer, 0, 255, 0, 255);
 			//*/
 
-			else if(seaMode == WITH_SEA && map.Tile(x, y).getH() <= seaLevel)
+			else if(seaRenderMode == WITH_SEA && map.Tile(x, y).getH() <= seaLevel)
 			{
 				r = 25;
 				g = 45;
@@ -241,7 +293,7 @@ void renderMapTex(int seaMode, int landMode)
 			{
 				Uint8 baseColor, hColor;
 				
-				if(landMode == VARYING_HIGHEST) // BRANCO VARIAVEL seaLevel até HighestH
+				if(landRenderMode == VARYING_HIGHEST) // BRANCO VARIAVEL seaLevel até HighestH
 				{
 					baseColor = 100;
 					float multiplierColor = (float)(255 - baseColor) / (noise.getHighestH() - seaLevel);
@@ -249,7 +301,7 @@ void renderMapTex(int seaMode, int landMode)
 					hColor = (map.Tile(x, y).getH() - seaLevel) * multiplierColor;
 				}//*/
 				//*
-				else if(landMode == VARYING_MAX) // BRANCO VARIAVEL seaLevel até MAX_H
+				else if(landRenderMode == VARYING_MAX) // BRANCO VARIAVEL seaLevel até MAX_H
 				{
 					baseColor = 100;
 					float multiplierColor = (float)(255 - baseColor) / (MAX_H - seaLevel);
@@ -257,7 +309,7 @@ void renderMapTex(int seaMode, int landMode)
 					hColor = (map.Tile(x, y).getH() - seaLevel) * multiplierColor;
 				}//*/
 
-				else if(landMode == FIXED) // BRANCO FIXO
+				else if(landRenderMode == FIXED) // BRANCO FIXO
 				{
 					baseColor = 0;
 					float multiplierColor = (float)(255 - baseColor) / MAX_H;
@@ -275,8 +327,46 @@ void renderMapTex(int seaMode, int landMode)
 			pixelIt++;
 		}
 
-	SDL_UpdateTexture(mapTexture, NULL, mapPixels, SCREEN_WIDTH * sizeof (Uint32));
-	SDL_RenderCopy(Renderer, mapTexture, NULL, NULL);
+	SDL_UpdateTexture(temp, NULL, mapPixels, MAPWIDTH * sizeof (Uint32));
+	textureMap["mapTexture"]->setTexture(temp, MAPWIDTH, MAPHEIGHT);
+}
+
+void updateInfoTex(int x, int y)
+{
+	int h = map.Tile(x, y).getH();
+	string info;
+
+	if(seaRenderMode == WITH_SEA && h <= seaLevel)
+		info = "Sea";
+
+	else
+	{
+		stringstream ss;
+		ss << h;
+		info = ss.str();
+	}
+
+	SDL_Surface* tempSurface = TTF_RenderText_Blended(Font, info.c_str(), {220,20,60});
+	if(tempSurface == NULL)
+	{
+		printf("Unable to render text surface! SDL_ttf Error: %s\n", TTF_GetError());
+		return;
+	}
+
+	else
+	{
+		//Create texture from surface pixels
+		SDL_Texture *tempTex = SDL_CreateTextureFromSurface(Renderer, tempSurface);
+		if(tempTex == NULL)
+		{
+			printf("Unable to create texture from rendered text! SDL Error: %s\n", SDL_GetError());
+			return;
+		}
+
+		textureMap["heightInfo"]->setTexture(tempTex, tempSurface->w, tempSurface->h);
+
+		SDL_FreeSurface(tempSurface);
+    }
 }
 
 bool SDLStart()
@@ -288,6 +378,21 @@ bool SDLStart()
 
 		return false;
 	}
+
+	//Initialize SDL_ttf
+	if(TTF_Init() == -1)
+	{
+		printf("SDL_ttf could not initialize! SDL_ttf Error: %s\n", TTF_GetError());
+		return false;
+	}
+
+	Font = TTF_OpenFont("Resources/OpenSans-Regular.ttf", 20);
+	if(Font == NULL)
+	{
+		printf("Failed to load font! SDL_ttf Error: %s\n", TTF_GetError());
+		return false;
+	}
+	TTF_SetFontStyle(Font, TTF_STYLE_BOLD);
 
 	//Create window
 	Window = SDL_CreateWindow("WorldGen", 20, 40, SCREEN_WIDTH, SCREEN_HEIGHT, SDL_WINDOW_RESIZABLE);
@@ -313,11 +418,6 @@ bool SDLStart()
 	//Initialize renderer color
 	SDL_SetRenderDrawColor(Renderer, 0, 0, 0, 0);
 
-	mapTexture = SDL_CreateTexture(Renderer, 
-								SDL_PIXELFORMAT_RGBA8888, 
-								SDL_TEXTUREACCESS_STREAMING, 
-								SCREEN_WIDTH, SCREEN_HEIGHT);
-
 	return true;
 }
 
@@ -326,11 +426,10 @@ void SDLClose()
 	//Destroy window	
 	SDL_DestroyRenderer(Renderer);
 	SDL_DestroyWindow(Window);
-	SDL_DestroyTexture(mapTexture);
 	Window = NULL;
 	Renderer = NULL;
-	mapTexture = NULL;
 
+	TTF_Quit();
 	//Quit SDL subsystems
 	SDL_Quit();
 }
