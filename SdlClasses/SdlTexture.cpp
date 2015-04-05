@@ -32,7 +32,10 @@ void SdlTexture::setTexture(SDL_Texture *t, int w, int h)
 void SdlTexture::clearTexture()
 {
 	if(texture != NULL)
-		SDL_DestroyTexture(texture);	
+	{
+		SDL_DestroyTexture(texture);
+		texture = NULL;		
+	}	
 }
 
 void SdlTexture::render(SDL_Renderer *r, int x, int y)
