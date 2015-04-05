@@ -19,8 +19,12 @@
 
 using namespace std;
 
-const int SCREEN_WIDTH = MAPWIDTH;
-const int SCREEN_HEIGHT = MAPHEIGHT;
+const int SCREEN_WIDTH = 800;//MAPWIDTH;
+const int SCREEN_HEIGHT = 800;//MAPHEIGHT;
+
+#define walkTileNum 15
+#define walkTileSize 20
+const int WALK_SCREEN_SIZE = (walkTileSize * (walkTileNum*2 + 1));
 
 // ask for noise screen update at every X percent completed
 #define UPDATE_AT_PERCENT 20
@@ -46,6 +50,8 @@ unordered_map<string, SdlTexture*> textureMap;
 bool SDLStart();
 void SDLClose();
 
+void mapPosFromMouse(int *x, int *y);
+
 void handleNoiseWidowEvent(SDL_Event windowEvent);
 
 void createWalkWindow(int x, int y);
@@ -54,7 +60,7 @@ void handleWalkWindowEvent(SDL_Event windowEvent);
 void updateWalkTex();
 
 void updateMapTex();
-void updateInfoTex(int x, int y);
+void updateInfoTex();
 
 
 int walkX, walkY;
@@ -270,28 +276,23 @@ void handleNoiseWidowEvent(SDL_Event windowEvent)
 
 		case SDL_MOUSEBUTTONUP:
 			if(windowEvent.button.button == SDL_BUTTON_LEFT)
-        	{
-        		int x, y;
-				SDL_GetMouseState(&x, &y);
+			{
+				int x, y;
+				mapPosFromMouse(&x, &y);
 
-        		createWalkWindow(x, y);
-        	}
+				createWalkWindow(x, y);
+			}
 		break;
 
 		case SDL_MOUSEMOTION:
-			int x, y;
-			SDL_GetMouseState(&x, &y);
-			updateInfoTex(x, y);
+			updateInfoTex();
 			render = true;
 		break;
 	}
 
 	if(updateMapTexture)
 	{
-		int x, y;
-		SDL_GetMouseState(&x, &y);
-		updateInfoTex(x, y);
-		
+		updateInfoTex(); // in case it became sea
 		updateMapTex();
 
 		render = true;
@@ -302,14 +303,14 @@ void handleNoiseWidowEvent(SDL_Event windowEvent)
 	{
 
 		int x, y;
-		SDL_GetMouseState(&x, &y);
+		mapPosFromMouse(&x, &y);
 
 		//Clear screen
 		//SDL_SetRenderDrawColor(noiseRenderer, 255, 255, 255, 255);
 		//SDL_RenderClear(noiseRenderer);
 		
 		textureMap["mapTexture"]->render(noiseRenderer, 0, 0);
-		textureMap["heightInfo"]->render(noiseRenderer, x, y + 15);
+		textureMap["heightInfo"]->render(noiseRenderer, x, y - 30);
 
 		SDL_RenderPresent(noiseRenderer);
 		//render = false;
@@ -320,10 +321,12 @@ void createWalkWindow(int x, int y)
 {
 	destroyWalkWindow();
 
-	int noisePosX, noisePosY;
-	SDL_GetWindowPosition(noiseWindow, &noisePosX, &noisePosY);
-	
-	walkWindow = SDL_CreateWindow("WorldGen Walker", noisePosX + SCREEN_WIDTH + 20, noisePosY, 600, 600, SDL_WINDOW_RESIZABLE);
+	walkWindow = SDL_CreateWindow(	"WorldGen Walker",
+									SDL_WINDOWPOS_CENTERED,
+									SDL_WINDOWPOS_CENTERED,
+									WALK_SCREEN_SIZE,
+									WALK_SCREEN_SIZE,
+									SDL_WINDOW_RESIZABLE);
 	if(walkWindow == NULL)
 	{
 		printf("walkWindow could not be created! SDL Error: %s\n", SDL_GetError());
@@ -340,7 +343,7 @@ void createWalkWindow(int x, int y)
 	}
 
 	//SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "linear");  // make the scaled rendering look smoother.
-	SDL_RenderSetLogicalSize(walkRenderer, 600, 600);
+	SDL_RenderSetLogicalSize(walkRenderer, WALK_SCREEN_SIZE, WALK_SCREEN_SIZE);
 
 	//Initialize walkRenderer color
 	SDL_SetRenderDrawColor(walkRenderer, 255, 255, 255, 255);
@@ -445,7 +448,8 @@ void updateWalkTex()
 	SDL_Texture *temp = SDL_CreateTexture(walkRenderer, 
 										SDL_PIXELFORMAT_RGBA8888, 
 										SDL_TEXTUREACCESS_TARGET, 
-										600, 600);
+										WALK_SCREEN_SIZE,
+										WALK_SCREEN_SIZE);
 
 	SDL_SetRenderTarget(walkRenderer, temp);
 	SDL_SetRenderDrawColor(walkRenderer, 255, 255, 255, 255);
@@ -453,10 +457,13 @@ void updateWalkTex()
 
 	int squarePosIt = 0;
 
-	for(int y = walkY - 7; y <= walkY + 7; y++)
-		for(int x = walkX - 7; x <= walkX + 7; x++)
+	for(int y = walkY - walkTileNum; y <= walkY + walkTileNum; y++)
+		for(int x = walkX - walkTileNum; x <= walkX + walkTileNum; x++)
 		{
-			SDL_Rect square = {(squarePosIt%15) * (600/15), (squarePosIt/15) * (600/15), ((squarePosIt%15) * (600/15)) + (600/15), ((squarePosIt/15) * (600/15)) + (600/15)};
+			SDL_Rect square = {	(squarePosIt%(walkTileNum*2 + 1)) * walkTileSize,
+								(squarePosIt/(walkTileNum*2 + 1)) * walkTileSize,
+								(squarePosIt%(walkTileNum*2 + 1)) * walkTileSize + walkTileSize,
+								(squarePosIt/(walkTileNum*2 + 1)) * walkTileSize + walkTileSize};
 
 			if(x == walkX && y == walkY)
 				SDL_SetRenderDrawColor(walkRenderer, 255, 0, 0, 255);
@@ -496,7 +503,7 @@ void updateWalkTex()
 		}
 
 	SDL_SetRenderTarget(walkRenderer, NULL);
-	textureMap["walkTexture"]->setTexture(temp, 600, 600);
+	textureMap["walkTexture"]->setTexture(temp, WALK_SCREEN_SIZE, WALK_SCREEN_SIZE);
 }
 
 void updateMapTex()
@@ -572,8 +579,11 @@ void updateMapTex()
 	textureMap["mapTexture"]->setTexture(temp, MAPWIDTH, MAPHEIGHT);
 }
 
-void updateInfoTex(int x, int y)
+void updateInfoTex()
 {
+	int x, y;
+	mapPosFromMouse(&x, &y);
+
 	int h = map.Tile(x, y).getH();
 	string info;
 
@@ -608,6 +618,50 @@ void updateInfoTex(int x, int y)
 
 		SDL_FreeSurface(tempSurface);
     }
+}
+
+void mapPosFromMouse(int *x, int *y)
+{
+	SDL_GetMouseState(x, y);
+
+	int winW, winH;
+	SDL_GetWindowSize(noiseWindow, &winW, &winH);
+
+	float scaleX, scaleY;
+	SDL_RenderGetScale(noiseRenderer, &scaleX, &scaleY);
+
+	// regra de três: mouseX / winW assim como mapX / MAPWIDTH
+	int sobra; // letterbox, soma dos 2 lados
+	if((float)MAPWIDTH / winW - (float)MAPHEIGHT / winH > 0) // ratioW - ratioH (ratio do original em relação a janela)
+	{
+		sobra = (winH - MAPHEIGHT * scaleY); // total - tamanho do mapa(renderer logical size) * escala que esta sendo renderizado
+		
+		*x = (*x * MAPWIDTH)/(float)winW;
+		if(*y < sobra/2) // está no letterbox antes
+			*y = 0;
+
+		else if(*y > MAPHEIGHT * scaleY + sobra/2) // está no letterbox depois
+			*y = MAPHEIGHT - 1;
+
+		else // escala y sem letterbox em window size sem letterbox em relação ao mapa
+			*y = ((*y - sobra/2) * MAPHEIGHT)/(float)(winH - sobra);
+	}
+
+	else
+	{
+		sobra = (winW - MAPWIDTH * scaleX);
+
+		*y = (*y * MAPHEIGHT)/(float)winH;
+
+		if(*x < sobra/2)
+			*x = 0;
+
+		else if(*x >  MAPWIDTH * scaleX + sobra/2)
+			*x = MAPWIDTH - 1;
+
+		else
+			*x = ((*x - sobra/2) * MAPWIDTH)/(float)(winW - sobra);
+	}
 }
 
 bool SDLStart()
@@ -654,9 +708,9 @@ bool SDLStart()
 	}
 
 	//SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "linear");  // make the scaled rendering look smoother.
-	SDL_RenderSetLogicalSize(noiseRenderer, SCREEN_WIDTH, SCREEN_HEIGHT);
+	SDL_RenderSetLogicalSize(noiseRenderer, MAPWIDTH, MAPHEIGHT);
 
-	//Initialize noiserenderer color
+	//Initialize noiseRenderer color
 	SDL_SetRenderDrawColor(noiseRenderer, 0, 0, 0, 0);
 
 	return true;
