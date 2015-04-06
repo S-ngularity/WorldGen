@@ -7,7 +7,7 @@
 #define MAPHEIGHT 1025	//768//540//270
 #define MAPWIDTH 1025	//1366//960//480
 
-#define MAX_H 150		//170//120//70
+#define MAX_H 500		//170//120//70
 
 #define INIT_H ((MAX_H / 2) - 1)
 

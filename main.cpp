@@ -11,7 +11,8 @@
 #include <time.h>
 
 #include "Map.h"
-#include "MyNoise.h"
+//#include "MyNoise.h"
+#include "DiamSqNoise.h"
 #include "SdlClasses/SdlTexture.h"
 
 #include <SDL2/SDL.h>
@@ -66,7 +67,7 @@ void updateInfoTex();
 int walkX, walkY;
 
 Map map;
-MyNoise noise(map);
+DiamSqNoise noise(map);
 
 int seaLevel = SEA_LEVEL;
 int seaRenderMode = NO_SEA, landRenderMode = FIXED;
@@ -105,7 +106,6 @@ int main(int argc, char* args[])
 	SDL_RenderPresent(noiseRenderer);
 
 	bool updateMapTexture = false;
-	bool alreadyUpdated = false;
 	int shownPercent = 0;
 
 	while(!noise.isDone() && !quit) // noise iterations
@@ -122,11 +122,8 @@ int main(int argc, char* args[])
 				cout << endl << endl << "Highest point: " << noise.getHighestH() << endl << endl;
 
 			// update only once per percent
-			bool shouldUpdate = shownPercent % UPDATE_AT_PERCENT == 0;
-			if(shouldUpdate && !alreadyUpdated)
+			if(shownPercent % UPDATE_AT_PERCENT == 0)
 			{
-				alreadyUpdated = true;
-
 				if(!noise.isDone()) // no sea while not done
 				{
 					seaRenderMode = NO_SEA;
@@ -142,9 +139,6 @@ int main(int argc, char* args[])
 					cout << "Sea Level : " << setw(3) << setfill('0') << SEA_LEVEL;
 				}
 			}
-
-			else if(!shouldUpdate) // when percent increses, it's not updated anymore
-				alreadyUpdated = false;
 		}
 
 		if(updateMapTexture)
@@ -470,7 +464,7 @@ void updateWalkTex()
 			
 			else if(map.isPosInsideWrap(x, y))
 			{
-				if(map.Tile(x, y).getH() <= seaLevel && seaLevel >= map.Tile(walkX, walkY).getH() - 2)
+				if(map.Tile(x, y).getH() <= seaLevel)// && seaLevel >= map.Tile(walkX, walkY).getH() - 2)
 					SDL_SetRenderDrawColor(walkRenderer, SEA);
 
 				else if(map.Tile(x, y).getH() < map.Tile(walkX, walkY).getH() - 2)

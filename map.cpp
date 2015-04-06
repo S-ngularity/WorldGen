@@ -41,10 +41,10 @@ MapTile& Map::Tile(int x, int y)
 /*if(isPosInsideWrap(x, y)) // WRAP IN Y (mudar isPosInsideWrap para só true)
 {
 	if(y < 0)
-		y = MAPHEIGHT + y;
+		y = MAPHEIGHT + y % MAPHEIGHT
 
 	else if(y >= MAPHEIGHT)
-		y = 0 + (y - MAPHEIGHT));
+		y = y % MAPHEIGHT;
 }//*/
 
 	if(isPosInsideNoWrap(x, y))
