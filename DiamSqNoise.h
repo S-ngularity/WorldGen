@@ -16,7 +16,7 @@ class DiamSqNoise
 
 		int totalIts, doneIts;
 		int percentComplete;
-		int highestH;
+		int highestH, lowestH;
 
 		int sideLength;
 		int randRange;

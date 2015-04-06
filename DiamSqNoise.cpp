@@ -11,17 +11,22 @@
 
 using namespace std;
 
+
+#define TEMP_MAX_H 5000
+#define RAND_RANGE_MULTPLIER 0.65
+
 DiamSqNoise::DiamSqNoise(Map &theMap) : map(theMap)
 {
 	totalIts = (int)(log2(MAPWIDTH));
 	doneIts = 0;
 	percentComplete = 0;
 	highestH = 0;
+	lowestH = TEMP_MAX_H;
 	alreadySaved = false;
 	state = running;
 
 	sideLength = MAPWIDTH - 1;
-	randRange = MAX_H / 2;
+	randRange = TEMP_MAX_H / 2;
 
 	srand(time(NULL));
 }
@@ -69,12 +74,12 @@ squares again.
 	{
 		if(doneIts == 0)
 		{
-			map.Tile(0, 0).setH(MAX_H/2);//rand() % (MAX_H + 1));
-			map.Tile(0, MAPHEIGHT - 1).setH(MAX_H/2);//rand() % (MAX_H + 1));
-			map.Tile(MAPWIDTH - 1, 0).setH(MAX_H/2);//rand() % (MAX_H + 1));
-			map.Tile(MAPWIDTH - 1, MAPHEIGHT - 1).setH(MAX_H/2);//rand() % (MAX_H + 1));
+			map.Tile(0, 0).setH(TEMP_MAX_H/2);//rand() % (TEMP_MAX_H + 1));
+			map.Tile(0, MAPHEIGHT - 1).setH(TEMP_MAX_H/2);//rand() % (TEMP_MAX_H + 1));
+			map.Tile(MAPWIDTH - 1, 0).setH(TEMP_MAX_H/2);//rand() % (TEMP_MAX_H + 1));
+			map.Tile(MAPWIDTH - 1, MAPHEIGHT - 1).setH(TEMP_MAX_H/2);//rand() % (TEMP_MAX_H + 1));
 
-			randRange = MAX_H / 2; // REPEATING FOR CLARITY WHILE DEBUGGING
+			randRange = TEMP_MAX_H / 2; // REPEATING FOR CLARITY WHILE DEBUGGING
 			sideLength = MAPWIDTH - 1;
 
 			//cout << "--- " << map.Tile(0, 0).getH() << " " << map.Tile(0, MAPHEIGHT - 1).getH() << " " << map.Tile(MAPWIDTH - 1, 0).getH() << " " << map.Tile(MAPWIDTH - 1, MAPHEIGHT - 1).getH() << " ---" << endl;
@@ -89,7 +94,7 @@ squares again.
 			diamondStep();
 			
 			sideLength /= 2;
-			randRange *= 0.7;//pow(2, -0.5);
+			randRange *= RAND_RANGE_MULTPLIER;//pow(2, -0.5);
 			if(randRange < 1)
 				randRange = 1;
 
@@ -97,11 +102,6 @@ squares again.
 
 			updatePercent();
 			checkIfFinished();
-		}
-
-		else
-		{
-			state = done;
 		}
 	}
 }
@@ -117,12 +117,17 @@ void DiamSqNoise::squareStep()
 							map.Tile(x, y + sideLength).getH() +
 							map.Tile(x + sideLength, y + sideLength).getH()) / 4;
 
-			// 2*randRange - randRange pra ficar entre -randRange e +randRange
-			int d = ((rand() % (randRange * 2)) - randRange);
 			// center of the square is average + random factor
-			map.Tile(x + sideLength / 2,
-					 y + sideLength / 2).setH(	average +
-												d);
+			// 2*randRange - randRange pra ficar entre -randRange e +randRange
+			average = average + ((rand() % (randRange * 2)) - randRange);
+
+			map.Tile(x + sideLength / 2, y + sideLength / 2).setH(average);
+
+			if(average > highestH)
+				highestH = average;
+
+			if(average < lowestH)
+				lowestH = average;
 		}
 }
 
@@ -133,15 +138,15 @@ void DiamSqNoise::diamondStep()
 	for(int y = 0; y < MAPHEIGHT; y += halfLength)
 		for(int x = (y + halfLength) % sideLength; x < MAPWIDTH - 1; x += sideLength)
 		{
-			/*
-			int A;// = map.Tile(x - halfLength, y).getH(); // left of center
-			int B;// = map.Tile(x + halfLength, y).getH(); // right of center
+			//*
+			int A = map.Tile(((x - halfLength) + MAPWIDTH-1) % (MAPWIDTH-1), y).getH();// = map.Tile(x - halfLength, y).getH(); // left of center
+			int B = map.Tile((x + halfLength) % (MAPWIDTH-1), y).getH();// = map.Tile(x + halfLength, y).getH(); // right of center
 			int C;// = map.Tile(x, y - halfLength).getH(); // above center
 			int D;// = map.Tile(x, y + halfLength).getH(); // below center
 
-			int sum = 0, quantity = 0;
+			//sum = 0, quantity = 0;
 
-			if(x - halfLength >= 0)
+			/*if(x - halfLength >= 0)
 			{
 				A = map.Tile(x - halfLength, y).getH(); // left of center
 				sum += A;
@@ -154,30 +159,37 @@ void DiamSqNoise::diamondStep()
 				sum += B;
 				quantity++;
 			}else{B = map.Tile(x - halfLength, y).getH();}
-
+*/
 			if(y - halfLength >= 0)
 			{
 				C = map.Tile(x, y - halfLength).getH(); // above center
-				sum += C;
-				quantity++;
-			}else{C = map.Tile(x, y + halfLength).getH();}
+				//sum += C;
+				//quantity++;
+			}
+			
+			else
+				C = map.Tile(x, y + halfLength).getH();
 
 			if(y + halfLength < MAPHEIGHT)
 			{
 				D = map.Tile(x, y + halfLength).getH(); // below center
-				sum += D;
-				quantity++;
-			}else{D = map.Tile(x, y - halfLength).getH();}
+				//sum += D;
+				//quantity++;
+			}
+
+			else
+				D = map.Tile(x, y - halfLength).getH();
 
 			// average of corner values
 			int average = (A+B+C+D)/4;
 			//int average = sum / quantity;
 			//*/
 
+			/*
 			int average = (	map.Tile((x - halfLength + MAPWIDTH-1) % (MAPWIDTH-1), y).getH() + // left of center
-							map.Tile(x + halfLength % (MAPWIDTH-1), y).getH() + // right of center
+							map.Tile((x + halfLength) % (MAPWIDTH-1), y).getH() + // right of center
 							map.Tile(x, (y - halfLength + MAPHEIGHT-1) % (MAPHEIGHT-1)).getH() + // above center
-							map.Tile(x, (y + halfLength) % (MAPHEIGHT-1)).getH()) / 4; // below center
+							map.Tile(x, (y + halfLength) % (MAPHEIGHT-1)).getH()) / 4; // below center */
 
 			average = average + ((rand() % (randRange * 2)) - randRange);
 
@@ -188,6 +200,12 @@ void DiamSqNoise::diamondStep()
 			
 			//if(y == 0)
 			//	map.Tile(x, MAPHEIGHT - 1).setH(average);
+
+			if(average > highestH)
+				highestH = average;
+
+			if(average < lowestH)
+				lowestH = average;
 		}
 }
 
@@ -201,12 +219,15 @@ void DiamSqNoise::checkIfFinished()
 {
 	if(doneIts == totalIts && state == running)
 	{
-		highestH = 0;
-
+		// NORMALIZATION
 		for(int y = 0; y < MAPHEIGHT; y++)
 			for(int x = 0; x < MAPWIDTH; x++)
-				if(map.Tile(x, y).getH() > highestH)
-					highestH = map.Tile(x, y).getH();
+			{
+				map.Tile(x, y).setH(
+					((map.Tile(x, y).getH() - lowestH) / (float)(highestH - lowestH)) * MAX_H);
+			}
+
+		highestH = MAX_H; // there will be always a highest point normalized from the original highest point
 /*
 		if(!alreadySaved) // SALVAR UMA VEZ RESULTADO EM TGA
 		{
@@ -226,10 +247,9 @@ void DiamSqNoise::checkIfFinished()
 			tgaSave("t.tga", MAPWIDTH, MAPHEIGHT, 8, imageData);
 
 			alreadySaved = true;
-		}
-//*/
-		//cout << endl << "DONE" << endl;
-		//state = done;
+		}//*/
+
+		state = done;
 	}
 }
 
