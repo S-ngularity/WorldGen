@@ -4,10 +4,7 @@
 #include "Pos.h"
 #include "MapTile.h"
 
-#define MAPHEIGHT 1025	//768//540//270
-#define MAPWIDTH 1025	//1366//960//480
-
-#define MAX_H 36		//170//120//70
+#define MAX_H 12		//170//120//70
 
 #define INIT_H ((MAX_H / 2) - 1)
 
@@ -16,20 +13,35 @@
 class Map
 {
 	private:
+		int mapHeight, mapWidth;
 		MapTile **map;
 
+		int highestH, lowestH;
+
 	public:
-		Map();
+		Map(int w, int h);
 		~Map();
 
 		MapTile& Tile(Pos p);
 		MapTile& Tile(int x, int y);
 
-		bool isPosInsideNoWrap(Pos p);
-		bool isPosInsideWrap(Pos p);
+		void normalize(int maxH);
 
-		bool isPosInsideNoWrap(int x, int y);
+		bool isPosInsideWrap(Pos p);
 		bool isPosInsideWrap(int x, int y);
+
+		bool isPosInsideNoWrap(Pos p);
+		bool isPosInsideNoWrap(int x, int y);
+
+		int getMapHeight();
+		int getMapWidth();
+
+		void setHighestH(int h);
+		void setLowestH(int h);
+
+		int getHighestH();
+		int getLowestH();
+
 };
 
 #endif

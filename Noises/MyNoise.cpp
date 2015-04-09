@@ -1,5 +1,4 @@
 #include <iostream>
-#include <iomanip>
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -9,10 +8,6 @@
 
 #include "MyNoise.h"
 
-#include "Map.h"
-#include "MapTile.h"
-#include "Pos.h"
-
 using namespace std;
 
 MyNoise::MyNoise(Map &theMap) : map(theMap)
@@ -20,7 +15,6 @@ MyNoise::MyNoise(Map &theMap) : map(theMap)
 	totalIts = 0;
 	doneIts = 0;
 	percentComplete = 0;
-	highestH = 0;
 	alreadySaved = false;
 	state = readTect;
 
@@ -55,16 +49,6 @@ void MyNoise::runOnce()
 int MyNoise::getPercentComplete()
 {
 	return percentComplete;
-}
-
-bool MyNoise::isDone()
-{
-	return state == done ? true : false;
-}
-
-int MyNoise::getHighestH()
-{
-	return highestH;
 }
 
 
@@ -134,12 +118,12 @@ void MyNoise::checkIfFinished()
 {
 	if(doneIts == totalIts && (state == doTect || state == doEro))
 	{
-		highestH = 0;
+		map.setHighestH(0);
 
-		for(int y = 0; y < MAPHEIGHT; y++)
-			for(int x = 0; x < MAPWIDTH; x++)
-				if(map.Tile(x, y).getH() > highestH)
-					highestH = map.Tile(x, y).getH();
+		for(int y = 0; y < map.getMapHeight(); y++)
+			for(int x = 0; x < map.getMapWidth(); x++)
+				if(map.Tile(x, y).getH() > map.getHighestH())
+					map.setHighestH(map.Tile(x, y).getH());
 
 		if(state == doTect)
 			state = readEro;
@@ -147,8 +131,8 @@ void MyNoise::checkIfFinished()
 		else if (state == doEro)
 		{
 			/* // imprime erros de quando a diferença entre tiles adjacentes é maior que 1
-			for(int y = 0; y < MAPHEIGHT; y++)
-				for(int x = 0; x < MAPWIDTH; x++)
+			for(int y = 0; y < map.getMapHeight(); y++)
+				for(int x = 0; x < map.getMapWidth(); x++)
 				{
 					for(int yOffset = -1; yOffset <= 1; yOffset++)
 						for(int xOffset = -1; xOffset <= 1; xOffset++)
@@ -171,19 +155,19 @@ void MyNoise::checkIfFinished()
 			if(!alreadySaved) // SALVAR UMA VEZ RESULTADO EM TGA
 			{
 				unsigned char *imageData;
-				imageData = (unsigned char*)malloc(sizeof(unsigned char) * MAPWIDTH * MAPHEIGHT);
+				imageData = (unsigned char*)malloc(sizeof(unsigned char) * map.getMapWidth() * map.getMapHeight());
 
-				for(int y = 0; y < MAPHEIGHT; y++)
-					for(int x = 0; x < MAPWIDTH; x++)
+				for(int y = 0; y < map.getMapHeight(); y++)
+					for(int x = 0; x < map.getMapWidth(); x++)
 					{
 						if(map.Tile(x, y).getH() <= SEA_LEVEL)
-							imageData[(MAPHEIGHT - 1 - y) * MAPWIDTH + x] = 0;//(unsigned char)(((float)(SEA_LEVEL - 1) / MAX_H) * 256.0);
+							imageData[(map.getMapHeight() - 1 - y) * map.getMapWidth() + x] = 0;//(unsigned char)(((float)(SEA_LEVEL - 1) / MAX_H) * 256.0);
 
 						else
-							imageData[(MAPHEIGHT - 1 - y) * MAPWIDTH + x] = (unsigned char)((int)((map.Tile(x, y).getH() - SEA_LEVEL) / (float)(MAX_H - SEA_LEVEL) * 255.0)); //(unsigned char)((int)(((float)map.Tile(x, y).getH() / MAX_H) * 256.0));
+							imageData[(map.getMapHeight() - 1 - y) * map.getMapWidth() + x] = (unsigned char)((int)((map.Tile(x, y).getH() - SEA_LEVEL) / (float)(MAX_H - SEA_LEVEL) * 255.0)); //(unsigned char)((int)(((float)map.Tile(x, y).getH() / MAX_H) * 256.0));
 					}
 
-				tgaSave("t.tga", MAPWIDTH, MAPHEIGHT, 8, imageData);
+				tgaSave("t.tga", map.getMapWidth(), map.getMapHeight(), 8, imageData);
 
 				alreadySaved = true;
 			}
@@ -196,7 +180,7 @@ void MyNoise::checkIfFinished()
 void MyNoise::tectonics()
 {
 	Pos seedPos;
-	seedPos.setPos((rand() % MAPWIDTH), (rand() % MAPHEIGHT));
+	seedPos.setPos((rand() % map.getMapWidth()), (rand() % map.getMapHeight()));
 
 	float floatComplete = (float)doneIts / totalIts;
 
@@ -228,7 +212,7 @@ void MyNoise::erosion()
 	{
 		// evita criar montanhas submarinas que não tenham possibilidade de virar ilhas (mas faz mapa tender a alturas maiores no geral)
 		do{
-			seedPos.setPos((rand() % MAPWIDTH), (rand() % MAPHEIGHT));
+			seedPos.setPos((rand() % map.getMapWidth()), (rand() % map.getMapHeight()));
 		}while(map.Tile(seedPos.getX(), seedPos.getY()).getH() <= SEA_LEVEL - SEA_LEVEL * 0.5 * rangeMultiplier);
 
 		insertHighArtifact(seedPos, rangeMultiplier);
@@ -238,7 +222,7 @@ void MyNoise::erosion()
 	{
 		// adicionei por simetria àcima, porém não sei porque torna (ou não) mapas melhores (mais altura entre mar e pico mais alto)
 		//do{
-			seedPos.setPos((rand() % MAPWIDTH), (rand() % MAPHEIGHT));
+			seedPos.setPos((rand() % map.getMapWidth()), (rand() % map.getMapHeight()));
 		//}while(map.Tile(seedPos.getX(), seedPos.getY()).getH() <= SEA_LEVEL - SEA_LEVEL * 0.5);// - SEA_LEVEL * 0.5);
 
 		insertLowArtifact(seedPos, rangeMultiplier);

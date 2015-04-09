@@ -1,7 +1,7 @@
 #ifndef MYNOISE
 #define MYNOISE
 
-#include "Map.h"
+#include "../Map.h"
 
 typedef enum {readTect = 0, doTect, readEro, doEro, done} State;
 
@@ -16,7 +16,6 @@ class MyNoise
 
 		int totalIts, doneIts;
 		int percentComplete;
-		int highestH;
 
 		void readTectonics();
 		void doTectonics();
@@ -50,9 +49,6 @@ class MyNoise
 		void runOnce();
 
 		int getPercentComplete();
-		bool isDone();
-
-		int getHighestH();
 };
 
 #endif

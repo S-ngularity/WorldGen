@@ -1,7 +1,7 @@
 #ifndef DIAMSQNOISE
 #define DIAMSQNOISE
 
-#include "Map.h"
+#include "../Map.h"
 
 typedef enum {running = 0, done} State;
 
@@ -14,9 +14,8 @@ class DiamSqNoise
 
 		bool alreadySaved; // PARA SALVAR IMAGEM UMA VEZ
 
-		int totalIts, doneIts;
+		int doneIts, totalIts;
 		int percentComplete;
-		int highestH, lowestH;
 
 		int sideLength;
 		int randRange;
@@ -40,9 +39,6 @@ class DiamSqNoise
 		void runOnce();
 
 		int getPercentComplete();
-		bool isDone();
-
-		int getHighestH();
 };
 
 #endif

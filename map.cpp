@@ -2,21 +2,26 @@
 
 #include "Pos.h"
 
-Map::Map()
+Map::Map(int w, int h)
 {
-	map = new MapTile*[MAPWIDTH];
+	mapWidth = w;
+	mapHeight = h;
 
-	for(int i = 0; i < MAPWIDTH; i++)
-		map[i] = new MapTile[MAPHEIGHT];
+	map = new MapTile*[mapWidth];
 
-	for(int y = 0; y < MAPHEIGHT; y++)
-		for(int x = 0; x < MAPWIDTH; x++)
+	for(int i = 0; i < mapWidth; i++)
+		map[i] = new MapTile[mapHeight];
+
+	for(int y = 0; y < mapHeight; y++)
+		for(int x = 0; x < mapWidth; x++)
 			Tile(x, y).setH(INIT_H);
+
+	highestH = lowestH = INIT_H;
 }
 
 Map::~Map()
 {
-	for(int i = 0; i < MAPWIDTH; i++)
+	for(int i = 0; i < mapWidth; i++)
 		delete [] map[i];
 
 	delete [] map;
@@ -32,19 +37,19 @@ MapTile& Map::Tile(int x, int y)
 	if(isPosInsideWrap(x, y))
 	{
 		if(x < 0)
-			x = MAPWIDTH + x % MAPWIDTH;
+			x = mapWidth + x % mapWidth;
 
-		else if(x >= MAPWIDTH)
-			x = x % MAPWIDTH;
+		else if(x >= mapWidth)
+			x = x % mapWidth;
 	}
 
 /*if(isPosInsideWrap(x, y)) // WRAP IN Y (mudar isPosInsideWrap para só true)
 {
 	if(y < 0)
-		y = MAPHEIGHT + y % MAPHEIGHT;
+		y = mapHeight + y % mapHeight;
 
-	else if(y >= MAPHEIGHT)
-		y = y % MAPHEIGHT;
+	else if(y >= mapHeight)
+		y = y % mapHeight;
 }//*/
 
 	if(isPosInsideNoWrap(x, y))
@@ -54,38 +59,81 @@ MapTile& Map::Tile(int x, int y)
 		return map[0][0];
 }
 
-bool Map::isPosInsideNoWrap(Pos p)
+void Map::normalize(int maxH)
 {
-	if(p.getX() >= 0 && p.getY() >= 0 && p.getX() < MAPWIDTH && p.getY() < MAPHEIGHT)
-		return true;
+	for(int y = 0; y < mapHeight; y++)
+		for(int x = 0; x < mapWidth; x++)
+		{
+			Tile(x, y).setH(
+				((Tile(x, y).getH() - lowestH) / (float)(highestH - lowestH)) * maxH);
+		}
 
-	else
-		return false;
-}	
+	setHighestH(maxH); // there will be always a highest point normalized from the original highest point
+	setLowestH(0);
+}
 
 bool Map::isPosInsideWrap(Pos p)
 {
-	if(p.getY() >= 0 && p.getY() < MAPHEIGHT)
+	if(p.getY() >= 0 && p.getY() < mapHeight)
 		return true;
 
 	else
 		return false;
 }
 
-bool Map::isPosInsideNoWrap(int x, int y)
+bool Map::isPosInsideWrap(int x, int y)
 {
-	if(x >= 0 && y >= 0 && x < MAPWIDTH && y < MAPHEIGHT)
+	if(y >= 0 && y < mapHeight)
+		return true;
+
+	else
+		return false;
+}
+
+bool Map::isPosInsideNoWrap(Pos p)
+{
+	if(p.getX() >= 0 && p.getY() >= 0 && p.getX() < mapWidth && p.getY() < mapHeight)
 		return true;
 
 	else
 		return false;
 }	
 
-bool Map::isPosInsideWrap(int x, int y)
+bool Map::isPosInsideNoWrap(int x, int y)
 {
-	if(y >= 0 && y < MAPHEIGHT)
+	if(x >= 0 && y >= 0 && x < mapWidth && y < mapHeight)
 		return true;
 
 	else
 		return false;
+}
+
+int Map::getMapHeight()
+{
+	return mapHeight;
+}
+
+int Map::getMapWidth()
+{
+	return mapWidth;
+}
+
+void Map::setHighestH(int h)
+{
+	highestH = h;
+}
+
+void Map::setLowestH(int h)
+{
+	lowestH = h;
+}
+
+int Map::getHighestH()
+{
+	return highestH;
+}
+
+int Map::getLowestH()
+{
+	return lowestH;
 }

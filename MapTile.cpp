@@ -51,6 +51,7 @@ void MapTile::setIsSeed(bool newIsSeed)
 	isSeed = newIsSeed;
 }
 
+// error
 bool MapTile::getError()
 {
 	return error;

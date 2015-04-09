@@ -1,8 +1,6 @@
 #ifndef MAPTILE
 #define MAPTILE
 
-#include "Pos.h" // pred
-
 #define MULTIPLIER 1
 
 class MapTile

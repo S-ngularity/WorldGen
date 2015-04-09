@@ -11,8 +11,8 @@
 #include <time.h>
 
 #include "Map.h"
-//#include "MyNoise.h"
-#include "DiamSqNoise.h"
+//#include "Noises/MyNoise.h"
+#include "Noises/DiamSqNoise.h"
 #include "SdlClasses/SdlTexture.h"
 
 #include <SDL2/SDL.h>
@@ -20,8 +20,8 @@
 
 using namespace std;
 
-const int SCREEN_WIDTH = 800;//MAPWIDTH;
-const int SCREEN_HEIGHT = 800;//MAPHEIGHT;
+const int SCREEN_WIDTH = 800;//map.getMapWidth();
+const int SCREEN_HEIGHT = 800;//map.getMapHeight();
 
 #define walkTileNum 15
 #define walkTileSize 20
@@ -43,7 +43,14 @@ SDL_Event event;
 
 TTF_Font *Font = NULL;
 
-Uint32 *mapPixels = (Uint32*) malloc(sizeof(Uint32) * MAPWIDTH * MAPHEIGHT);
+Map map(1025, 1025);
+int seaLevel = SEA_LEVEL;
+int seaRenderMode = NO_SEA, landRenderMode = FIXED;
+
+Uint32 *mapPixels = (Uint32*) malloc(sizeof(Uint32) * map.getMapWidth() * map.getMapHeight());
+
+DiamSqNoise noise(map);
+//MyNoise noise(map);
 
 unordered_map<string, SdlTexture*> textureMap;
 
@@ -63,14 +70,7 @@ void updateWalkTex();
 void updateMapTex();
 void updateInfoTex();
 
-
 int walkX, walkY;
-
-Map map;
-DiamSqNoise noise(map);
-
-int seaLevel = SEA_LEVEL;
-int seaRenderMode = NO_SEA, landRenderMode = FIXED;
 
 bool quit = false;
 
@@ -98,8 +98,8 @@ int main(int argc, char* args[])
 	/*textureMap.emplace("mapTexture", new SdlTexture(SDL_CreateTexture(noiseRenderer, 
 																	SDL_PIXELFORMAT_RGBA8888, 
 																	SDL_TEXTUREACCESS_STREAMING, 
-																	MAPWIDTH, MAPHEIGHT),
-													MAPWIDTH, MAPHEIGHT)); // PARA UPDATES SEM DESTRUIR/RECRIAR?*/
+																	map.getMapWidth(), map.getMapHeight()),
+													map.getMapWidth(), map.getMapHeight())); // PARA UPDATES SEM DESTRUIR/RECRIAR?*/
 
 	updateMapTex();
 	textureMap["mapTexture"]->render(noiseRenderer, 0, 0);
@@ -108,10 +108,11 @@ int main(int argc, char* args[])
 	bool updateMapTexture = false;
 	int shownPercent = 0;
 
-	while(!noise.isDone() && !quit) // noise iterations
+	while(noise.getPercentComplete() < 100 && !quit) // noise iterations
 	{
 		noise.runOnce();
 
+		// update only once per percent
 		if(noise.getPercentComplete() != shownPercent)
 		{
 			shownPercent = noise.getPercentComplete();
@@ -119,12 +120,13 @@ int main(int argc, char* args[])
 			cout << "\b\b\b\b" << shownPercent << "%";
 
 			if(shownPercent == 100) // show highest at each phase
-				cout << endl << endl << "Highest point: " << noise.getHighestH() << endl << endl;
-
-			// update only once per percent
+				cout << endl 
+				<< endl << "Highest point: " << map.getHighestH()
+				<< endl << "Lowest point: " << map.getLowestH() << endl << endl;
+			
 			if(shownPercent % UPDATE_AT_PERCENT == 0)
 			{
-				if(!noise.isDone()) // no sea while not done
+				if(noise.getPercentComplete() < 100) // no sea while not done
 				{
 					seaRenderMode = NO_SEA;
 					landRenderMode = FIXED;
@@ -136,7 +138,7 @@ int main(int argc, char* args[])
 					seaRenderMode = WITH_SEA;
 					landRenderMode = VARYING_HIGHEST;
 					updateMapTexture = true; // last noise print
-					cout << "Sea Level : " << setw(3) << setfill('0') << SEA_LEVEL;
+					cout << "Sea Level : " << setw(3) << setfill('0') << seaLevel;
 				}
 			}
 		}
@@ -212,7 +214,7 @@ void handleNoiseWidowEvent(SDL_Event windowEvent)
 					}
 
 					// up = +1 sea_lvl when with_sea
-					else if(!(windowEvent.key.keysym.mod & KMOD_SHIFT) && seaLevel + 1 < noise.getHighestH())
+					else if(!(windowEvent.key.keysym.mod & KMOD_SHIFT) && seaLevel + 1 < map.getHighestH())
 					{
 						seaLevel += 1;
 						cout << "\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b" << "Sea Level : " << setw(3) << setfill('0') << seaLevel;
@@ -391,8 +393,8 @@ void handleWalkWindowEvent(SDL_Event windowEvent)
 				break;
 
 				case SDLK_DOWN:
-					if(walkY + 1 >= MAPHEIGHT)
-						walkY = MAPHEIGHT - 1;
+					if(walkY + 1 >= map.getMapHeight())
+						walkY = map.getMapHeight() - 1;
 
 					else if(map.Tile(walkX, walkY + 1).getH() > seaLevel)
 						walkY++;
@@ -401,7 +403,7 @@ void handleWalkWindowEvent(SDL_Event windowEvent)
 
 				case SDLK_LEFT:
 					if(walkX - 1 < 0)
-						walkX = MAPWIDTH - 1;
+						walkX = map.getMapWidth() - 1;
 
 					else if(map.Tile(walkX - 1, walkY).getH() > seaLevel)
 						walkX--;
@@ -409,7 +411,7 @@ void handleWalkWindowEvent(SDL_Event windowEvent)
 				break;
 
 				case SDLK_RIGHT:
-					if(walkX + 1 >= MAPWIDTH)
+					if(walkX + 1 >= map.getMapWidth())
 						walkX = 0;
 
 					else if(map.Tile(walkX + 1, walkY).getH() > seaLevel)
@@ -505,13 +507,13 @@ void updateMapTex()
 	SDL_Texture *temp = SDL_CreateTexture(noiseRenderer, 
 										SDL_PIXELFORMAT_RGBA8888, 
 										SDL_TEXTUREACCESS_STREAMING, 
-										MAPWIDTH, MAPHEIGHT);
+										map.getMapWidth(), map.getMapHeight());
 
 	Uint32 *pixelIt = mapPixels;
 	Uint8 r, g, b, a = 255;
 
-	for(int y = 0; y < MAPHEIGHT; y++)
-		for(int x = 0; x < MAPWIDTH; x++)
+	for(int y = 0; y < map.getMapHeight(); y++)
+		for(int x = 0; x < map.getMapWidth(); x++)
 		{
 			if(map.Tile(x, y).getError() == true)
 			{
@@ -538,7 +540,7 @@ void updateMapTex()
 				if(landRenderMode == VARYING_HIGHEST) // BRANCO VARIAVEL seaLevel até HighestH
 				{
 					baseColor = 100;
-					float multiplierColor = (float)(255 - baseColor) / (noise.getHighestH() - seaLevel);
+					float multiplierColor = (float)(255 - baseColor) / (map.getHighestH() - seaLevel);
 					
 					hColor = (map.Tile(x, y).getH() - seaLevel) * multiplierColor;
 				}//*/
@@ -569,8 +571,8 @@ void updateMapTex()
 			pixelIt++;
 		}
 
-	SDL_UpdateTexture(temp, NULL, mapPixels, MAPWIDTH * sizeof (Uint32));
-	textureMap["mapTexture"]->setTexture(temp, MAPWIDTH, MAPHEIGHT);
+	SDL_UpdateTexture(temp, NULL, mapPixels, map.getMapWidth() * sizeof (Uint32));
+	textureMap["mapTexture"]->setTexture(temp, map.getMapWidth(), map.getMapHeight());
 }
 
 void updateInfoTex()
@@ -624,37 +626,37 @@ void mapPosFromMouse(int *x, int *y)
 	float scaleX, scaleY;
 	SDL_RenderGetScale(noiseRenderer, &scaleX, &scaleY);
 
-	// regra de três: mouseX / winW assim como mapX / MAPWIDTH
+	// regra de três: mouseX / winW assim como mapX / map.getMapWidth()
 	int sobra; // letterbox, soma dos 2 lados
-	if((float)MAPWIDTH / winW - (float)MAPHEIGHT / winH > 0) // ratioW - ratioH (ratio do original em relação a janela)
+	if((float)map.getMapWidth() / winW - (float)map.getMapHeight() / winH > 0) // ratioW - ratioH (ratio do original em relação a janela)
 	{
-		sobra = (winH - MAPHEIGHT * scaleY); // total - tamanho do mapa(renderer logical size) * escala que esta sendo renderizado
+		sobra = (winH - map.getMapHeight() * scaleY); // total - tamanho do mapa(renderer logical size) * escala que esta sendo renderizado
 		
-		*x = (*x * MAPWIDTH)/(float)winW;
+		*x = (*x * map.getMapWidth())/(float)winW;
 		if(*y < sobra/2) // está no letterbox antes
 			*y = 0;
 
-		else if(*y > MAPHEIGHT * scaleY + sobra/2) // está no letterbox depois
-			*y = MAPHEIGHT - 1;
+		else if(*y > map.getMapHeight() * scaleY + sobra/2) // está no letterbox depois
+			*y = map.getMapHeight() - 1;
 
 		else // escala y sem letterbox em window size sem letterbox em relação ao mapa
-			*y = ((*y - sobra/2) * MAPHEIGHT)/(float)(winH - sobra);
+			*y = ((*y - sobra/2) * map.getMapHeight())/(float)(winH - sobra);
 	}
 
 	else
 	{
-		sobra = (winW - MAPWIDTH * scaleX);
+		sobra = (winW - map.getMapWidth() * scaleX);
 
-		*y = (*y * MAPHEIGHT)/(float)winH;
+		*y = (*y * map.getMapHeight())/(float)winH;
 
 		if(*x < sobra/2)
 			*x = 0;
 
-		else if(*x >  MAPWIDTH * scaleX + sobra/2)
-			*x = MAPWIDTH - 1;
+		else if(*x >  map.getMapWidth() * scaleX + sobra/2)
+			*x = map.getMapWidth() - 1;
 
 		else
-			*x = ((*x - sobra/2) * MAPWIDTH)/(float)(winW - sobra);
+			*x = ((*x - sobra/2) * map.getMapWidth())/(float)(winW - sobra);
 	}
 }
 
@@ -702,7 +704,7 @@ bool SDLStart()
 	}
 
 	//SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "linear");  // make the scaled rendering look smoother.
-	SDL_RenderSetLogicalSize(noiseRenderer, MAPWIDTH, MAPHEIGHT);
+	SDL_RenderSetLogicalSize(noiseRenderer, map.getMapWidth(), map.getMapHeight());
 
 	//Initialize noiseRenderer color
 	SDL_SetRenderDrawColor(noiseRenderer, 0, 0, 0, 0);
