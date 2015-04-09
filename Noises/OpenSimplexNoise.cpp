@@ -68,10 +68,10 @@ void OpenSimplexNoise::runOnce()
 
 				for(int o = 0; o < octaves; o++) // fractal Brownian motion
 				{
-					value += open_simplex_noise3(context, (double) nx * f, (double) nz * f, (double) ny * f) * amp;
+					value += open_simplex_noise4(context, (double) nx * f, (double) nz * f, (double) ny * f, 1) * amp;
 
 					//*//
-					//value += open_simplex_noise3(context, (double) nowX * f, (double) nowY * f, 0) * amp;
+					//value += open_simplex_noise2(context, (double) nowX * f, (double) nowY * f) * amp;
 
 					/*/value += open_simplex_noise4(context, (double) nx * f, 
 															(double) ny * f, (double) nz * f, (double) nw * f) * amp;//*/

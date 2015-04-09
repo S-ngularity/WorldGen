@@ -50,7 +50,7 @@ int seaRenderMode = NO_SEA, landRenderMode = FIXED;
 
 Uint32 *mapPixels = (Uint32*) malloc(sizeof(Uint32) * map.getMapWidth() * map.getMapHeight());
 
-int octaves = 10; double freq = 0.003, persistence = 0.6, freqDiv = 2.1;
+int octaves = 10; double freq = 0.003, persistence = 0.6, freqDiv = 2.2;
 OpenSimplexNoise noise(map, octaves, freq, persistence, freqDiv);//(map, 10, 0.004, 0.6, 1.9);
 //DiamSqNoise noise(map);
 //MyNoise noise(map);
@@ -273,7 +273,7 @@ void handleNoiseWidowEvent(SDL_Event windowEvent)
 
 				case SDLK_n:
 					int n;
-					cout << endl << "max_h: ";
+					cout << endl << "Normalize: ";
 					cin >> n;
 					map.normalize(n);
 					seaLevel = (map.getHighestH() / 2 ) - 1;
