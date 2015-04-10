@@ -4,11 +4,11 @@
 #include "Pos.h"
 #include "MapTile.h"
 
-#define MAX_H 12		//170//120//70
+#define MAX_H 255 //170//120//70
 
 #define INIT_H ((MAX_H / 2) - 1)
 
-#define SEA_LEVEL (MAX_H / 2)
+#define SEA_LEVEL ((MAX_H / 2) - 1)
 
 class Map
 {

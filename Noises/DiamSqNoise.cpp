@@ -19,7 +19,6 @@ DiamSqNoise::DiamSqNoise(Map &theMap) : map(theMap)
 	alreadySaved = false;
 	doneIts = 0;
 	totalIts = (int)(log2(map.getMapWidth()));
-	percentComplete = 0;
 	map.setHighestH(0);
 	map.setLowestH(TEMP_MAX_H);
 
@@ -37,7 +36,7 @@ DiamSqNoise::DiamSqNoise(Map &theMap) : map(theMap)
 
 int DiamSqNoise::getPercentComplete()
 {
-	return percentComplete;
+	return 100 * ((float)doneIts / totalIts);
 }
 
 void DiamSqNoise::runOnce()
@@ -86,8 +85,6 @@ squares again.
 				randRange = 1;
 
 			doneIts++;
-
-			updatePercent();
 			checkIfFinished();
 		}
 	}
@@ -188,12 +185,6 @@ void DiamSqNoise::diamondStep()
 			if(average < map.getLowestH())
 				map.setLowestH(average);
 		}
-}
-
-void DiamSqNoise::updatePercent()
-{
-	if((int)(100 * ((float)doneIts / totalIts)) > percentComplete)
-		percentComplete = 100 * ((float)doneIts / totalIts);
 }
 
 void DiamSqNoise::checkIfFinished()

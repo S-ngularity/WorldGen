@@ -15,12 +15,10 @@ class DiamSqNoise
 		bool alreadySaved; // PARA SALVAR IMAGEM UMA VEZ
 
 		int doneIts, totalIts;
-		int percentComplete;
 
 		int sideLength;
 		int randRange;
 
-		void updatePercent();
 		void checkIfFinished();
 
 		void diamondStep();

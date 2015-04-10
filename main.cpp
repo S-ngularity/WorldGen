@@ -12,7 +12,8 @@
 
 #include "Map.h"
 //#include "Noises/MyNoise.h"
-#include "Noises/DiamSqNoise.h"
+//#include "Noises/DiamSqNoise.h"
+#include "Noises/OpenSimplexNoise.h"
 #include "SdlClasses/SdlTexture.h"
 
 #include <SDL2/SDL.h>
@@ -49,7 +50,9 @@ int seaRenderMode = NO_SEA, landRenderMode = FIXED;
 
 Uint32 *mapPixels = (Uint32*) malloc(sizeof(Uint32) * map.getMapWidth() * map.getMapHeight());
 
-DiamSqNoise noise(map);
+int octaves = 10; double freq = 0.003, persistence = 0.6, freqDiv = 2.1;
+OpenSimplexNoise noise(map, octaves, freq, persistence, freqDiv);//(map, 10, 0.004, 0.6, 1.9);
+//DiamSqNoise noise(map);
 //MyNoise noise(map);
 
 unordered_map<string, SdlTexture*> textureMap;
@@ -119,7 +122,7 @@ int main(int argc, char* args[])
 
 			cout << "\b\b\b\b" << shownPercent << "%";
 
-			if(shownPercent == 100) // show highest at each phase
+			if(shownPercent == 100) // show highest at each phase (if appliable)
 				cout << endl 
 				<< endl << "Highest point: " << map.getHighestH()
 				<< endl << "Lowest point: " << map.getLowestH() << endl << endl;
@@ -267,6 +270,15 @@ void handleNoiseWidowEvent(SDL_Event windowEvent)
 						updateMapTexture = true;
 					}
 				break;
+
+				case SDLK_n:
+					int n;
+					cout << endl << "max_h: ";
+					cin >> n;
+					map.normalize(n);
+					seaLevel = (map.getHighestH() / 2 ) - 1;
+					updateMapTexture = true;
+				break;
 			}
 		break;
 
@@ -402,20 +414,27 @@ void handleWalkWindowEvent(SDL_Event windowEvent)
 				break;
 
 				case SDLK_LEFT:
-					if(walkX - 1 < 0)
-						walkX = map.getMapWidth() - 1;
+					if(map.Tile(walkX - 1, walkY).getH() > seaLevel)
+					{
+						if(walkX - 1 < 0)
+							walkX = map.getMapWidth() - 1;
+						else
+							walkX--;
+					}
 
-					else if(map.Tile(walkX - 1, walkY).getH() > seaLevel)
-						walkX--;
 					updateScreen = true;
 				break;
 
 				case SDLK_RIGHT:
-					if(walkX + 1 >= map.getMapWidth())
-						walkX = 0;
+					if(map.Tile(walkX + 1, walkY).getH() > seaLevel)
+					{
+						if(walkX + 1 >= map.getMapWidth())
+							walkX = 0;
+						
+						else
+							walkX++;
+					}
 
-					else if(map.Tile(walkX + 1, walkY).getH() > seaLevel)
-						walkX++;
 					updateScreen = true;
 				break;
 			}
@@ -556,7 +575,7 @@ void updateMapTex()
 				else if(landRenderMode == FIXED) // BRANCO FIXO
 				{
 					baseColor = 0;
-					float multiplierColor = (float)(255 - baseColor) / MAX_H;
+					float multiplierColor = (float)(255 - baseColor) / map.getHighestH();
 
 					hColor = map.Tile(x, y).getH() * multiplierColor;
 				}

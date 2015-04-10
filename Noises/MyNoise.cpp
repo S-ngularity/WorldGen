@@ -14,7 +14,6 @@ MyNoise::MyNoise(Map &theMap) : map(theMap)
 {
 	totalIts = 0;
 	doneIts = 0;
-	percentComplete = 0;
 	alreadySaved = false;
 	state = readTect;
 
@@ -48,7 +47,7 @@ void MyNoise::runOnce()
 
 int MyNoise::getPercentComplete()
 {
-	return percentComplete;
+	return 100 * ((float)doneIts / totalIts);
 }
 
 
@@ -67,7 +66,6 @@ void MyNoise::readTectonics()
 		state = doTect;
 	
 	doneIts = 0;
-	percentComplete = 0;
 }
 
 void MyNoise::doTectonics()
@@ -75,7 +73,6 @@ void MyNoise::doTectonics()
 	tectonics();
 	doneIts++;
 
-	updatePercent();
 	checkIfFinished();
 }
 
@@ -94,7 +91,6 @@ void MyNoise::readErosion()
 		state = doEro;
 
 	doneIts = 0;
-	percentComplete = 0;
 }
 
 void MyNoise::doErosion()
@@ -102,17 +98,9 @@ void MyNoise::doErosion()
 	erosion();
 	doneIts++;
 
-	updatePercent();
 	checkIfFinished();
 }
 
-
-
-void MyNoise::updatePercent()
-{
-	if((int)(100 * ((float)doneIts / totalIts)) > percentComplete)
-		percentComplete = 100 * ((float)doneIts / totalIts);
-}
 
 void MyNoise::checkIfFinished()
 {

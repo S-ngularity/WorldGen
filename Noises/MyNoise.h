@@ -15,14 +15,12 @@ class MyNoise
 		bool alreadySaved; // PARA SALVAR IMAGEM UMA VEZ
 
 		int totalIts, doneIts;
-		int percentComplete;
 
 		void readTectonics();
 		void doTectonics();
 		void readErosion();
 		void doErosion();
 
-		void updatePercent();
 		void checkIfFinished();
 
 		void tectonics();
