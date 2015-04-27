@@ -1,11 +1,13 @@
 #include "MapTexture.h"
 
 #include <stdlib.h>
-
+#include <stdio.h>
 MapTexture::MapTexture(Map &theMap, SDL_Renderer *r) : map(theMap)
 {
 	context = r;
 	mapPixels = (Uint32*) malloc(sizeof(Uint32) * map.getMapWidth() * map.getMapHeight());
+	seaRenderMode = NO_SEA;
+	landRenderMode = FIXED;
 }
 
 MapTexture::~MapTexture()
@@ -51,7 +53,9 @@ void MapTexture::update()
 				if(landRenderMode == VARYING_HIGHEST) // BRANCO VARIAVEL map.getSeaLvl() até HighestH
 				{
 					baseColor = 100;
-					float multiplierColor = (float)(255 - baseColor) / (map.getHighestH() - map.getSeaLvl());
+					int varBy = (map.getHighestH() - map.getSeaLvl());
+					if(varBy == 0) varBy = 1;
+					float multiplierColor = (float)(255 - baseColor) / varBy;
 					
 					hColor = (map.Tile(x, y).getH() - map.getSeaLvl()) * multiplierColor;
 				}//*/
@@ -59,7 +63,9 @@ void MapTexture::update()
 				else if(landRenderMode == VARYING_MAX) // BRANCO VARIAVEL map.getSeaLvl() até MAX_H
 				{
 					baseColor = 100;
-					float multiplierColor = (float)(255 - baseColor) / (MAX_H - map.getSeaLvl());
+					int varBy = (MAX_H - map.getSeaLvl());
+					if(varBy == 0) varBy = 1;
+					float multiplierColor = (float)(255 - baseColor) / varBy;
 					
 					hColor = (map.Tile(x, y).getH() - map.getSeaLvl()) * multiplierColor;
 				}//*/
@@ -67,7 +73,9 @@ void MapTexture::update()
 				else if(landRenderMode == FIXED) // BRANCO FIXO
 				{
 					baseColor = 0;
-					float multiplierColor = (float)(255 - baseColor) / map.getHighestH();
+					int varBy = map.getHighestH();
+					if(varBy == 0) varBy = 1;
+					float multiplierColor = (float)(255 - baseColor) / varBy;
 
 					hColor = map.Tile(x, y).getH() * multiplierColor;
 				}

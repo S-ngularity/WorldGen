@@ -113,7 +113,7 @@ void OpenSimplexNoise::checkIfFinished()
 	if(doneIts == totalIts && state == running)
 	{
 		map.normalize(MAX_H);
-/*
+//*
 		int seaLevel = (map.getHighestH() / 2 ) - 1;
 		if(!alreadySaved) // SALVAR UMA VEZ RESULTADO EM TGA
 		{

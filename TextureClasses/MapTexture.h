@@ -20,7 +20,7 @@ class MapTexture : public SdlTexture
 		Uint32 *mapPixels;
 		SDL_Renderer *context;
 
-		int seaRenderMode = NO_SEA, landRenderMode = FIXED;
+		int seaRenderMode, landRenderMode;
 
 	public:
 		MapTexture(Map &theMap, SDL_Renderer *r);

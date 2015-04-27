@@ -16,7 +16,8 @@ Map::Map(int w, int h)
 		for(int x = 0; x < mapWidth; x++)
 			Tile(x, y).setH(INIT_H);
 
-	highestH = lowestH = INIT_H;
+	highestH = INIT_H;
+	lowestH = INIT_H;
 	seaLevel = SEA_LEVEL;
 }
 

@@ -1,2 +1,2 @@
 worldGen:
-	g++ -o worldGen main.cpp Pos.cpp MapTile.cpp Map.cpp TextureClasses/MapTexture.cpp Noises/MyNoise.cpp Noises/DiamSqNoise.cpp Noises/OpenSimplexNoise.cpp Noises/OpenSimplexC/open-simplex-noise.c SdlClasses/SdlTexture.cpp -lmingw32 -lSDL2main -lSDL2 -lSDL2_ttf -Wall -std=c++11
+	g++ -o worldGen main.cpp Pos.cpp MapTile.cpp Map.cpp TextureClasses/MapTexture.cpp Noises/MyNoise.cpp Noises/DiamSqNoise.cpp Noises/OpenSimplexNoise.cpp Noises/OpenSimplexC/open-simplex-noise.c SdlClasses/SdlTexture.cpp SdlClasses/SdlWindow.cpp -lmingw32 -lSDL2main -lSDL2 -lSDL2_ttf -Wall -std=c++11
