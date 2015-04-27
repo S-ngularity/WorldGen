@@ -9,14 +9,15 @@ class SdlTexture
 		SdlTexture();
 		SdlTexture(SDL_Texture *t, int w, int h);
 		~SdlTexture();
+		
+		void render(SDL_Renderer *r, int x, int y);
 
 		void setTexture(SDL_Texture *t, int width, int height);
 		void clearTexture();
 		
-		void render(SDL_Renderer *r, int x, int y);
-
 		int getW();
 		int getH();
+
 
 	private:
 		SDL_Texture *texture;

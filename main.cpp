@@ -11,6 +11,7 @@
 #include <time.h>
 
 #include "Map.h"
+#include "TextureClasses/MapTexture.h"
 //#include "Noises/MyNoise.h"
 //#include "Noises/DiamSqNoise.h"
 #include "Noises/OpenSimplexNoise.h"
@@ -31,13 +32,6 @@ const int WALK_SCREEN_SIZE = (walkTileSize * (walkTileNum*2 + 1));
 // ask for noise screen update at every X percent completed
 #define UPDATE_AT_PERCENT 20
 
-// map sea & land render modes
-#define NO_SEA 0
-#define WITH_SEA 1
-#define VARYING_HIGHEST 0
-#define VARYING_MAX 1
-#define FIXED 2
-
 SDL_Window *noiseWindow = NULL, *walkWindow = NULL;
 SDL_Renderer *noiseRenderer = NULL, *walkRenderer = NULL;
 SDL_Event event;
@@ -45,10 +39,7 @@ SDL_Event event;
 TTF_Font *Font = NULL;
 
 Map map(1025, 1025);
-int seaLevel = SEA_LEVEL;
-int seaRenderMode = NO_SEA, landRenderMode = FIXED;
-
-Uint32 *mapPixels = (Uint32*) malloc(sizeof(Uint32) * map.getMapWidth() * map.getMapHeight());
+MapTexture *mapTexture;
 
 int octaves = 10; double freq = 0.003, persistence = 0.6, freqDiv = 2.2;
 OpenSimplexNoise noise(map, octaves, freq, persistence, freqDiv);//(map, 10, 0.004, 0.6, 1.9);
@@ -68,9 +59,9 @@ void handleNoiseWidowEvent(SDL_Event windowEvent);
 void createWalkWindow(int x, int y);
 void destroyWalkWindow();
 void handleWalkWindowEvent(SDL_Event windowEvent);
+
 void updateWalkTex();
 
-void updateMapTex();
 void updateInfoTex();
 
 int walkX, walkY;
@@ -95,8 +86,10 @@ int main(int argc, char* args[])
 		return -1;
 	}
 
+	mapTexture = new MapTexture(map, noiseRenderer);
+
 	textureMap.emplace("heightInfo", new SdlTexture);
-	textureMap.emplace("mapTexture", new SdlTexture);
+	//textureMap.emplace("mapTexture", new MapTexture(map, noiseRenderer));
 	textureMap.emplace("walkTexture", new SdlTexture);
 	/*textureMap.emplace("mapTexture", new SdlTexture(SDL_CreateTexture(noiseRenderer, 
 																	SDL_PIXELFORMAT_RGBA8888, 
@@ -104,8 +97,8 @@ int main(int argc, char* args[])
 																	map.getMapWidth(), map.getMapHeight()),
 													map.getMapWidth(), map.getMapHeight())); // PARA UPDATES SEM DESTRUIR/RECRIAR?*/
 
-	updateMapTex();
-	textureMap["mapTexture"]->render(noiseRenderer, 0, 0);
+	mapTexture->update();
+	mapTexture->render(noiseRenderer, 0, 0);
 	SDL_RenderPresent(noiseRenderer);
 
 	bool updateMapTexture = false;
@@ -131,25 +124,25 @@ int main(int argc, char* args[])
 			{
 				if(noise.getPercentComplete() < 100) // no sea while not done
 				{
-					seaRenderMode = NO_SEA;
-					landRenderMode = FIXED;
+					mapTexture->setSeaRenderMode(NO_SEA);
+					mapTexture->setLandRenderMode(FIXED);
 					updateMapTexture = true;
 				}
 
 				else
 				{
-					seaRenderMode = WITH_SEA;
-					landRenderMode = VARYING_HIGHEST;
+					mapTexture->setSeaRenderMode(WITH_SEA);
+					mapTexture->setLandRenderMode(VARYING_HIGHEST);
 					updateMapTexture = true; // last noise print
-					cout << "Sea Level : " << setw(3) << setfill('0') << seaLevel;
+					cout << "Sea Level : " << setw(3) << setfill('0') << map.getSeaLvl();
 				}
 			}
 		}
 
 		if(updateMapTexture)
 		{
-			updateMapTex();
-			textureMap["mapTexture"]->render(noiseRenderer, 0, 0);
+			mapTexture->update();
+			mapTexture->render(noiseRenderer, 0, 0);
 			SDL_RenderPresent(noiseRenderer);
 
 			updateMapTexture = false;
@@ -187,9 +180,9 @@ int main(int argc, char* args[])
 	destroyWalkWindow();
 
 	textureMap.clear(); // destroy all textures before closing SDL systems
+	mapTexture->clearTexture();
 
 	SDLClose();
-	free(mapPixels);
 
 	return 0;
 }
@@ -210,63 +203,63 @@ void handleNoiseWidowEvent(SDL_Event windowEvent)
 			{
 				case SDLK_UP:
 					// up always shows sea
-					if(seaRenderMode != WITH_SEA)
+					if(mapTexture->getSeaRenderMode() != WITH_SEA)
 					{
-						seaRenderMode = WITH_SEA;
+						mapTexture->setSeaRenderMode(WITH_SEA);
 						updateMapTexture = true;
 					}
 
 					// up = +1 sea_lvl when with_sea
-					else if(!(windowEvent.key.keysym.mod & KMOD_SHIFT) && seaLevel + 1 < map.getHighestH())
+					else if(!(windowEvent.key.keysym.mod & KMOD_SHIFT) && map.getSeaLvl() + 1 < map.getHighestH())
 					{
-						seaLevel += 1;
-						cout << "\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b" << "Sea Level : " << setw(3) << setfill('0') << seaLevel;
+						map.increaseSeaLvl();
+						cout << "\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b" << "Sea Level : " << setw(3) << setfill('0') << map.getSeaLvl();
 						
-						seaRenderMode = WITH_SEA;
+						mapTexture->setSeaRenderMode(WITH_SEA);
 						updateMapTexture = true;
 					}
 				break;
 
 				case SDLK_DOWN:
 					// shift+down = no_sea (no update when not needed)
-					if(windowEvent.key.keysym.mod & KMOD_SHIFT && seaRenderMode != NO_SEA)
+					if(windowEvent.key.keysym.mod & KMOD_SHIFT && mapTexture->getSeaRenderMode() != NO_SEA)
 					{
-						seaRenderMode = NO_SEA;
-						landRenderMode = FIXED;
+						mapTexture->setSeaRenderMode(NO_SEA);
+						mapTexture->setLandRenderMode(FIXED);
 						updateMapTexture = true;
 					}
 
 					// down = -1 sealvl when with_sea
-					else if(!(windowEvent.key.keysym.mod & KMOD_SHIFT) && seaLevel - 1 > 0 && seaRenderMode == WITH_SEA)
+					else if(!(windowEvent.key.keysym.mod & KMOD_SHIFT) && map.getSeaLvl() - 1 > 0 && mapTexture->getSeaRenderMode() == WITH_SEA);
 					{
-						seaLevel -= 1;
-						cout << "\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b" << "Sea Level : " << setw(3) << setfill('0') << seaLevel;
+						map.decreaseSeaLvl();
+						cout << "\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b" << "Sea Level : " << setw(3) << setfill('0') << map.getSeaLvl();
 
-						seaRenderMode = WITH_SEA;
+						mapTexture->setSeaRenderMode(WITH_SEA);
 						updateMapTexture = true;
 					}
 				break;
 
 				case SDLK_f:
-					if(seaRenderMode != NO_SEA)
+					if(mapTexture->getSeaRenderMode() != NO_SEA)
 					{
-						landRenderMode = FIXED;
+						mapTexture->setLandRenderMode(FIXED);
 						updateMapTexture = true;
 					}
 				break;
 
 				case SDLK_h:
-					if(seaRenderMode != NO_SEA)
+					if(mapTexture->getSeaRenderMode() != NO_SEA)
 					{
-						landRenderMode = VARYING_HIGHEST;
+						mapTexture->setLandRenderMode(VARYING_HIGHEST);
 						updateMapTexture = true;
 					}
 				break;
 
 				case SDLK_m:
-					if(seaRenderMode != NO_SEA)
+					if(mapTexture->getSeaRenderMode() != NO_SEA)
 					{
-						landRenderMode = VARYING_MAX;
+						mapTexture->setLandRenderMode(VARYING_MAX);
 						updateMapTexture = true;
 					}
 				break;
@@ -276,7 +269,7 @@ void handleNoiseWidowEvent(SDL_Event windowEvent)
 					cout << endl << "Normalize: ";
 					cin >> n;
 					map.normalize(n);
-					seaLevel = (map.getHighestH() / 2 ) - 1;
+					map.setSeaLvl((map.getHighestH() / 2 ) - 1);
 					updateMapTexture = true;
 				break;
 			}
@@ -301,7 +294,7 @@ void handleNoiseWidowEvent(SDL_Event windowEvent)
 	if(updateMapTexture)
 	{
 		updateInfoTex(); // in case it became sea
-		updateMapTex();
+		mapTexture->update();
 
 		render = true;
 		//updateMapTexture = false;
@@ -317,7 +310,7 @@ void handleNoiseWidowEvent(SDL_Event windowEvent)
 		//SDL_SetRenderDrawColor(noiseRenderer, 255, 255, 255, 255);
 		//SDL_RenderClear(noiseRenderer);
 		
-		textureMap["mapTexture"]->render(noiseRenderer, 0, 0);
+		mapTexture->render(noiseRenderer, 0, 0);
 		textureMap["heightInfo"]->render(noiseRenderer, x, y - 30);
 
 		SDL_RenderPresent(noiseRenderer);
@@ -399,7 +392,7 @@ void handleWalkWindowEvent(SDL_Event windowEvent)
 					if(walkY - 1 < 0)
 						walkY = 0;
 
-					else if(map.Tile(walkX, walkY - 1).getH() > seaLevel)
+					else if(map.Tile(walkX, walkY - 1).getH() > map.getSeaLvl())
 						walkY--;
 					updateScreen = true;
 				break;
@@ -408,13 +401,13 @@ void handleWalkWindowEvent(SDL_Event windowEvent)
 					if(walkY + 1 >= map.getMapHeight())
 						walkY = map.getMapHeight() - 1;
 
-					else if(map.Tile(walkX, walkY + 1).getH() > seaLevel)
+					else if(map.Tile(walkX, walkY + 1).getH() > map.getSeaLvl())
 						walkY++;
 					updateScreen = true;
 				break;
 
 				case SDLK_LEFT:
-					if(map.Tile(walkX - 1, walkY).getH() > seaLevel)
+					if(map.Tile(walkX - 1, walkY).getH() > map.getSeaLvl())
 					{
 						if(walkX - 1 < 0)
 							walkX = map.getMapWidth() - 1;
@@ -426,7 +419,7 @@ void handleWalkWindowEvent(SDL_Event windowEvent)
 				break;
 
 				case SDLK_RIGHT:
-					if(map.Tile(walkX + 1, walkY).getH() > seaLevel)
+					if(map.Tile(walkX + 1, walkY).getH() > map.getSeaLvl())
 					{
 						if(walkX + 1 >= map.getMapWidth())
 							walkX = 0;
@@ -485,7 +478,7 @@ void updateWalkTex()
 			
 			else if(map.isPosInsideWrap(x, y))
 			{
-				if(map.Tile(x, y).getH() <= seaLevel)// && seaLevel >= map.Tile(walkX, walkY).getH() - 2)
+				if(map.Tile(x, y).getH() <= map.getSeaLvl())// && map.getSeaLvl() >= map.Tile(walkX, walkY).getH() - 2)
 					SDL_SetRenderDrawColor(walkRenderer, SEA);
 
 				else if(map.Tile(x, y).getH() < map.Tile(walkX, walkY).getH() - 2)
@@ -521,79 +514,6 @@ void updateWalkTex()
 	textureMap["walkTexture"]->setTexture(temp, WALK_SCREEN_SIZE, WALK_SCREEN_SIZE);
 }
 
-void updateMapTex()
-{
-	SDL_Texture *temp = SDL_CreateTexture(noiseRenderer, 
-										SDL_PIXELFORMAT_RGBA8888, 
-										SDL_TEXTUREACCESS_STREAMING, 
-										map.getMapWidth(), map.getMapHeight());
-
-	Uint32 *pixelIt = mapPixels;
-	Uint8 r, g, b, a = 255;
-
-	for(int y = 0; y < map.getMapHeight(); y++)
-		for(int x = 0; x < map.getMapWidth(); x++)
-		{
-			if(map.Tile(x, y).getError() == true)
-			{
-				r = 100;
-				g = 0;
-				b = 0;
-			}
-			/*
-			else if(map.Tile(x, y).getIsSeed() == true)// && map.Tile(x, y).seedLow == true)
-				SDL_SetRenderDrawColor(noiseRenderer, 0, 255, 0, 255);
-			//*/
-
-			else if(seaRenderMode == WITH_SEA && map.Tile(x, y).getH() <= seaLevel)
-			{
-				r = 25;
-				g = 45;
-				b = 85;
-			}
-
-			else
-			{
-				Uint8 baseColor, hColor;
-				
-				if(landRenderMode == VARYING_HIGHEST) // BRANCO VARIAVEL seaLevel até HighestH
-				{
-					baseColor = 100;
-					float multiplierColor = (float)(255 - baseColor) / (map.getHighestH() - seaLevel);
-					
-					hColor = (map.Tile(x, y).getH() - seaLevel) * multiplierColor;
-				}//*/
-				//*
-				else if(landRenderMode == VARYING_MAX) // BRANCO VARIAVEL seaLevel até MAX_H
-				{
-					baseColor = 100;
-					float multiplierColor = (float)(255 - baseColor) / (MAX_H - seaLevel);
-					
-					hColor = (map.Tile(x, y).getH() - seaLevel) * multiplierColor;
-				}//*/
-
-				else if(landRenderMode == FIXED) // BRANCO FIXO
-				{
-					baseColor = 0;
-					float multiplierColor = (float)(255 - baseColor) / map.getHighestH();
-
-					hColor = map.Tile(x, y).getH() * multiplierColor;
-				}
-
-				r = baseColor + hColor;
-				g = baseColor + hColor;
-				b = baseColor + hColor;
-			}
-
-			*pixelIt = r << 24 | g << 16 | b << 8 | a;
-
-			pixelIt++;
-		}
-
-	SDL_UpdateTexture(temp, NULL, mapPixels, map.getMapWidth() * sizeof (Uint32));
-	textureMap["mapTexture"]->setTexture(temp, map.getMapWidth(), map.getMapHeight());
-}
-
 void updateInfoTex()
 {
 	int x, y;
@@ -602,7 +522,7 @@ void updateInfoTex()
 	int h = map.Tile(x, y).getH();
 	string info;
 
-	if(seaRenderMode == WITH_SEA && h <= seaLevel)
+	if(mapTexture->getSeaRenderMode() == WITH_SEA && h <= map.getSeaLvl())
 		info = "Sea";
 
 	else

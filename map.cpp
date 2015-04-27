@@ -17,6 +17,7 @@ Map::Map(int w, int h)
 			Tile(x, y).setH(INIT_H);
 
 	highestH = lowestH = INIT_H;
+	seaLevel = SEA_LEVEL;
 }
 
 Map::~Map()
@@ -118,9 +119,19 @@ int Map::getMapWidth()
 	return mapWidth;
 }
 
+int Map::getHighestH()
+{
+	return highestH;
+}
+
 void Map::setHighestH(int h)
 {
 	highestH = h;
+}
+
+int Map::getLowestH()
+{
+	return lowestH;
 }
 
 void Map::setLowestH(int h)
@@ -128,12 +139,22 @@ void Map::setLowestH(int h)
 	lowestH = h;
 }
 
-int Map::getHighestH()
+int Map::getSeaLvl()
 {
-	return highestH;
+	return seaLevel;
 }
 
-int Map::getLowestH()
+void Map::setSeaLvl(int lvl)
 {
-	return lowestH;
+	seaLevel = lvl;
+}
+
+void Map::increaseSeaLvl()
+{
+	seaLevel++;
+}
+
+void Map::decreaseSeaLvl()
+{
+	seaLevel--;
 }

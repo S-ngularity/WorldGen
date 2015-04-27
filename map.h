@@ -17,6 +17,7 @@ class Map
 		MapTile **map;
 
 		int highestH, lowestH;
+		int seaLevel;
 
 	public:
 		Map(int w, int h);
@@ -36,12 +37,16 @@ class Map
 		int getMapHeight();
 		int getMapWidth();
 
+		int getHighestH();
 		void setHighestH(int h);
+
+		int getLowestH();
 		void setLowestH(int h);
 
-		int getHighestH();
-		int getLowestH();
-
+		int getSeaLvl();
+		void setSeaLvl(int lvl);
+		void increaseSeaLvl();
+		void decreaseSeaLvl();
 };
 
 #endif
