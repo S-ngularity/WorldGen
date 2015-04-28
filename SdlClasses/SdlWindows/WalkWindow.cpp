@@ -10,7 +10,7 @@
 
 using namespace std;
 
-WalkWindow::WalkWindow(Map &theMap) : 
+WalkWindow::WalkWindow(Map *theMap) : 
 	SdlWindow(	"WorldGen Walker", 
 				SDL_WINDOWPOS_CENTERED, 
 				SDL_WINDOWPOS_CENTERED, 
@@ -46,6 +46,12 @@ void WalkWindow::setPos(int x, int y)
 	refresh();
 }
 
+void WalkWindow::setMap(Map *m)
+{
+	worldMap = m;
+	setPos(0, 0);
+}
+
 void WalkWindow::handleImplementedEvents(SDL_Event& e)
 {
 	bool updateScreen = false;
@@ -61,25 +67,25 @@ void WalkWindow::handleImplementedEvents(SDL_Event& e)
 						if(walkY - 1 < 0)
 							walkY = 0;
 
-						else if(worldMap.Tile(walkX, walkY - 1).getH() > worldMap.getSeaLvl())
+						else if(worldMap->Tile(walkX, walkY - 1).getH() > worldMap->getSeaLvl())
 							walkY--;
 						updateScreen = true;
 					break;
 
 					case SDLK_DOWN:
-						if(walkY + 1 >= worldMap.getMapHeight())
-							walkY = worldMap.getMapHeight() - 1;
+						if(walkY + 1 >= worldMap->getMapHeight())
+							walkY = worldMap->getMapHeight() - 1;
 
-						else if(worldMap.Tile(walkX, walkY + 1).getH() > worldMap.getSeaLvl())
+						else if(worldMap->Tile(walkX, walkY + 1).getH() > worldMap->getSeaLvl())
 							walkY++;
 						updateScreen = true;
 					break;
 
 					case SDLK_LEFT:
-						if(worldMap.Tile(walkX - 1, walkY).getH() > worldMap.getSeaLvl())
+						if(worldMap->Tile(walkX - 1, walkY).getH() > worldMap->getSeaLvl())
 						{
 							if(walkX - 1 < 0)
-								walkX = worldMap.getMapWidth() - 1;
+								walkX = worldMap->getMapWidth() - 1;
 							else
 								walkX--;
 						}
@@ -88,9 +94,9 @@ void WalkWindow::handleImplementedEvents(SDL_Event& e)
 					break;
 
 					case SDLK_RIGHT:
-						if(worldMap.Tile(walkX + 1, walkY).getH() > worldMap.getSeaLvl())
+						if(worldMap->Tile(walkX + 1, walkY).getH() > worldMap->getSeaLvl())
 						{
-							if(walkX + 1 >= worldMap.getMapWidth())
+							if(walkX + 1 >= worldMap->getMapWidth())
 								walkX = 0;
 							
 							else
@@ -130,7 +136,7 @@ void WalkWindow::updateWalkTex()
 										WALK_SCREEN_SIZE);
 
 	SDL_SetRenderTarget(getRenderer(), temp);
-	SDL_SetRenderDrawColor(getRenderer(), 255, 0, 255, 255);
+	SDL_SetRenderDrawColor(getRenderer(), 0, 0, 0, 255);
 	SDL_RenderClear(getRenderer());
 
 	int squarePosIt = 0;
@@ -146,30 +152,30 @@ void WalkWindow::updateWalkTex()
 			if(x == walkX && y == walkY)
 				SDL_SetRenderDrawColor(getRenderer(), 255, 0, 0, 255);
 			
-			else if(worldMap.isPosInsideWrap(x, y))
+			else if(worldMap->isPosInsideWrap(x, y))
 			{
-				if(worldMap.Tile(x, y).getH() <= worldMap.getSeaLvl())// && worldMap.getSeaLvl() >= worldMap.Tile(walkX, walkY).getH() - 2)
+				if(worldMap->Tile(x, y).getH() <= worldMap->getSeaLvl())// && worldMap->getSeaLvl() >= worldMap->Tile(walkX, walkY).getH() - 2)
 					SDL_SetRenderDrawColor(getRenderer(), SEA);
 
-				else if(worldMap.Tile(x, y).getH() < worldMap.Tile(walkX, walkY).getH() - 2)
+				else if(worldMap->Tile(x, y).getH() < worldMap->Tile(walkX, walkY).getH() - 2)
 					SDL_SetRenderDrawColor(getRenderer(), DOWN); // CANT SEE DOWN
 
-				else if(worldMap.Tile(x, y).getH() == worldMap.Tile(walkX, walkY).getH() - 2)
+				else if(worldMap->Tile(x, y).getH() == worldMap->Tile(walkX, walkY).getH() - 2)
 					SDL_SetRenderDrawColor(getRenderer(), TWODOWN); // TWO LVLS DOWN
 
-				else if(worldMap.Tile(x, y).getH() == worldMap.Tile(walkX, walkY).getH() - 1)
+				else if(worldMap->Tile(x, y).getH() == worldMap->Tile(walkX, walkY).getH() - 1)
 					SDL_SetRenderDrawColor(getRenderer(), ONEDOWN); // ONE LVL DOWN
 
-				else if(worldMap.Tile(x, y).getH() == worldMap.Tile(walkX, walkY).getH())
+				else if(worldMap->Tile(x, y).getH() == worldMap->Tile(walkX, walkY).getH())
 					SDL_SetRenderDrawColor(getRenderer(), GROUND); // GROUND 131, 166, 71
 
-				else if(worldMap.Tile(x, y).getH() == worldMap.Tile(walkX, walkY).getH() + 1)
+				else if(worldMap->Tile(x, y).getH() == worldMap->Tile(walkX, walkY).getH() + 1)
 					SDL_SetRenderDrawColor(getRenderer(), ONEUP); // ONE LVL UP
 
-				else if(worldMap.Tile(x, y).getH() == worldMap.Tile(walkX, walkY).getH() + 2)
+				else if(worldMap->Tile(x, y).getH() == worldMap->Tile(walkX, walkY).getH() + 2)
 					SDL_SetRenderDrawColor(getRenderer(), TWOUP); // ONE LVL UP
 
-				else if(worldMap.Tile(x, y).getH() > worldMap.Tile(walkX, walkY).getH() + 2)
+				else if(worldMap->Tile(x, y).getH() > worldMap->Tile(walkX, walkY).getH() + 2)
 					SDL_SetRenderDrawColor(getRenderer(), UP); // CANT SEE UP
 			}
 

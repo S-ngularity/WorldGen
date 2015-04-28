@@ -20,7 +20,7 @@ const int WALK_SCREEN_SIZE = (walkTileSize * (walkTileNum*2 + 1));
 class WalkWindow : public SdlWindow
 {
 	private:
-		Map &worldMap;
+		Map *worldMap;
 		SdlTexture walkTexture;
 		
 		int walkX, walkY;
@@ -28,9 +28,10 @@ class WalkWindow : public SdlWindow
 		void updateWalkTex();
 
 	public:
-		WalkWindow(Map &theMap);
+		WalkWindow(Map *theMap);
 		
 		void setPos(int x, int y);
+		void setMap(Map *m);
 
 		void handleImplementedEvents(SDL_Event& e);
 };

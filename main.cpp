@@ -21,7 +21,12 @@ SDL_Event event;
 
 NoiseWindow *noiseWindow;
 
+const int mapNum = 3;
+
 Map worldMap(1025, 1025);
+Map worldMap2(1025, 1025);
+Map worldMap3(1025, 1025);
+Map* worldMapsVect[mapNum] = {&worldMap, &worldMap2, &worldMap3};
 
 //funções SDL
 bool SDLStart();
@@ -45,7 +50,7 @@ int main(int argc, char* args[])
 		return -1;
 	}
 
-	noiseWindow = new NoiseWindow(worldMap);
+	noiseWindow = new NoiseWindow(worldMapsVect, mapNum);
 
 	// while window is open
 	while(noiseWindow->isShown())

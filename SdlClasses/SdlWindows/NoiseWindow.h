@@ -6,8 +6,8 @@
 #include "SdlClasses/SdlTexture.h"
 #include "SdlClasses/SdlTextures/MapTexture.h"
 
-//#include "Noises/MyNoise.h"
-//#include "Noises/DiamSqNoise.h"
+#include "Noises/MyNoise.h"
+#include "Noises/DiamSqNoise.h"
 #include "Noises/OpenSimplexNoise.h"
 
 #include "SdlClasses/SdlWindows/WalkWindow.h"
@@ -27,12 +27,17 @@ const int octaves = 10; const double freq = 0.003, persistence = 0.6, freqDiv = 
 class NoiseWindow : public SdlWindow
 {
 	private:
-		Map &worldMap;
+		int numMaps;
+		Map* *mapVect;
 		MapTexture mapTexture;
-		
-		OpenSimplexNoise noise;//(map, 10, 0.004, 0.6, 1.9);
-		//DiamSqNoise noise(map);
-		//MyNoise noise(map);
+
+		int selectedMap;
+		int selectedNoise;
+
+		Noise* *noiseVect;
+		//OpenSimplexNoise noiseSimplex;//(map, 10, 0.004, 0.6, 1.9);
+		//DiamSqNoise noiseDiam;
+		//MyNoise noiseMy;
 
 		SdlTexture heightInfoTex;
 		TTF_Font *heightInfoFont;
@@ -43,12 +48,13 @@ class NoiseWindow : public SdlWindow
 		void updateInfoTex();
 
 	public:
-		NoiseWindow(Map &theMap);
+		NoiseWindow(Map* mapVect[], int num);
 		~NoiseWindow();
 		
 		void handleImplementedEvents(SDL_Event& e);
 
 		void runNoise();
+		void resetNoise();
 };
 
 #endif

@@ -2,13 +2,18 @@
 #define DIAMSQNOISE
 
 #include "../Map.h"
+#include "../Noises/Noise.h"
 
-typedef enum {running = 0, done} State;
+//typedef enum {running = 0, done} State;
+#ifndef NOISESTATES
+#define NOISESTATES
+typedef enum {readTect = 0, running, doTect, readEro, doEro, done} State;
+#endif
 
-class DiamSqNoise
+class DiamSqNoise : public Noise
 {
 	private:
-		Map &map;
+		Map *map;
 
 		State state;
 
@@ -32,7 +37,11 @@ class DiamSqNoise
 			 unsigned char	*imageData);
 
 	public:
-		DiamSqNoise(Map &theMap);
+		DiamSqNoise(Map *theMap);
+
+		void setMap(Map *m);
+
+		void reset();
 
 		void runOnce();
 

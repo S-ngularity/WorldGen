@@ -10,14 +10,28 @@
 
 using namespace std;
 
-MyNoise::MyNoise(Map &theMap) : map(theMap)
+MyNoise::MyNoise(Map *theMap)
 {
+	map = theMap;
 	totalIts = 0;
 	doneIts = 0;
 	alreadySaved = false;
 	state = readTect;
 
 	srand(time(NULL));
+}
+
+void MyNoise::setMap(Map *m)
+{
+	map = m;
+	reset();
+}
+
+void MyNoise::reset()
+{
+	totalIts = 0;
+	doneIts = 0;
+	state = readTect;
 }
 
 void MyNoise::runOnce()
@@ -106,12 +120,19 @@ void MyNoise::checkIfFinished()
 {
 	if(doneIts == totalIts && (state == doTect || state == doEro))
 	{
-		map.setHighestH(0);
+		map->setHighestH(0);
+		map->setHighestH(MAX_H);
 
-		for(int y = 0; y < map.getMapHeight(); y++)
-			for(int x = 0; x < map.getMapWidth(); x++)
-				if(map.Tile(x, y).getH() > map.getHighestH())
-					map.setHighestH(map.Tile(x, y).getH());
+		for(int y = 0; y < map->getMapHeight(); y++)
+			for(int x = 0; x < map->getMapWidth(); x++)
+			{
+
+				if(map->Tile(x, y).getH() > map->getHighestH())
+					map->setHighestH(map->Tile(x, y).getH());
+
+				if(map->Tile(x, y).getH() < map->getHighestH())
+					map->setLowestH(map->Tile(x, y).getH());
+			}
 
 		if(state == doTect)
 			state = readEro;
@@ -119,8 +140,8 @@ void MyNoise::checkIfFinished()
 		else if (state == doEro)
 		{
 			/* // imprime erros de quando a diferença entre tiles adjacentes é maior que 1
-			for(int y = 0; y < map.getMapHeight(); y++)
-				for(int x = 0; x < map.getMapWidth(); x++)
+			for(int y = 0; y < map->getMapHeight(); y++)
+				for(int x = 0; x < map->getMapWidth(); x++)
 				{
 					for(int yOffset = -1; yOffset <= 1; yOffset++)
 						for(int xOffset = -1; xOffset <= 1; xOffset++)
@@ -128,11 +149,11 @@ void MyNoise::checkIfFinished()
 							Pos nowPos(x, y);
 							Pos adjPos(x + xOffset, y + yOffset);
 
-							if(map.isPosInsideWrap(adjPos))
+							if(map->isPosInsideWrap(adjPos))
 							{
-								if((map.Tile(adjPos).getH() - map.Tile(nowPos).getH() > 1) || (map.Tile(adjPos).getH() - map.Tile(nowPos).getH() < -1))
+								if((map->Tile(adjPos).getH() - map->Tile(nowPos).getH() > 1) || (map->Tile(adjPos).getH() - map->Tile(nowPos).getH() < -1))
 								{
-									map.Tile(nowPos).setError(true);
+									map->Tile(nowPos).setError(true);
 									//printf("ERRO EM %d %d\n", x, y);
 								}
 							}
@@ -143,19 +164,19 @@ void MyNoise::checkIfFinished()
 			if(!alreadySaved) // SALVAR UMA VEZ RESULTADO EM TGA
 			{
 				unsigned char *imageData;
-				imageData = (unsigned char*)malloc(sizeof(unsigned char) * map.getMapWidth() * map.getMapHeight());
+				imageData = (unsigned char*)malloc(sizeof(unsigned char) * map->getMapWidth() * map->getMapHeight());
 
-				for(int y = 0; y < map.getMapHeight(); y++)
-					for(int x = 0; x < map.getMapWidth(); x++)
+				for(int y = 0; y < map->getMapHeight(); y++)
+					for(int x = 0; x < map->getMapWidth(); x++)
 					{
-						if(map.Tile(x, y).getH() <= SEA_LEVEL)
-							imageData[(map.getMapHeight() - 1 - y) * map.getMapWidth() + x] = 0;//(unsigned char)(((float)(SEA_LEVEL - 1) / MAX_H) * 256.0);
+						if(map->Tile(x, y).getH() <= SEA_LEVEL)
+							imageData[(map->getMapHeight() - 1 - y) * map->getMapWidth() + x] = 0;//(unsigned char)(((float)(SEA_LEVEL - 1) / MAX_H) * 256.0);
 
 						else
-							imageData[(map.getMapHeight() - 1 - y) * map.getMapWidth() + x] = (unsigned char)((int)((map.Tile(x, y).getH() - SEA_LEVEL) / (float)(MAX_H - SEA_LEVEL) * 255.0)); //(unsigned char)((int)(((float)map.Tile(x, y).getH() / MAX_H) * 256.0));
+							imageData[(map->getMapHeight() - 1 - y) * map->getMapWidth() + x] = (unsigned char)((int)((map->Tile(x, y).getH() - SEA_LEVEL) / (float)(MAX_H - SEA_LEVEL) * 255.0)); //(unsigned char)((int)(((float)map->Tile(x, y).getH() / MAX_H) * 256.0));
 					}
 
-				tgaSave("t.tga", map.getMapWidth(), map.getMapHeight(), 8, imageData);
+				tgaSave("t.tga", map->getMapWidth(), map->getMapHeight(), 8, imageData);
 
 				alreadySaved = true;
 			}
@@ -168,7 +189,7 @@ void MyNoise::checkIfFinished()
 void MyNoise::tectonics()
 {
 	Pos seedPos;
-	seedPos.setPos((rand() % map.getMapWidth()), (rand() % map.getMapHeight()));
+	seedPos.setPos((rand() % map->getMapWidth()), (rand() % map->getMapHeight()));
 
 	float floatComplete = (float)doneIts / totalIts;
 
@@ -200,8 +221,8 @@ void MyNoise::erosion()
 	{
 		// evita criar montanhas submarinas que não tenham possibilidade de virar ilhas (mas faz mapa tender a alturas maiores no geral)
 		do{
-			seedPos.setPos((rand() % map.getMapWidth()), (rand() % map.getMapHeight()));
-		}while(map.Tile(seedPos.getX(), seedPos.getY()).getH() <= SEA_LEVEL - SEA_LEVEL * 0.5 * rangeMultiplier);
+			seedPos.setPos((rand() % map->getMapWidth()), (rand() % map->getMapHeight()));
+		}while(map->Tile(seedPos.getX(), seedPos.getY()).getH() <= SEA_LEVEL - SEA_LEVEL * 0.5 * rangeMultiplier);
 
 		insertHighArtifact(seedPos, rangeMultiplier);
 	}
@@ -210,8 +231,8 @@ void MyNoise::erosion()
 	{
 		// adicionei por simetria àcima, porém não sei porque torna (ou não) mapas melhores (mais altura entre mar e pico mais alto)
 		//do{
-			seedPos.setPos((rand() % map.getMapWidth()), (rand() % map.getMapHeight()));
-		//}while(map.Tile(seedPos.getX(), seedPos.getY()).getH() <= SEA_LEVEL - SEA_LEVEL * 0.5);// - SEA_LEVEL * 0.5);
+			seedPos.setPos((rand() % map->getMapWidth()), (rand() % map->getMapHeight()));
+		//}while(map->Tile(seedPos.getX(), seedPos.getY()).getH() <= SEA_LEVEL - SEA_LEVEL * 0.5);// - SEA_LEVEL * 0.5);
 
 		insertLowArtifact(seedPos, rangeMultiplier);
 	}
@@ -222,24 +243,24 @@ Pos MyNoise::insertSeedHigh(Pos seedPos, float rangeMultiplier)
 {
 	int seedH;
 
-	int deltaRange;// = (MAX_H - map.Tile(seedPos).getH()) * (highMultplier / 100);
+	int deltaRange;// = (MAX_H - map->Tile(seedPos).getH()) * (highMultplier / 100);
 
-	if(map.Tile(seedPos).getH() > MAX_H / 2)
-		deltaRange = (MAX_H - map.Tile(seedPos).getH()) * rangeMultiplier;
+	if(map->Tile(seedPos).getH() > MAX_H / 2)
+		deltaRange = (MAX_H - map->Tile(seedPos).getH()) * rangeMultiplier;
 
 	else
-		deltaRange = map.Tile(seedPos).getH() * rangeMultiplier;
+		deltaRange = map->Tile(seedPos).getH() * rangeMultiplier;
 	
 	if(deltaRange < 1)
 		deltaRange = 1;
 
 	int deltaH = rand() % deltaRange;
 
-	seedH = map.Tile(seedPos).getH() + deltaH;
+	seedH = map->Tile(seedPos).getH() + deltaH;
 
-	map.Tile(seedPos).setH(seedH);
-	map.Tile(seedPos).setBaseChance();
-	map.Tile(seedPos).setIsSeed(true);
+	map->Tile(seedPos).setH(seedH);
+	map->Tile(seedPos).setBaseChance();
+	map->Tile(seedPos).setIsSeed(true);
 
 	return seedPos;
 }
@@ -250,22 +271,22 @@ Pos MyNoise::insertSeedLow(Pos seedPos, float rangeMultiplier)
 
 	int deltaRange;
 
-	if(map.Tile(seedPos).getH() > MAX_H / 2)
-		deltaRange = (MAX_H - map.Tile(seedPos).getH()) * rangeMultiplier;
+	if(map->Tile(seedPos).getH() > MAX_H / 2)
+		deltaRange = (MAX_H - map->Tile(seedPos).getH()) * rangeMultiplier;
 
 	else
-		deltaRange = map.Tile(seedPos).getH() * rangeMultiplier;
+		deltaRange = map->Tile(seedPos).getH() * rangeMultiplier;
 
 	if(deltaRange < 1)
 		deltaRange = 1;
 
 	int deltaH = rand() % deltaRange;
 
-	seedH = map.Tile(seedPos).getH() - deltaH;
+	seedH = map->Tile(seedPos).getH() - deltaH;
 
-	map.Tile(seedPos).setH(seedH);
-	map.Tile(seedPos).setBaseChance();
-	map.Tile(seedPos).setIsSeed(true);
+	map->Tile(seedPos).setH(seedH);
+	map->Tile(seedPos).setBaseChance();
+	map->Tile(seedPos).setIsSeed(true);
 
 	return seedPos;
 }
@@ -277,7 +298,7 @@ void MyNoise::insertHighArtifact(Pos seedPos, float rangeMultiplier)
 
 	Pos currentPos = insertSeedHigh(seedPos, rangeMultiplier);
 
-	int hCurrent = map.Tile(currentPos).getH(); // altura sendo trabalhada; começa com do seed
+	int hCurrent = map->Tile(currentPos).getH(); // altura sendo trabalhada; começa com do seed
 
 	currentQueue.push(currentPos);
 
@@ -317,21 +338,21 @@ void MyNoise::insertHighArtifact(Pos seedPos, float rangeMultiplier)
 
 				Pos adjPos(currentPos.getX() + xOffset, currentPos.getY() + yOffset);
 
-				if(map.isPosInsideWrap(adjPos) &&		// adjacente está dentro do mapa
-					map.Tile(adjPos).getH() < hCurrent)	// e é menor que altura hCurrent
+				if(map->isPosInsideWrap(adjPos) &&		// adjacente está dentro do mapa
+					map->Tile(adjPos).getH() < hCurrent)	// e é menor que altura hCurrent
 				{
 					// diminui ou não altura da adjacente baseado na chance de manter do hCurrent
-					if(rand() % 100 <= map.Tile(currentPos).getChance()) // mantem altura e diminui chance dos próximos manterem
+					if(rand() % 100 <= map->Tile(currentPos).getChance()) // mantem altura e diminui chance dos próximos manterem
 					{
-						map.Tile(adjPos).setH(hCurrent); // também evita reroll
-						map.Tile(adjPos).lowerChance(map.Tile(currentPos));
+						map->Tile(adjPos).setH(hCurrent); // também evita reroll
+						map->Tile(adjPos).lowerChance(map->Tile(currentPos));
 
 						currentQueue.push(adjPos); // coloca tile de mesma altura na currentQueue de altura Current
 					}
 
 					else
 					{
-						map.Tile(adjPos).setH(hCurrent); // "FLAG" PARA EVITAR REROLL, SERÁ REESCRITA COM ALTURA MENOR NA PASSAGEM DE NEXTQUEUE PRA CURRENTQUEUE
+						map->Tile(adjPos).setH(hCurrent); // "FLAG" PARA EVITAR REROLL, SERÁ REESCRITA COM ALTURA MENOR NA PASSAGEM DE NEXTQUEUE PRA CURRENTQUEUE
 						nextQueue.push(adjPos); // insere na queue da próxima altura
 					}
 				}
@@ -346,8 +367,8 @@ void MyNoise::insertHighArtifact(Pos seedPos, float rangeMultiplier)
 			Pos auxPos = nextQueue.front();
 			nextQueue.pop();
 
-			map.Tile(auxPos).setH(hCurrent);
-			map.Tile(auxPos).setBaseChance();
+			map->Tile(auxPos).setH(hCurrent);
+			map->Tile(auxPos).setBaseChance();
 			
 			currentQueue.push(auxPos);
 		}
@@ -361,7 +382,7 @@ void MyNoise::insertLowArtifact(Pos seedPos, float rangeMultiplier)
 
 	Pos currentPos = insertSeedLow(seedPos, rangeMultiplier);
 
-	int hCurrent = map.Tile(currentPos).getH(); // altura sendo trabalhada; começa com do seed
+	int hCurrent = map->Tile(currentPos).getH(); // altura sendo trabalhada; começa com do seed
 
 	currentQueue.push(currentPos);
 
@@ -401,21 +422,21 @@ void MyNoise::insertLowArtifact(Pos seedPos, float rangeMultiplier)
 
 				Pos adjPos(currentPos.getX() + xOffset, currentPos.getY() + yOffset);
 
-				if(map.isPosInsideWrap(adjPos) && 				// adjacente está dentro do mapa
-					map.Tile(adjPos).getH() > hCurrent)	// e é menor que altura hCurrent
+				if(map->isPosInsideWrap(adjPos) && 				// adjacente está dentro do mapa
+					map->Tile(adjPos).getH() > hCurrent)	// e é menor que altura hCurrent
 				{
 					// diminui ou não altura da adjacente baseado na chance de manter do hCurrent
-					if(rand() % 100 <= map.Tile(currentPos).getChance()) // mantem altura e diminui chance dos próximos manterem
+					if(rand() % 100 <= map->Tile(currentPos).getChance()) // mantem altura e diminui chance dos próximos manterem
 					{
-						map.Tile(adjPos).setH(hCurrent);
-						map.Tile(adjPos).lowerChance(map.Tile(currentPos));
+						map->Tile(adjPos).setH(hCurrent);
+						map->Tile(adjPos).lowerChance(map->Tile(currentPos));
 
 						currentQueue.push(adjPos); // coloca tile de mesma altura na currentQueue de altura Current
 					}
 
 					else
 					{
-						map.Tile(adjPos).setH(hCurrent); // "FLAG" PARA EVITAR REROLL, SERÁ REESCRITA COM ALTURA MENOR NA PASSAGEM DE NEXTQUEUE PRA CURRENTQUEUE
+						map->Tile(adjPos).setH(hCurrent); // "FLAG" PARA EVITAR REROLL, SERÁ REESCRITA COM ALTURA MENOR NA PASSAGEM DE NEXTQUEUE PRA CURRENTQUEUE
 						nextQueue.push(adjPos); // insere na queue da próxima altura
 					}
 				}
@@ -430,8 +451,8 @@ void MyNoise::insertLowArtifact(Pos seedPos, float rangeMultiplier)
 			Pos auxPos = nextQueue.front();
 			nextQueue.pop();
 
-			map.Tile(auxPos).setH(hCurrent);
-			map.Tile(auxPos).setBaseChance();
+			map->Tile(auxPos).setH(hCurrent);
+			map->Tile(auxPos).setBaseChance();
 			
 			currentQueue.push(auxPos);
 		}

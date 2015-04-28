@@ -2,14 +2,19 @@
 #define OSIMPLEXNOISE
 
 #include "../Map.h"
+#include "../Noises/Noise.h"
 #include "OpenSimplexC/open-simplex-noise.h"
 
-typedef enum {running = 0, done} State;
+//typedef enum {running = 0, done} State;
+#ifndef NOISESTATES
+#define NOISESTATES
+typedef enum {readTect = 0, running, doTect, readEro, doEro, done} State;
+#endif
 
-class OpenSimplexNoise
+class OpenSimplexNoise : public Noise
 {
 	private:
-		Map &map;
+		Map *map;
 
 		State state;
 
@@ -37,8 +42,12 @@ class OpenSimplexNoise
 			 unsigned char	*imageData);
 
 	public:
-		OpenSimplexNoise(Map &theMap, int oct, double freq, double pers, double fdiv);
+		OpenSimplexNoise(Map *theMap, int oct, double freq, double pers, double fdiv);
 		~OpenSimplexNoise();
+
+		void setMap(Map *m);
+
+		void reset();
 
 		void runOnce();
 

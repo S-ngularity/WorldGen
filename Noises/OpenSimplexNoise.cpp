@@ -9,16 +9,17 @@
 
 using namespace std;
 
-OpenSimplexNoise::OpenSimplexNoise(Map &theMap, int oct, double freq, double pers, double fdiv) : map(theMap)
+OpenSimplexNoise::OpenSimplexNoise(Map *theMap, int oct, double freq, double pers, double fdiv)
 {
+	map = theMap;
 	state = running;
 	alreadySaved = false;
 	doneIts = 0;
-	totalIts = map.getMapHeight();
+	totalIts = map->getMapHeight();
 	nowX = 0;
 	nowY = 0;
-	map.setHighestH(0);
-	map.setLowestH(MAX_H);
+	map->setHighestH(0);
+	map->setLowestH(MAX_H);
 
 	srand(time(NULL));
 
@@ -35,6 +36,23 @@ OpenSimplexNoise::~OpenSimplexNoise()
 	open_simplex_noise_free(context);
 }
 
+void OpenSimplexNoise::setMap(Map *m)
+{
+	map = m;
+	reset();
+}
+
+void OpenSimplexNoise::reset()
+{
+	state = running;
+	doneIts = 0;
+	totalIts = map->getMapHeight();
+	nowX = 0;
+	nowY = 0;
+
+	open_simplex_noise(rand(), &context);
+}
+
 int OpenSimplexNoise::getPercentComplete()
 {
 	return 100 * ((float)doneIts / totalIts);
@@ -44,20 +62,26 @@ void OpenSimplexNoise::runOnce()
 {
 	if(state != done)
 	{
-		if(nowY < map.getMapHeight()) // uma linha por chamada
+		if(doneIts == 0)
 		{
-			while(nowX < map.getMapWidth())
+			map->setHighestH(0);
+			map->setLowestH(MAX_H);
+		}
+
+		if(nowY < map->getMapHeight()) // uma linha por chamada
+		{
+			while(nowX < map->getMapWidth())
 			{
 				double value = 0;
 				double amp = 1, maxAmp = 0;
 				double f = frequency;
 
 				/*
-				int x1 = 0, x2 = map.getMapWidth(), y1 = 0, y2 = map.getMapHeight();
+				int x1 = 0, x2 = map->getMapWidth(), y1 = 0, y2 = map->getMapHeight();
 				double pi = 3.14159265359;
 
-				double s = (double)nowX / map.getMapWidth();
-				double t = (double)nowY / map.getMapHeight();
+				double s = (double)nowX / map->getMapWidth();
+				double t = (double)nowY / map->getMapHeight();
 				double dx = x2 - x1;
 				double dy = y2 - y1;
 
@@ -81,13 +105,13 @@ void OpenSimplexNoise::runOnce()
 				value /= maxAmp;
 
 				value *= MAX_H;
-				map.Tile(nowX, nowY).setH(value);
+				map->Tile(nowX, nowY).setH(value);
 
-				if(value > map.getHighestH())
-					map.setHighestH(value);
+				if(value > map->getHighestH())
+					map->setHighestH(value);
 
-				if(value < map.getLowestH())
-					map.setLowestH(value);
+				if(value < map->getLowestH())
+					map->setLowestH(value);
 
 				nowX++;
 			}
@@ -109,25 +133,25 @@ void OpenSimplexNoise::checkIfFinished()
 {
 	if(doneIts == totalIts && state == running)
 	{
-		map.normalize(MAX_H);
+		map->normalize(MAX_H);
 //*
-		int seaLevel = (map.getHighestH() / 2 ) - 1;
+		int seaLevel = (map->getHighestH() / 2 ) - 1;
 		if(!alreadySaved) // SALVAR UMA VEZ RESULTADO EM TGA
 		{
 			unsigned char *imageData;
-			imageData = (unsigned char*)malloc(sizeof(unsigned char) * map.getMapWidth() * map.getMapHeight());
+			imageData = (unsigned char*)malloc(sizeof(unsigned char) * map->getMapWidth() * map->getMapHeight());
 
-			for(int y = 0; y < map.getMapHeight(); y++)
-				for(int x = 0; x < map.getMapWidth(); x++)
+			for(int y = 0; y < map->getMapHeight(); y++)
+				for(int x = 0; x < map->getMapWidth(); x++)
 				{
-					if(map.Tile(x, y).getH() <= seaLevel)
-						imageData[(map.getMapHeight() - 1 - y) * map.getMapWidth() + x] = 0;//(unsigned char)(((float)(seaLevel - 1) / MAX_H) * 256.0);
+					if(map->Tile(x, y).getH() <= seaLevel)
+						imageData[(map->getMapHeight() - 1 - y) * map->getMapWidth() + x] = 0;//(unsigned char)(((float)(seaLevel - 1) / MAX_H) * 256.0);
 
 					else
-						imageData[(map.getMapHeight() - 1 - y) * map.getMapWidth() + x] = (unsigned char)((int)((map.Tile(x, y).getH() - seaLevel) / (float)(MAX_H - seaLevel) * 255.0)); //(unsigned char)((int)(((float)map.Tile(x, y).getH() / MAX_H) * 256.0));
+						imageData[(map->getMapHeight() - 1 - y) * map->getMapWidth() + x] = (unsigned char)((int)((map->Tile(x, y).getH() - seaLevel) / (float)(MAX_H - seaLevel) * 255.0)); //(unsigned char)((int)(((float)map->Tile(x, y).getH() / MAX_H) * 256.0));
 				}
 
-			tgaSave("t.tga", map.getMapWidth(), map.getMapHeight(), 8, imageData);
+			tgaSave("t.tga", map->getMapWidth(), map->getMapHeight(), 8, imageData);
 
 			alreadySaved = true;
 		}//*/

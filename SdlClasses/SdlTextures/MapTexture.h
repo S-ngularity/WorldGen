@@ -16,15 +16,18 @@
 class MapTexture : public SdlTexture
 {
 	private:
-		Map &map;
+		Map *worldMap;
 		Uint32 *mapPixels;
 		SDL_Renderer *context;
 
 		int seaRenderMode, landRenderMode;
 		
 	public:
-		MapTexture(Map &theMap, SDL_Renderer *r);
+		MapTexture(Map *theMap, SDL_Renderer *r);
 		~MapTexture();
+
+		void setMap(Map *theMap);
+		void setContext(SDL_Renderer *r);
 
 		void update();
 

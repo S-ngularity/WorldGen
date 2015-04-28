@@ -2,13 +2,17 @@
 #define MYNOISE
 
 #include "../Map.h"
+#include "../Noises/Noise.h"
 
-typedef enum {readTect = 0, doTect, readEro, doEro, done} State;
+#ifndef NOISESTATES
+#define NOISESTATES
+typedef enum {readTect = 0, running, doTect, readEro, doEro, done} State;
+#endif
 
-class MyNoise
+class MyNoise : public Noise
 {
 	private:
-		Map &map;
+		Map *map;
 
 		State state;
 
@@ -42,7 +46,11 @@ class MyNoise
 			 unsigned char	*imageData);
 
 	public:
-		MyNoise(Map &theMap);
+		MyNoise(Map *theMap);
+
+		void setMap(Map *m);
+
+		void reset();
 
 		void runOnce();
 
