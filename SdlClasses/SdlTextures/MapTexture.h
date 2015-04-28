@@ -3,8 +3,8 @@
 
 #include <SDL2/SDL.h>
 
-#include "../Map.h"
-#include "../SdlClasses/SdlTexture.h"
+#include "Map.h"
+#include "SdlClasses/SdlTexture.h"
 
 // map sea & land render modes
 #define NO_SEA 0
@@ -21,7 +21,7 @@ class MapTexture : public SdlTexture
 		SDL_Renderer *context;
 
 		int seaRenderMode, landRenderMode;
-
+		
 	public:
 		MapTexture(Map &theMap, SDL_Renderer *r);
 		~MapTexture();

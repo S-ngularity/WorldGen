@@ -5,6 +5,12 @@
 
 class SdlTexture
 {
+	private:
+		SDL_Texture *texture;
+
+		int width;
+		int height;
+
 	public:
 		SdlTexture();
 		SdlTexture(SDL_Texture *t, int w, int h);
@@ -17,13 +23,6 @@ class SdlTexture
 		
 		int getW();
 		int getH();
-
-
-	private:
-		SDL_Texture *texture;
-
-		int width;
-		int height;
 };
 
 #endif

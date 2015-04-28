@@ -1,7 +1,7 @@
-#include "MapTexture.h"
+#include "SdlClasses/SdlTextures/MapTexture.h"
 
 #include <stdlib.h>
-#include <stdio.h>
+
 MapTexture::MapTexture(Map &theMap, SDL_Renderer *r) : map(theMap)
 {
 	context = r;

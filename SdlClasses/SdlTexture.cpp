@@ -1,5 +1,5 @@
 #include <SDL2/SDL.h>
-#include "SdlTexture.h"
+#include "SdlClasses/SdlTexture.h"
 
 SdlTexture::SdlTexture()
 {

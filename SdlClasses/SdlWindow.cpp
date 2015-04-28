@@ -1,15 +1,24 @@
-#include "SdlWindow.h"
+#include "SdlClasses/SdlWindow.h"
 
 #include <stdio.h>
 
-SdlWindow::SdlWindow(char* title, int x, int y, int w, int h, Uint32 windowFlags, Uint32 rendererFlags)
+SdlWindow::SdlWindow(char const *title, int x, int y, int w, int h, Uint32 windowFlags, Uint32 rendererFlags)
 {
+	width = w;
+	height = h;
+
+	mouseFocus = false;
+	keyboardFocus = false;
+	minimized = false;
+	shown = false;
+
 	window = SDL_CreateWindow(	title,
 								x,
 								y,
 								w,
 								h,
 								windowFlags);
+	
 	if(window == NULL)
 		printf("%s could not be created! SDL Error: %s\n", title, SDL_GetError());
 	
@@ -17,6 +26,7 @@ SdlWindow::SdlWindow(char* title, int x, int y, int w, int h, Uint32 windowFlags
 	{
 		//Create renderer for window
 		renderer = SDL_CreateRenderer(window, -1, rendererFlags);
+		
 		if(renderer == NULL)
 		{
 			printf("renderer for %s could not be created! SDL Error: %s\n", title, SDL_GetError());
@@ -44,79 +54,76 @@ SdlWindow::~SdlWindow()
 
 	renderer = NULL;
 	window = NULL;
-
-	//textureMap["walkTexture"]->clearTexture();		// crash if SDLClose calls this function after textureMap.clear() at main
-													// (but textureMap.clear() must happen before SDL systems are terminated)
 }
 
 void SdlWindow::handleEvent(SDL_Event& e)
 {
 	// If an event was detected for this window
-	if(e.type == SDL_WINDOWEVENT && e.window.windowID == windowID)
+	if(e.window.windowID == windowID)
 	{
-		switch(e.window.event)
+		if(e.type == SDL_WINDOWEVENT)
 		{
-			// Window appeared
-			case SDL_WINDOWEVENT_SHOWN:
-				shown = true;
-			break;
+			switch(e.window.event)
+			{
+				// Window appeared
+				case SDL_WINDOWEVENT_SHOWN:
+					shown = true;
+				break;
 
-			// Window disappeared
-			case SDL_WINDOWEVENT_HIDDEN:
-				shown = false;
-			break;
+				// Window disappeared
+				case SDL_WINDOWEVENT_HIDDEN:
+					shown = false;
+				break;
 
-			// Get new dimensions and repaint
-			case SDL_WINDOWEVENT_SIZE_CHANGED:
-				width = e.window.data1;
-				height = e.window.data2;
-				SDL_RenderPresent(renderer);
-			break;
+				// Get new dimensions and repaint
+				case SDL_WINDOWEVENT_SIZE_CHANGED:
+					width = e.window.data1;
+					height = e.window.data2;
+					SDL_RenderPresent(renderer);
+				break;
 
-			// Repaint on expose
-			case SDL_WINDOWEVENT_EXPOSED:
-				SDL_RenderPresent(renderer);
-			break;
+				// Repaint on expose
+				case SDL_WINDOWEVENT_EXPOSED:
+					SDL_RenderPresent(renderer);
+				break;
 
-			// Mouse enter
-			case SDL_WINDOWEVENT_ENTER:
-				mouseFocus = true;
-			break;
-			
-			// Mouse exit
-			case SDL_WINDOWEVENT_LEAVE:
-				mouseFocus = false;
-			break;
+				// Mouse enter
+				case SDL_WINDOWEVENT_ENTER:
+					mouseFocus = true;
+				break;
+				
+				// Mouse exit
+				case SDL_WINDOWEVENT_LEAVE:
+					mouseFocus = false;
+				break;
 
-			// Keyboard focus gained
-			case SDL_WINDOWEVENT_FOCUS_GAINED:
-				keyboardFocus = true;
-			break;
-			
-			// Keyboard focus lost
-			case SDL_WINDOWEVENT_FOCUS_LOST:
-				keyboardFocus = false;
-			break;
+				// Keyboard focus gained
+				case SDL_WINDOWEVENT_FOCUS_GAINED:
+					keyboardFocus = true;
+				break;
+				
+				// Keyboard focus lost
+				case SDL_WINDOWEVENT_FOCUS_LOST:
+					keyboardFocus = false;
+				break;
 
-			// Window minimized
-			case SDL_WINDOWEVENT_MINIMIZED:
-				minimized = true;
-			break;
+				case SDL_WINDOWEVENT_MINIMIZED:
+					minimized = true;
+				break;
 
-			// Window maxized
-			case SDL_WINDOWEVENT_MAXIMIZED:
-				minimized = false;
-			break;
-			
-			// Window restored
-			case SDL_WINDOWEVENT_RESTORED:
-				minimized = false;
-			break;
+				case SDL_WINDOWEVENT_MAXIMIZED:
+					minimized = false;
+				break;
+				
+				case SDL_WINDOWEVENT_RESTORED:
+					minimized = false;
+				break;
 
-			// Hide on close
-			case SDL_WINDOWEVENT_CLOSE:
-				SDL_HideWindow(window);
-			break;
+				// Hide on close
+				case SDL_WINDOWEVENT_CLOSE:
+					SDL_HideWindow(window);
+				break;
+			}
 		}
 	}
 
@@ -124,29 +131,37 @@ void SdlWindow::handleEvent(SDL_Event& e)
 	handleImplementedEvents(e);
 }
 
-void SdlWindow::focus()
-{
-    //Restore window if needed
-    if(!shown)
-    {
-        SDL_ShowWindow(window);
-    }
+void SdlWindow::handleImplementedEvents(SDL_Event& e)
+{}
 
-    //Move window forward
-    SDL_RaiseWindow(window);
+SDL_Renderer* SdlWindow::getRenderer()
+{
+	return renderer;
 }
 
-void SdlWindow::render()
+void SdlWindow::show()
 {
-    if(!minimized)
-    {    
-        //Clear screen
-        //SDL_SetRenderDrawColor(renderer, 0xFF, 0xFF, 0xFF, 0xFF);
-        //SDL_RenderClear(renderer);
+	if(!shown)
+	{
+		shown = true;
+		SDL_ShowWindow(window);
+	}
 
-        //Update screen
-        SDL_RenderPresent(renderer);
-    }
+	// always move window forward
+	SDL_RaiseWindow(window);
+}
+
+void SdlWindow::hide()
+{
+	shown = false;
+
+	SDL_HideWindow(window);
+}
+
+void SdlWindow::refresh()
+{
+	if(!minimized && shown)
+		SDL_RenderPresent(renderer);
 }
 
 int SdlWindow::getWidth()
@@ -178,72 +193,3 @@ bool SdlWindow::isShown()
 {
 	return shown;
 }
-
-
-/*void handleWalkWindowEvent(SDL_Event windowEvent)
-{
-	bool updateScreen = false;
-
-	switch(windowEvent.type)
-	{
-		case SDL_WINDOWEVENT:
-			if(windowEvent.window.event == SDL_WINDOWEVENT_CLOSE)
-				destroyWalkWindow();
-		break;
-
-		case SDL_KEYDOWN:
-			switch(windowEvent.key.keysym.sym)
-			{
-				case SDLK_UP:
-					if(walkY - 1 < 0)
-						walkY = 0;
-
-					else if(map.Tile(walkX, walkY - 1).getH() > map.getSeaLvl())
-						walkY--;
-					updateScreen = true;
-				break;
-
-				case SDLK_DOWN:
-					if(walkY + 1 >= map.getMapHeight())
-						walkY = map.getMapHeight() - 1;
-
-					else if(map.Tile(walkX, walkY + 1).getH() > map.getSeaLvl())
-						walkY++;
-					updateScreen = true;
-				break;
-
-				case SDLK_LEFT:
-					if(map.Tile(walkX - 1, walkY).getH() > map.getSeaLvl())
-					{
-						if(walkX - 1 < 0)
-							walkX = map.getMapWidth() - 1;
-						else
-							walkX--;
-					}
-
-					updateScreen = true;
-				break;
-
-				case SDLK_RIGHT:
-					if(map.Tile(walkX + 1, walkY).getH() > map.getSeaLvl())
-					{
-						if(walkX + 1 >= map.getMapWidth())
-							walkX = 0;
-						
-						else
-							walkX++;
-					}
-
-					updateScreen = true;
-				break;
-			}
-		break;
-	}
-
-	if(updateScreen)
-	{
-		updateWalkTex();
-		textureMap["walkTexture"]->render(renderer, 0, 0);
-		SDL_RenderPresent(renderer);
-	}
-}*/
