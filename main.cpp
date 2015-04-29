@@ -8,8 +8,6 @@
 #include <time.h>
 
 #include "Map.h"
-#include "SdlClasses/SdlTexture.h"
-#include "SdlClasses/SdlWindow.h"
 #include "SdlClasses/SdlWindows/NoiseWindow.h"
 //#include "SdlClasses/SdlWindows/WalkWindow.h"
 
