@@ -50,6 +50,8 @@ void OpenSimplexNoise::reset()
 	nowX = 0;
 	nowY = 0;
 
+	map->setSeaLvl(SEA_LEVEL);
+
 	open_simplex_noise(rand(), &context);
 }
 

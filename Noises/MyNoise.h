@@ -4,11 +4,6 @@
 #include "../Map.h"
 #include "../Noises/Noise.h"
 
-#ifndef NOISESTATES
-#define NOISESTATES
-typedef enum {readTect = 0, running, doTect, readEro, doEro, done} State;
-#endif
-
 class MyNoise : public Noise
 {
 	private:
@@ -18,12 +13,9 @@ class MyNoise : public Noise
 
 		bool alreadySaved; // PARA SALVAR IMAGEM UMA VEZ
 
-		int totalIts, doneIts;
+		int totalTecIts, totalErsIts, doneIts;
 
-		void readTectonics();
-		void doTectonics();
-		void readErosion();
-		void doErosion();
+		void readIterations();
 
 		void checkIfFinished();
 

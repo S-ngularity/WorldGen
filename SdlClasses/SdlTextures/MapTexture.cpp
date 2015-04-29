@@ -93,7 +93,7 @@ void MapTexture::update()
 				else if(landRenderMode == FIXED) // BRANCO FIXO
 				{
 					baseColor = 0;
-					int varBy = worldMap->getHighestH();
+					int varBy = MAX_H; //worldMap->getHighestH();
 					if(varBy == 0) varBy = 1;
 					float multiplierColor = (float)(255 - baseColor) / varBy;
 

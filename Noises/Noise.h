@@ -3,6 +3,11 @@
 
 #include "Map.h"
 
+#ifndef NOISESTATES
+#define NOISESTATES
+typedef enum {running = 0, done} State;
+#endif
+
 class Noise
 {
 	public:

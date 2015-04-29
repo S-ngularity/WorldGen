@@ -101,7 +101,7 @@ void NoiseWindow::handleImplementedEvents(SDL_Event& e)
 					case SDLK_z:
 						if(mapTexture.getSeaRenderMode() != NO_SEA)
 						{
-							mapTexture.setLandRenderMode(FIXED);
+							mapTexture.setLandRenderMode(VARYING_HIGHEST);
 							updateMapTexture = true;
 						}
 					break;
@@ -109,7 +109,7 @@ void NoiseWindow::handleImplementedEvents(SDL_Event& e)
 					case SDLK_x:
 						if(mapTexture.getSeaRenderMode() != NO_SEA)
 						{
-							mapTexture.setLandRenderMode(VARYING_HIGHEST);
+							mapTexture.setLandRenderMode(VARYING_MAX);
 							updateMapTexture = true;
 						}
 					break;
@@ -117,7 +117,7 @@ void NoiseWindow::handleImplementedEvents(SDL_Event& e)
 					case SDLK_c:
 						if(mapTexture.getSeaRenderMode() != NO_SEA)
 						{
-							mapTexture.setLandRenderMode(VARYING_MAX);
+							mapTexture.setLandRenderMode(FIXED);
 							updateMapTexture = true;
 						}
 					break;
@@ -133,6 +133,7 @@ void NoiseWindow::handleImplementedEvents(SDL_Event& e)
 						cin >> n;
 						mapVect[selectedMap]->normalize(n);
 						mapVect[selectedMap]->setSeaLvl((mapVect[selectedMap]->getHighestH() / 2 ) - 1);
+						cout << "Sea Level : " << setw(3) << setfill('0') << mapVect[selectedMap]->getSeaLvl();
 						updateMapTexture = true;
 					break;
 
@@ -278,6 +279,8 @@ void NoiseWindow::runNoise()
 
 			updateMapTexture = false;
 		}
+
+		SDL_PumpEvents();
 	}
 }
 

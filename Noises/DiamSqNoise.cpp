@@ -52,6 +52,8 @@ void DiamSqNoise::reset()
 		cout << endl << "INVALID MAP SIZE" << endl;
 		state = done;
 	}
+
+	map->setSeaLvl(SEA_LEVEL);
 }
 
 int DiamSqNoise::getPercentComplete()

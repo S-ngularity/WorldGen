@@ -4,12 +4,6 @@
 #include "../Map.h"
 #include "../Noises/Noise.h"
 
-//typedef enum {running = 0, done} State;
-#ifndef NOISESTATES
-#define NOISESTATES
-typedef enum {readTect = 0, running, doTect, readEro, doEro, done} State;
-#endif
-
 class DiamSqNoise : public Noise
 {
 	private:

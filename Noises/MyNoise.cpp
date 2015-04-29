@@ -13,10 +13,11 @@ using namespace std;
 MyNoise::MyNoise(Map *theMap)
 {
 	map = theMap;
-	totalIts = 0;
 	doneIts = 0;
+	totalTecIts = 0;
+	totalErsIts = 0;
 	alreadySaved = false;
-	state = readTect;
+	state = running;
 
 	srand(time(NULL));
 }
@@ -29,99 +30,67 @@ void MyNoise::setMap(Map *m)
 
 void MyNoise::reset()
 {
-	totalIts = 0;
 	doneIts = 0;
-	state = readTect;
+	totalTecIts = 0;
+	totalErsIts = 0;
+	state = running;
+
+	for(int y = 0; y < map->getMapHeight(); y++)
+		for(int x = 0; x < map->getMapWidth(); x++)
+			map->Tile(x, y).setH(INIT_H);
+
+	map->setHighestH(INIT_H);
+	map->setLowestH(INIT_H);
+
+	map->setSeaLvl(SEA_LEVEL);
 }
 
 void MyNoise::runOnce()
 {
-	switch(state)
-	{
-		case readTect:
-			readTectonics();
-		break;
+	if(doneIts == 0)
+		readIterations();
 
-		case doTect:
-			doTectonics();
-		break;
+	if(doneIts <= totalTecIts)
+		tectonics();
 
-		case readEro:
-			readErosion();
-		break;
+	else if(doneIts <= totalTecIts + totalErsIts)
+		erosion();
 
-		case doEro:
-			doErosion();
-		break;
+	doneIts++;
 
-		case done:
-		break;
-	}
+	checkIfFinished();
 }
 
 int MyNoise::getPercentComplete()
 {
-	return 100 * ((float)doneIts / totalIts);
+	return 100 * ((float)doneIts / (totalTecIts + totalErsIts));
 }
 
 
-void MyNoise::readTectonics()
+void MyNoise::readIterations()
 {
 	do{
 		cout << endl <<  "Tectonics iterations (~50-200): ";
-		cin >> totalIts;
+		cin >> totalTecIts;
 		cout << endl;
-	}while(totalIts < 0);
+	}while(totalTecIts < 0);
 
-	if(totalIts == 0)
-		state = readEro;
-
-	else
-		state = doTect;
-	
-	doneIts = 0;
-}
-
-void MyNoise::doTectonics()
-{
-	tectonics();
-	doneIts++;
-
-	checkIfFinished();
-}
-
-void MyNoise::readErosion()
-{
 	do{
 		cout << endl << "Erosion iterations (~1500-50000): ";
-		cin >> totalIts;
+		cin >> totalErsIts;
 		cout << endl;
-	}while(totalIts < 0);
-
-	if(totalIts == 0)
-		state = done;
-
-	else
-		state = doEro;
+	}while(totalErsIts < 0);
 
 	doneIts = 0;
+	state = running;
 }
-
-void MyNoise::doErosion()
-{
-	erosion();
-	doneIts++;
-
-	checkIfFinished();
-}
-
 
 void MyNoise::checkIfFinished()
 {
-	if(doneIts == totalIts && (state == doTect || state == doEro))
+	if(doneIts == totalTecIts + totalErsIts)
 	{
 		map->setHighestH(0);
-		map->setHighestH(MAX_H);
+		map->setLowestH(MAX_H);
 
 		for(int y = 0; y < map->getMapHeight(); y++)
 			for(int x = 0; x < map->getMapWidth(); x++)
@@ -130,59 +99,53 @@ void MyNoise::checkIfFinished()
 				if(map->Tile(x, y).getH() > map->getHighestH())
 					map->setHighestH(map->Tile(x, y).getH());
 
-				if(map->Tile(x, y).getH() < map->getHighestH())
+				if(map->Tile(x, y).getH() < map->getLowestH())
 					map->setLowestH(map->Tile(x, y).getH());
 			}
 
-		if(state == doTect)
-			state = readEro;
+		/* // imprime erros de quando a diferença entre tiles adjacentes é maior que 1
+		for(int y = 0; y < map->getMapHeight(); y++)
+			for(int x = 0; x < map->getMapWidth(); x++)
+			{
+				for(int yOffset = -1; yOffset <= 1; yOffset++)
+					for(int xOffset = -1; xOffset <= 1; xOffset++)
+					{
+						Pos nowPos(x, y);
+						Pos adjPos(x + xOffset, y + yOffset);
 
-		else if (state == doEro)
+						if(map->isPosInsideWrap(adjPos))
+						{
+							if((map->Tile(adjPos).getH() - map->Tile(nowPos).getH() > 1) || (map->Tile(adjPos).getH() - map->Tile(nowPos).getH() < -1))
+							{
+								map->Tile(nowPos).setError(true);
+								//printf("ERRO EM %d %d\n", x, y);
+							}
+						}
+					}
+
+			}//*/
+
+		if(!alreadySaved) // SALVAR UMA VEZ RESULTADO EM TGA
 		{
-			/* // imprime erros de quando a diferença entre tiles adjacentes é maior que 1
+			unsigned char *imageData;
+			imageData = (unsigned char*)malloc(sizeof(unsigned char) * map->getMapWidth() * map->getMapHeight());
+
 			for(int y = 0; y < map->getMapHeight(); y++)
 				for(int x = 0; x < map->getMapWidth(); x++)
 				{
-					for(int yOffset = -1; yOffset <= 1; yOffset++)
-						for(int xOffset = -1; xOffset <= 1; xOffset++)
-						{
-							Pos nowPos(x, y);
-							Pos adjPos(x + xOffset, y + yOffset);
+					if(map->Tile(x, y).getH() <= SEA_LEVEL)
+						imageData[(map->getMapHeight() - 1 - y) * map->getMapWidth() + x] = 0;//(unsigned char)(((float)(SEA_LEVEL - 1) / MAX_H) * 256.0);
 
-							if(map->isPosInsideWrap(adjPos))
-							{
-								if((map->Tile(adjPos).getH() - map->Tile(nowPos).getH() > 1) || (map->Tile(adjPos).getH() - map->Tile(nowPos).getH() < -1))
-								{
-									map->Tile(nowPos).setError(true);
-									//printf("ERRO EM %d %d\n", x, y);
-								}
-							}
-						}
+					else
+						imageData[(map->getMapHeight() - 1 - y) * map->getMapWidth() + x] = (unsigned char)((int)((map->Tile(x, y).getH() - SEA_LEVEL) / (float)(MAX_H - SEA_LEVEL) * 255.0)); //(unsigned char)((int)(((float)map->Tile(x, y).getH() / MAX_H) * 256.0));
+				}
 
-				}//*/
+			tgaSave("t.tga", map->getMapWidth(), map->getMapHeight(), 8, imageData);
 
-			if(!alreadySaved) // SALVAR UMA VEZ RESULTADO EM TGA
-			{
-				unsigned char *imageData;
-				imageData = (unsigned char*)malloc(sizeof(unsigned char) * map->getMapWidth() * map->getMapHeight());
-
-				for(int y = 0; y < map->getMapHeight(); y++)
-					for(int x = 0; x < map->getMapWidth(); x++)
-					{
-						if(map->Tile(x, y).getH() <= SEA_LEVEL)
-							imageData[(map->getMapHeight() - 1 - y) * map->getMapWidth() + x] = 0;//(unsigned char)(((float)(SEA_LEVEL - 1) / MAX_H) * 256.0);
-
-						else
-							imageData[(map->getMapHeight() - 1 - y) * map->getMapWidth() + x] = (unsigned char)((int)((map->Tile(x, y).getH() - SEA_LEVEL) / (float)(MAX_H - SEA_LEVEL) * 255.0)); //(unsigned char)((int)(((float)map->Tile(x, y).getH() / MAX_H) * 256.0));
-					}
-
-				tgaSave("t.tga", map->getMapWidth(), map->getMapHeight(), 8, imageData);
-
-				alreadySaved = true;
-			}
-
-			state = done;
+			alreadySaved = true;
 		}
+
+		state = done;
 	}
 }
 
@@ -191,7 +154,7 @@ void MyNoise::tectonics()
 	Pos seedPos;
 	seedPos.setPos((rand() % map->getMapWidth()), (rand() % map->getMapHeight()));
 
-	float floatComplete = (float)doneIts / totalIts;
+	float floatComplete = (float)doneIts / totalTecIts;
 
 	if(floatComplete < 0.1 || rand() % 2 == 0)
 		insertHighArtifact(seedPos, 1);
@@ -205,7 +168,7 @@ void MyNoise::erosion()
 	float rangeMultiplier;
 	Pos seedPos;
 
-	float floatComplete = ((float)doneIts / totalIts);
+	float floatComplete = ((float)doneIts / totalErsIts);
 
 	if(floatComplete < 0.30)
 		rangeMultiplier = 0.3;
