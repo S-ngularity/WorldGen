@@ -34,21 +34,23 @@ void MyNoise::reset()
 	totalTecIts = 0;
 	totalErsIts = 0;
 	state = running;
-
-	for(int y = 0; y < map->getMapHeight(); y++)
-		for(int x = 0; x < map->getMapWidth(); x++)
-			map->Tile(x, y).setH(INIT_H);
-
-	map->setHighestH(INIT_H);
-	map->setLowestH(INIT_H);
-
-	map->setSeaLvl(SEA_LEVEL);
 }
 
 void MyNoise::runOnce()
 {
 	if(doneIts == 0)
+	{
 		readIterations();
+		
+		for(int y = 0; y < map->getMapHeight(); y++)
+			for(int x = 0; x < map->getMapWidth(); x++)
+				map->Tile(x, y).setH(INIT_H);
+
+		map->setHighestH(INIT_H);
+		map->setLowestH(INIT_H);
+
+		map->setSeaLvl(SEA_LEVEL);
+	}
 
 	if(doneIts <= totalTecIts)
 		tectonics();

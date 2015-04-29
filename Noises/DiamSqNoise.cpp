@@ -52,8 +52,6 @@ void DiamSqNoise::reset()
 		cout << endl << "INVALID MAP SIZE" << endl;
 		state = done;
 	}
-
-	map->setSeaLvl(SEA_LEVEL);
 }
 
 int DiamSqNoise::getPercentComplete()
@@ -84,6 +82,8 @@ squares again.
 		{
 			map->setHighestH(0);
 			map->setLowestH(TEMP_MAX_H);
+
+			map->setSeaLvl(SEA_LEVEL);
 
 			map->Tile(0, 0).setH(TEMP_MAX_H/2);//rand() % (TEMP_MAX_H + 1));
 			map->Tile(0, map->getMapHeight() - 1).setH(TEMP_MAX_H/2);//rand() % (TEMP_MAX_H + 1));

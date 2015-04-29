@@ -145,9 +145,8 @@ void NoiseWindow::handleImplementedEvents(SDL_Event& e)
 						{
 							selectedMap = 0;
 							mapTexture.setMap(mapVect[selectedMap]);
-							noiseVect[0]->setMap(mapVect[selectedMap]);
-							noiseVect[1]->setMap(mapVect[selectedMap]);
-							noiseVect[2]->setMap(mapVect[selectedMap]);
+							cout << endl << endl << "Map 1" << endl;
+							cout << "Sea Level : " << setw(3) << setfill('0') << mapVect[selectedMap]->getSeaLvl();
 							updateMapTexture = true;
 						}
 						
@@ -161,9 +160,8 @@ void NoiseWindow::handleImplementedEvents(SDL_Event& e)
 						{
 							selectedMap = 1;
 							mapTexture.setMap(mapVect[selectedMap]);
-							noiseVect[0]->setMap(mapVect[selectedMap]);
-							noiseVect[1]->setMap(mapVect[selectedMap]);
-							noiseVect[2]->setMap(mapVect[selectedMap]);
+							cout << endl << endl << "Map 2" << endl;
+							cout << "Sea Level : " << setw(3) << setfill('0') << mapVect[selectedMap]->getSeaLvl();
 							updateMapTexture = true;
 						}
 					break;
@@ -176,9 +174,8 @@ void NoiseWindow::handleImplementedEvents(SDL_Event& e)
 						{
 							selectedMap = 2;
 							mapTexture.setMap(mapVect[selectedMap]);
-							noiseVect[0]->setMap(mapVect[selectedMap]);
-							noiseVect[1]->setMap(mapVect[selectedMap]);
-							noiseVect[2]->setMap(mapVect[selectedMap]);
+							cout << endl << endl << "Map 3" << endl;
+							cout << "Sea Level : " << setw(3) << setfill('0') << mapVect[selectedMap]->getSeaLvl();
 							updateMapTexture = true;
 						}
 					break;
@@ -231,7 +228,9 @@ void NoiseWindow::handleImplementedEvents(SDL_Event& e)
 void NoiseWindow::runNoise()
 {
 	bool updateMapTexture = false;
-	int shownPercent = 0;
+	int shownPercent = -1;
+
+	noiseVect[selectedNoise]->setMap(mapVect[selectedMap]);
 
 	cout << endl << endl;
 
