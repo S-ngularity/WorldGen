@@ -1,10 +1,11 @@
 #ifndef MAPTEXTURE
 #define MAPTEXTURE
 
+#include "SdlClasses/SdlTexture.h"
+
 #include <SDL2/SDL.h>
 
-#include "Map.h"
-#include "SdlClasses/SdlTexture.h"
+class Map;
 
 // map sea & land render modes
 #define NO_SEA 0

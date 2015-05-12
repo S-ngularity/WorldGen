@@ -1,19 +1,18 @@
 #ifndef NOISEWINDOW
 #define NOISEWINDOW
 
-#include "Map.h"
+
 #include "SdlClasses/SdlWindow.h"
 #include "SdlClasses/SdlTexture.h"
 #include "SdlClasses/SdlTextures/MapTexture.h"
-
-#include "Noises/MyNoise.h"
-#include "Noises/DiamSqNoise.h"
-#include "Noises/OpenSimplexNoise.h"
 
 #include "SdlClasses/SdlWindows/WalkWindow.h"
 
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_ttf.h>
+
+class Map;
+class Noise;
 
 const int SCREEN_WIDTH = 800;//map.getMapWidth();
 const int SCREEN_HEIGHT = 800;//map.getMapHeight();

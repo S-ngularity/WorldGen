@@ -1,5 +1,6 @@
-#include <stdlib.h>
 #include "MapTile.h"
+
+#include <stdlib.h>
 
 #define NULO -1
 

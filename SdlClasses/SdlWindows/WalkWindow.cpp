@@ -1,5 +1,7 @@
 #include "SdlClasses/SdlWindows/WalkWindow.h"
 
+#include "Map.h"
+
 #include <stdio.h>
 
 #include <iostream>

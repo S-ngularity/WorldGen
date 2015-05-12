@@ -1,4 +1,5 @@
 #include "OpenSimplexNoise.h"
+#include "../Map.h"
 
 #include <iostream>
 #include <cmath>

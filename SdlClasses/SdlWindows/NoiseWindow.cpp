@@ -1,5 +1,10 @@
 #include "SdlClasses/SdlWindows/NoiseWindow.h"
 
+#include "Map.h"
+#include "Noises/MyNoise.h"
+#include "Noises/DiamSqNoise.h"
+#include "Noises/OpenSimplexNoise.h"
+
 #include <stdio.h>
 
 #include <iostream>
@@ -281,6 +286,8 @@ void NoiseWindow::runNoise()
 
 		SDL_PumpEvents();
 	}
+
+	mapVect[selectedMap]->setSeaLvl(SEA_LEVEL);
 }
 
 void NoiseWindow::resetNoise()

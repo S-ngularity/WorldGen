@@ -1,6 +1,7 @@
 #include "Map.h"
 
 #include "Pos.h"
+#include "MapTile.h"
 
 Map::Map(int w, int h)
 {

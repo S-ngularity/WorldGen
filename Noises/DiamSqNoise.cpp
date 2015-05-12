@@ -1,4 +1,5 @@
 #include "DiamSqNoise.h"
+#include "../Map.h"
 
 #include <iostream>
 #include <cmath>

@@ -4,6 +4,9 @@
 #include "Pos.h"
 #include "MapTile.h"
 
+class Pos;
+class MapTile;
+
 #define MAX_H 255 //170//120//70
 
 #define INIT_H ((MAX_H / 2) - 1)

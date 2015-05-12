@@ -1,3 +1,6 @@
+#include "MyNoise.h"
+#include "../Map.h"
+
 #include <iostream>
 
 #include <stdlib.h>
@@ -5,8 +8,6 @@
 #include <time.h>
 
 #include <queue>
-
-#include "MyNoise.h"
 
 using namespace std;
 

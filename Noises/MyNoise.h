@@ -1,8 +1,9 @@
 #ifndef MYNOISE
 #define MYNOISE
 
-#include "../Map.h"
 #include "../Noises/Noise.h"
+
+class Map;
 
 class MyNoise : public Noise
 {

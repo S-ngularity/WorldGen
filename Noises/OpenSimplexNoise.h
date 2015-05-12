@@ -1,9 +1,10 @@
 #ifndef OSIMPLEXNOISE
 #define OSIMPLEXNOISE
 
-#include "../Map.h"
 #include "../Noises/Noise.h"
 #include "OpenSimplexC/open-simplex-noise.h"
+
+class Map;
 
 //typedef enum {running = 0, done} State;
 

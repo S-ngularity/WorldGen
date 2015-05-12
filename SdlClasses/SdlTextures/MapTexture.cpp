@@ -1,3 +1,4 @@
+#include "Map.h"
 #include "SdlClasses/SdlTextures/MapTexture.h"
 
 #include <stdlib.h>

@@ -3,15 +3,11 @@
 
 #include "SdlClasses/SdlWindow.h"
 #include "SdlClasses/SdlTexture.h"
-#include "SdlClasses/SdlTextures/MapTexture.h"
-#include "Map.h"
-
-//#include "../Noises/MyNoise.h"
-//#include "../Noises/DiamSqNoise.h"
-#include "Noises/OpenSimplexNoise.h"
 
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_ttf.h>
+
+class Map;
 
 #define walkTileNum 15
 #define walkTileSize 20
