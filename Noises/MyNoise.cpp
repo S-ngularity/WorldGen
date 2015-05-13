@@ -13,14 +13,12 @@ using namespace std;
 
 MyNoise::MyNoise(Map *theMap)
 {
-	map = theMap;
-	doneIts = 0;
-	totalTecIts = 0;
-	totalErsIts = 0;
-	alreadySaved = false;
-	state = running;
-
 	srand(time(NULL));
+
+	map = theMap;
+	alreadySaved = false;
+	
+	reset();
 }
 
 void MyNoise::setMap(Map *m)

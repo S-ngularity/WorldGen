@@ -16,24 +16,12 @@ using namespace std;
 
 DiamSqNoise::DiamSqNoise(Map *theMap)
 {
-	map = theMap;
-	state = running;
-	alreadySaved = false;
-	doneIts = 0;
-	totalIts = (int)(log2(map->getMapWidth()));
-	map->setHighestH(0);
-	map->setLowestH(TEMP_MAX_H);
-
-	sideLength = map->getMapWidth() - 1;
-	randRange = TEMP_MAX_H / 2;
-
-	if(map->getMapWidth() != map->getMapHeight() || log2(map->getMapHeight()-1) - (int)log2(map->getMapHeight()-1) != 0.0)
-	{
-		cout << endl << "INVALID MAP SIZE" << endl;
-		state = done;
-	}
-
 	srand(time(NULL));
+
+	map = theMap;
+	alreadySaved = false;
+
+	reset();
 }
 
 void DiamSqNoise::setMap(Map *m)
@@ -47,6 +35,9 @@ void DiamSqNoise::reset()
 	state = running;
 	doneIts = 0;
 	totalIts = (int)(log2(map->getMapWidth()));
+
+	sideLength = map->getMapWidth() - 1;
+	randRange = TEMP_MAX_H / 2;
 
 	if(map->getMapWidth() != map->getMapHeight() || log2(map->getMapHeight()-1) - (int)log2(map->getMapHeight()-1) != 0.0)
 	{

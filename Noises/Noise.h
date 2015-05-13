@@ -11,6 +11,8 @@ typedef enum {running = 0, done} State;
 class Noise
 {
 	public:
+		virtual ~Noise() {};
+		
 		virtual void setMap(Map *m) = 0;
 
 		virtual void reset() = 0;

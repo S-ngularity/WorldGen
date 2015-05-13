@@ -1,20 +1,18 @@
 #include "Map.h"
 #include "SdlClasses/SdlTextures/MapTexture.h"
 
-#include <stdlib.h>
-
 MapTexture::MapTexture(Map *theMap, SDL_Renderer *r)
 {
 	worldMap = theMap;
 	context = r;
-	mapPixels = (Uint32*) malloc(sizeof(Uint32) * worldMap->getMapWidth() * worldMap->getMapHeight());
+	mapPixels = new Uint32[worldMap->getMapWidth() * worldMap->getMapHeight()];
 	seaRenderMode = NO_SEA;
 	landRenderMode = FIXED;
 }
 
 MapTexture::~MapTexture()
 {
-	free(mapPixels);
+	delete mapPixels;
 }
 
 void MapTexture::setMap(Map *theMap)
@@ -27,7 +25,7 @@ void MapTexture::setMap(Map *theMap)
 	if(worldMap->getMapWidth() != w || worldMap->getMapHeight() != h)
 	{
 		delete mapPixels;
-		mapPixels = (Uint32*) malloc(sizeof(Uint32) * worldMap->getMapWidth() * worldMap->getMapHeight());
+		mapPixels = new Uint32[worldMap->getMapWidth() * worldMap->getMapHeight()];
 	}
 }
 

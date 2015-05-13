@@ -16,7 +16,7 @@
 using namespace std;
 
 NoiseWindow::NoiseWindow(Map* mapVect[], int num) : 
-	SdlWindow("WorldGen", 20, 40, SCREEN_WIDTH, SCREEN_HEIGHT, SDL_WINDOW_RESIZABLE, SDL_RENDERER_ACCELERATED), 
+	SdlWindow("WorldGen", 20, 40, SCREEN_WIDTH, SCREEN_HEIGHT, SDL_WINDOW_RESIZABLE, SDL_RENDERER_ACCELERATED), // superclass window constructor
 	mapTexture(mapVect[0], getRenderer()),
 	walkWindow(mapVect[0])
 {
@@ -24,7 +24,6 @@ NoiseWindow::NoiseWindow(Map* mapVect[], int num) :
 	numMaps = num;
 	selectedMap = 0;
 
-	noiseVect = new Noise*[3];
 	noiseVect[0] = new OpenSimplexNoise(mapVect[0], octaves, freq, persistence, freqDiv);
 	noiseVect[1] = new DiamSqNoise(mapVect[0]);
 	noiseVect[2] = new MyNoise(mapVect[0]);
@@ -50,6 +49,9 @@ NoiseWindow::NoiseWindow(Map* mapVect[], int num) :
 
 NoiseWindow::~NoiseWindow()
 {
+	for(int i = 0; i < 3; i++)
+		delete noiseVect[i];
+
 	TTF_CloseFont(heightInfoFont);
 }
 

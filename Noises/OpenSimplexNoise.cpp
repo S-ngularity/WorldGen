@@ -12,24 +12,17 @@ using namespace std;
 
 OpenSimplexNoise::OpenSimplexNoise(Map *theMap, int oct, double freq, double pers, double fdiv)
 {
-	map = theMap;
-	state = running;
-	alreadySaved = false;
-	doneIts = 0;
-	totalIts = map->getMapHeight();
-	nowX = 0;
-	nowY = 0;
-	map->setHighestH(0);
-	map->setLowestH(MAX_H);
-
 	srand(time(NULL));
+
+	map = theMap;
+	alreadySaved = false;
+	
+	reset();
 
 	octaves = oct;
 	frequency = freq;
 	persistence = pers;
 	freqDiv = fdiv;
-
-	open_simplex_noise(rand(), &context);
 }
 
 OpenSimplexNoise::~OpenSimplexNoise()

@@ -32,7 +32,7 @@ class SdlWindow
 
 		void handleEvent(SDL_Event& e);
 
-		// returns window's renderer so other's can render onto it
+		// returns window's renderer so others can render onto it
 		SDL_Renderer* getRenderer();
 
 		void show();

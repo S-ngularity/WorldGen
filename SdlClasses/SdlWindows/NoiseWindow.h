@@ -33,7 +33,7 @@ class NoiseWindow : public SdlWindow
 		int selectedMap;
 		int selectedNoise;
 
-		Noise* *noiseVect;
+		Noise* noiseVect[3];
 		//OpenSimplexNoise noiseSimplex;//(map, 10, 0.004, 0.6, 1.9);
 		//DiamSqNoise noiseDiam;
 		//MyNoise noiseMy;
