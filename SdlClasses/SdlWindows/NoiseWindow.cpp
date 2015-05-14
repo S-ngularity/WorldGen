@@ -5,8 +5,6 @@
 #include "Noises/DiamSqNoise.h"
 #include "Noises/OpenSimplexNoise.h"
 
-#include <stdio.h>
-
 #include <iostream>
 #include <iomanip>
 
@@ -31,7 +29,7 @@ NoiseWindow::NoiseWindow(Map* mapVect[], int num) :
 
 	heightInfoFont = TTF_OpenFont("Resources/OpenSans-Regular.ttf", 20);
 	if(heightInfoFont == NULL)
-		printf("Failed to load heightInfoFont! SDL_ttf Error: %s\n", TTF_GetError());
+		std::cout << "Failed to load heightInfoFont! SDL_ttf Error: " << TTF_GetError() << std::endl;
 
 	else
 		TTF_SetFontStyle(heightInfoFont, TTF_STYLE_BOLD);
@@ -196,7 +194,7 @@ void NoiseWindow::handleImplementedEvents(SDL_Event& e)
 					mapPosFromMouse(&x, &y);
 
 					walkWindow.setMap(mapVect[selectedMap]);
-					walkWindow.show();
+					walkWindow.show(); // must happen before setPos
 					walkWindow.setPos(x, y);
 				}
 			break;
@@ -318,7 +316,7 @@ void NoiseWindow::updateInfoTex()
 	SDL_Surface* tempSurface = TTF_RenderText_Blended(heightInfoFont, info.c_str(), {220,20,60});
 	if(tempSurface == NULL)
 	{
-		printf("Unable to render text surface! SDL_ttf Error: %s\n", TTF_GetError());
+		std::cout << "Unable to render text surface! SDL_ttf Error: " << TTF_GetError() << std::endl;
 		return;
 	}
 
@@ -328,7 +326,7 @@ void NoiseWindow::updateInfoTex()
 		SDL_Texture *tempTex = SDL_CreateTextureFromSurface(getRenderer(), tempSurface); // SDL_TEXTUREACCESS_STATIC
 		if(tempTex == NULL)
 		{
-			printf("Unable to create texture from rendered text! SDL Error: %s\n", SDL_GetError());
+			std::cout << "Unable to create texture from rendered text! SDL Error: " << SDL_GetError() << std::endl;
 			SDL_FreeSurface(tempSurface);
 
 			return;

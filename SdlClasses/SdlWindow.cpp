@@ -1,6 +1,6 @@
 #include "SdlClasses/SdlWindow.h"
 
-#include <stdio.h>
+#include <iostream>
 
 SdlWindow::SdlWindow(char const *title, int x, int y, int w, int h, Uint32 windowFlags, Uint32 rendererFlags)
 {
@@ -20,7 +20,7 @@ SdlWindow::SdlWindow(char const *title, int x, int y, int w, int h, Uint32 windo
 								windowFlags);
 	
 	if(window == NULL)
-		printf("%s could not be created! SDL Error: %s\n", title, SDL_GetError());
+		std::cout << title << " could not be created! SDL Error: " << SDL_GetError() << std::endl;
 	
 	else
 	{
@@ -29,7 +29,7 @@ SdlWindow::SdlWindow(char const *title, int x, int y, int w, int h, Uint32 windo
 		
 		if(renderer == NULL)
 		{
-			printf("renderer for %s could not be created! SDL Error: %s\n", title, SDL_GetError());
+			std::cout << "Renderer for " << title << " could not be created! SDL Error: " << SDL_GetError() << std::endl;
 			
 			SDL_DestroyWindow(window);
 			window = NULL;

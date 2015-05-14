@@ -3,7 +3,6 @@
 
 #include <unordered_map>
 
-#include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
 
@@ -43,7 +42,7 @@ int main(int argc, char* args[])
 
 	if(!SDLStart())
 	{
-		printf("ERRO AO INICIALIZAR SDL\n");
+		cout << "ERRO AO INICIALIZAR SDL" << endl;
 
 		return -1;
 	}
@@ -71,7 +70,7 @@ bool SDLStart()
 	//Initialize SDL
 	if(SDL_Init(SDL_INIT_VIDEO) < 0)
 	{
-		printf("SDL could not initialize! SDL Error: %s\n", SDL_GetError());
+		cout << "SDL could not initialize! SDL Error: " << SDL_GetError() << endl;
 
 		return false;
 	}
@@ -79,7 +78,7 @@ bool SDLStart()
 	//Initialize SDL_ttf
 	if(TTF_Init() == -1)
 	{
-		printf("SDL_ttf could not initialize! SDL_ttf Error: %s\n", TTF_GetError());
+		cout << "SDL_ttf could not initialize! SDL_ttf Error: " << TTF_GetError() << endl;
 		return false;
 	}
 
