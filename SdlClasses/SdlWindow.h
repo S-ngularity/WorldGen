@@ -1,6 +1,8 @@
 #ifndef SDLWINDOW
 #define SDLWINDOW
 
+#include <functional>
+
 #include <SDL2/SDL.h>
 
 class SdlWindow
@@ -28,7 +30,7 @@ class SdlWindow
 		SDL_Window* window;
 		unsigned int windowID;
 
-		virtual void handleImplementedEvents(SDL_Event& e);
+		std::function<void(SDL_Event& e)> evtHandler;
 
 	public:
 		SdlWindow(char const *title, int x, int y, int w, int h, Uint32 windowFlags, Uint32 rendererFlags);

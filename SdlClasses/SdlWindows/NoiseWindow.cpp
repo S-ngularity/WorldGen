@@ -19,6 +19,8 @@ NoiseWindow::NoiseWindow(Map* mapVect[], int num) :
 	mapTexture(mapVect[0], getRenderer()),
 	walkWindow(mapVect[0])
 {
+	evtHandler = [&](SDL_Event &e){eventHandlerFunc(e);};
+	
 	this->mapVect = mapVect;
 	numMaps = num;
 	selectedMap = 0;
@@ -136,7 +138,7 @@ bool NoiseWindow::btNoiseClicked(SDL_Event &e, int i)
 		return false;
 }
 
-void NoiseWindow::handleImplementedEvents(SDL_Event& e)
+void NoiseWindow::eventHandlerFunc(SDL_Event& e)
 {
 	walkWindow.handleEvent(e);
 

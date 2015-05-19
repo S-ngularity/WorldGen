@@ -66,38 +66,71 @@ void UiObject::renderScaled(SDL_Renderer *r, int x, int y, double sW, double sH)
 
 bool UiObject::handleEvent(SDL_Event& e)
 {
-	// é pra: se for keyboard evt, passa pro focus ou trata aqui
-	// se for mouse evt, itera pelos filhos e passa evt pro que estiver em baixo do mouse
-	for(UiObject *childUiObj : childList)
-	{
-		if(childUiObj->isMouseEvtInside(e))
-		{
-			// if child handled the evt, evt is handled
-			if(childUiObj->handleEvent(e) == true)
-				return true;
-			
-			else
-				break;
-		}
-	}
-
 	bool isMouseEvt = 	e.type == SDL_MOUSEMOTION || 
 						e.type == SDL_MOUSEBUTTONDOWN || 
 						e.type == SDL_MOUSEBUTTONUP || 
 						e.type == SDL_MOUSEWHEEL;
 
-	// if child didn't handle the evt, try to handle it with my handler
-	if(isMouseEvtInside(e)) // handle keyboard & mouse only if it's inside this object
+	for(UiObject *childUiObj : childList)
 	{
-		// a mouse evt is always returned as treated (because the mouse should 
-		// never be treated outside the UiObject where the pointer is)
-		if(evtHandler != NULL)
-			return evtHandler(e) || isMouseEvt;
+		if(isMouseEvt)
+		{
+			// a mouse evt is always returned as treated by the deepest child
+			// if the event happened inside it, because the mouse should never 
+			// be treated outside the UiObject where the pointer is, 
+			// or else it would be as if the click "passed
+			// through" the object and had an effect on the object behind
+			
+			if(childUiObj->isMouseEvtInside(e))
+			{
+				childUiObj->handleEvent(e);
+
+				return true;
+			}
+		}
+
 		else
-			return isMouseEvt;
+		{
+			// should be "isChildSelected/Focused"
+			if(childUiObj->isMouseEvtInside(e))
+			{
+				// handle keyboard with child's handler or else
+				// redirect the keyboard event to parent object's handler
+				// because keyboard events are "global" and not specific
+				// to where the mouse pointer is
+				
+				if(childUiObj->handleEvent(e) == true)
+						return true;
+				else
+					// if the execution is here, it won't happen again for 
+					// any other child
+					break;
+			}
+		}
 	}
-	
-	return false;
+
+	// if child didn't handle the evt or there wasn't a child to handle it,
+	// then try to handle it with my handler
+	if(isMouseEvt)
+	{
+		// if mouse wasn't inside any of my child's areas handle the
+		// mouse with my handler. always return mouse event as handled
+		if(evtHandler != NULL)
+			evtHandler(e);
+
+		return true;
+	}
+
+	else
+	{
+		// if there was a keyboard event for me, try to handle with my 
+		// handler. if it was still not handled, my parent should try
+		// to handle it
+		if(evtHandler != NULL)
+			return evtHandler(e);
+		else
+			return false;
+	}
 }
 
 bool UiObject::isMouseEvtInside(SDL_Event& e)

@@ -4,6 +4,8 @@
 
 SdlWindow::SdlWindow(char const *title, int x, int y, int w, int h, Uint32 windowFlags, Uint32 rendererFlags)
 {
+	evtHandler = NULL;
+	
 	width = w;
 	height = h;
 	originalWidth = w;
@@ -130,11 +132,9 @@ void SdlWindow::handleEvent(SDL_Event& e)
 	}
 
 	// handle other events with the implemented handler
-	handleImplementedEvents(e);
+	if(evtHandler != NULL)
+		evtHandler(e);
 }
-
-void SdlWindow::handleImplementedEvents(SDL_Event& e)
-{}
 
 SDL_Renderer* SdlWindow::getRenderer()
 {

@@ -23,13 +23,13 @@ class WalkWindow : public SdlWindow
 
 		void updateWalkTex();
 
+		void eventHandlerFunc(SDL_Event& e);
+
 	public:
 		WalkWindow(Map *theMap);
 		
 		void setPos(int x, int y);
 		void setMap(Map *m);
-
-		void handleImplementedEvents(SDL_Event& e);
 };
 
 #endif

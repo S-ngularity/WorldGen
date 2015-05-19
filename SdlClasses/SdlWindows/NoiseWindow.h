@@ -46,23 +46,24 @@ class NoiseWindow : public SdlWindow
 
 		UiObject *gui;
 
-		void mapPosFromMouse(int *x, int *y);
-		void updateInfoTex();
+		void createGui();
 
 		// GUI actions
 		bool btMapClicked(SDL_Event &e, int i);
 		bool btNoiseClicked(SDL_Event &e, int i);
 
-	public:
-		NoiseWindow(Map* mapVect[], int num);
-		~NoiseWindow();
-		
-		void createGui();
+		// this window's specific event handler to be called in the superclass event handler
+		void eventHandlerFunc(SDL_Event& e);
 
-		void handleImplementedEvents(SDL_Event& e);
+		void mapPosFromMouse(int *x, int *y);
+		void updateInfoTex();
 
 		void runNoise();
 		void resetNoise();
+
+	public:
+		NoiseWindow(Map* mapVect[], int num);
+		~NoiseWindow();
 };
 
 #endif
