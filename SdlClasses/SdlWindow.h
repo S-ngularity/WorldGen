@@ -8,6 +8,9 @@
 class SdlWindow
 {
 	private:
+		// Custom event handler
+		std::function<void(SDL_Event& e)> evtHandler;
+		
 		// Window data
 		SDL_Renderer* renderer;
 
@@ -30,7 +33,7 @@ class SdlWindow
 		SDL_Window* window;
 		unsigned int windowID;
 
-		std::function<void(SDL_Event& e)> evtHandler;
+		void setEventHandler(std::function<void(SDL_Event& e)> evth);
 
 	public:
 		SdlWindow(char const *title, int x, int y, int w, int h, Uint32 windowFlags, Uint32 rendererFlags);

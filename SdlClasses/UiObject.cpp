@@ -1,5 +1,20 @@
 #include "UiObject.h"
 
+UiObject::UiObject(int xOff, int yOff, SDL_Texture *t, int w, int h)
+{
+	ancientX = xOff;
+	ancientY = yOff;
+	xOffset = xOff;
+	yOffset = yOff;
+	
+	uiTexture = t;
+	
+	width = w;
+	height = h;
+	scaleW = 1;
+	scaleH = 1;
+}
+
 UiObject::UiObject(int xOff, int yOff, SDL_Texture *t, int w, int h, std::function<bool(SDL_Event& e)> evth) : 
 	evtHandler(evth)
 {
@@ -115,7 +130,7 @@ bool UiObject::handleEvent(SDL_Event& e)
 	{
 		// if mouse wasn't inside any of my child's areas handle the
 		// mouse with my handler. always return mouse event as handled
-		if(evtHandler != NULL)
+		if(evtHandler)
 			evtHandler(e);
 
 		return true;
@@ -126,7 +141,7 @@ bool UiObject::handleEvent(SDL_Event& e)
 		// if there was a keyboard event for me, try to handle with my 
 		// handler. if it was still not handled, my parent should try
 		// to handle it
-		if(evtHandler != NULL)
+		if(evtHandler)
 			return evtHandler(e);
 		else
 			return false;
@@ -151,7 +166,22 @@ bool UiObject::isMouseEvtInside(SDL_Event& e)
 		return false;
 }
 
+void UiObject::setEventHandler(std::function<bool(SDL_Event& e)> evth)
+{
+	evtHandler = evth;
+}
+
 void UiObject::addChild(UiObject *c)
 {
 	childList.push_front(c);
+}
+
+int UiObject::getWidth()
+{
+	return width;
+}
+
+int UiObject::getHeight()
+{
+	return height;
 }

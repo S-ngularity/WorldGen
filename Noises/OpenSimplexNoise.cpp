@@ -71,25 +71,34 @@ void OpenSimplexNoise::runOnce()
 				double amp = 1, maxAmp = 0;
 				double f = frequency;
 
-				/*
-				int x1 = 0, x2 = map->getMapWidth(), y1 = 0, y2 = map->getMapHeight();
+				//*
 				double pi = 3.14159265359;
 
+				int x1 = 0, x2 = map->getMapWidth();
 				double s = (double)nowX / map->getMapWidth();
-				double t = (double)nowY / map->getMapHeight();
 				double dx = x2 - x1;
-				double dy = y2 - y1;
+				
+				/*
+				int y1 = 0, y2 = map->getMapHeight();
+				double t = (double)nowY / map->getMapHeight();
+				double dy = y2 - y1;//*/
 
 				double nx = x1 + cos(s * 2 * pi) * dx / (2 * pi);
-				double ny = y1 + (t * 2 * pi) * dy / (2 * pi);
+				//double ny = y1 + cos(t * 2 * pi) * dy / (2 * pi);
 				double nz = x1 + sin(s * 2 * pi) * dx / (2 * pi);
-				double nw = y1 + sin(t * 2 * pi) * dy / (2 * pi);//*/
+				//double nw = y1 + sin(t * 2 * pi) * dy / (2 * pi);//*/
 
 				for(int o = 0; o < octaves; o++) // fractal Brownian motion
 				{
-					value += open_simplex_noise2(context, (double) nowX * f, (double) nowY * f) * amp;
+					//value += open_simplex_noise2(context, (double) nowX * f, (double) nowY * f) * amp;
 
-					//value += open_simplex_noise4(context, (double) nx * f, (double) nz * f, (double) ny * f, 1) * amp;
+					// círculo na diagonal
+					value += open_simplex_noise3(context, (double) nx * f, nowY * f, (double) nz * f) * amp;
+
+					// círculo na diagonal da 4a e linha na outra diagonal perpendicular da 4a
+					//value += open_simplex_noise4(context, (double) nx * f, nowY * f, (double) nz * f, nowY * f) * amp;
+					
+					// círculo nas duas diagonais perpendiculares da 4a
 					//value += open_simplex_noise4(context, (double) nx * f, (double) ny * f, (double) nz * f, (double) nw * f) * amp;//*/
 
 					maxAmp += amp;

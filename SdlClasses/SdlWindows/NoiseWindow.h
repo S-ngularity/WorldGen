@@ -47,6 +47,7 @@ class NoiseWindow : public SdlWindow
 		UiObject *gui;
 
 		void createGui();
+		SDL_Texture* createDrawnTexture(int width, int height, int r, int g, int b, int a);
 
 		// GUI actions
 		bool btMapClicked(SDL_Event &e, int i);

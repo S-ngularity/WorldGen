@@ -22,7 +22,7 @@ WalkWindow::WalkWindow(Map *theMap) :
 {
 	hide(); // set superclass settings to hidden window state to sync with SDL_WINDOW_HIDDEN 
 	
-	evtHandler = [&](SDL_Event &e){eventHandlerFunc(e);};
+	setEventHandler([&](SDL_Event &e){eventHandlerFunc(e);});
 
 	walkX = 0; // the center tile position
 	walkY = 0;

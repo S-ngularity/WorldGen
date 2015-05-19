@@ -23,6 +23,7 @@ class UiObject
 		std::function<bool(SDL_Event& e)> evtHandler;
 
 	public:
+		UiObject(int xOff, int yOff, SDL_Texture *t, int w, int h);
 		UiObject(int xOff, int yOff, SDL_Texture *t, int w, int h, std::function<bool(SDL_Event& e)> evth);
 		~UiObject();
 
@@ -32,7 +33,12 @@ class UiObject
 		bool handleEvent(SDL_Event& e);
 		bool isMouseEvtInside(SDL_Event& e);
 
+		void setEventHandler(std::function<bool(SDL_Event& e)> evth);
+
 		void addChild(UiObject *c);
+		
+		int getWidth();
+		int getHeight();
 };
 
 # endif

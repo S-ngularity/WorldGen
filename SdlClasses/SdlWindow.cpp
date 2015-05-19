@@ -60,6 +60,11 @@ SdlWindow::~SdlWindow()
 	window = NULL;
 }
 
+void SdlWindow::setEventHandler(std::function<void(SDL_Event& e)> evth)
+{
+	evtHandler = evth;
+}
+
 void SdlWindow::handleEvent(SDL_Event& e)
 {
 	// If an event was detected for this window
@@ -132,7 +137,7 @@ void SdlWindow::handleEvent(SDL_Event& e)
 	}
 
 	// handle other events with the implemented handler
-	if(evtHandler != NULL)
+	if(evtHandler)
 		evtHandler(e);
 }
 

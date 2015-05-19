@@ -19,7 +19,7 @@ NoiseWindow::NoiseWindow(Map* mapVect[], int num) :
 	mapTexture(mapVect[0], getRenderer()),
 	walkWindow(mapVect[0])
 {
-	evtHandler = [&](SDL_Event &e){eventHandlerFunc(e);};
+	setEventHandler([&](SDL_Event &e){eventHandlerFunc(e);});
 	
 	this->mapVect = mapVect;
 	numMaps = num;
@@ -59,51 +59,82 @@ NoiseWindow::~NoiseWindow()
 	TTF_CloseFont(heightInfoFont);
 }
 
+SDL_Texture* NoiseWindow::createDrawnTexture(int width, int height, int r, int g, int b, int a)
+{
+	SDL_Texture *targetTex = SDL_CreateTexture(getRenderer(), SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_TARGET, width, height);
+	SDL_SetRenderTarget(getRenderer(), targetTex);
+	SDL_SetRenderDrawColor(getRenderer(), r, g, b, a);
+	SDL_RenderClear(getRenderer());
+	SDL_SetRenderTarget(getRenderer(), NULL);
+
+	return targetTex;
+}
+
 void NoiseWindow::createGui()
 {
 	gui = new UiObject(0, 0, NULL, getWindowWidth(), getWindowHeight(), NULL);
 
-	SDL_Texture *btMap1 = SDL_CreateTexture(getRenderer(), SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_TARGET, 30, 30);
-	SDL_SetRenderTarget(getRenderer(), btMap1);
-	SDL_SetRenderDrawColor(getRenderer(), 0, 255, 0, 255);
-	SDL_RenderClear(getRenderer());
-	SDL_SetRenderTarget(getRenderer(), NULL);
-	gui->addChild(new UiObject(30, getWindowHeight() - 60, btMap1, 30, 30, [&](SDL_Event &e){return btMapClicked(e, 0);}));
+	SDL_Texture *btMap1Tex = createDrawnTexture(30, 30, 0, 255, 0, 255);
+	gui->addChild(new UiObject(	30, gui->getHeight() - 60, 
+								btMap1Tex, 30, 30, 
+								[&](SDL_Event &e){return btMapClicked(e, 0);}));
 
-	SDL_Texture *btMap2 = SDL_CreateTexture(getRenderer(), SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_TARGET, 30, 30);
-	SDL_SetRenderTarget(getRenderer(), btMap2);
-	SDL_SetRenderDrawColor(getRenderer(), 0, 255, 0, 255);
-	SDL_RenderClear(getRenderer());
-	SDL_SetRenderTarget(getRenderer(), NULL);
-	gui->addChild(new UiObject(80, getWindowHeight() - 60, btMap2, 30, 30, [&](SDL_Event &e){return btMapClicked(e, 1);}));
+	SDL_Texture *btMap2Tex = createDrawnTexture(30, 30, 0, 255, 0, 255);
+	gui->addChild(new UiObject(	80, gui->getHeight() - 60, 
+								btMap2Tex, 30, 30, 
+								[&](SDL_Event &e){return btMapClicked(e, 1);}));
 
-	SDL_Texture *btMap3 = SDL_CreateTexture(getRenderer(), SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_TARGET, 30, 30);
-	SDL_SetRenderTarget(getRenderer(), btMap3);
-	SDL_SetRenderDrawColor(getRenderer(), 0, 255, 0, 255);
-	SDL_RenderClear(getRenderer());
-	SDL_SetRenderTarget(getRenderer(), NULL);
-	gui->addChild(new UiObject(130, getWindowHeight() - 60, btMap3, 30, 30, [&](SDL_Event &e){return btMapClicked(e, 2);}));
+	SDL_Texture *btMap3Tex = createDrawnTexture(30, 30, 0, 255, 0, 255);
+	gui->addChild(new UiObject(130, gui->getHeight() - 60, 
+								btMap3Tex, 30, 30, 
+								[&](SDL_Event &e){return btMapClicked(e, 2);}));
 
-	SDL_Texture *btNoise1 = SDL_CreateTexture(getRenderer(), SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_TARGET, 30, 30);
-	SDL_SetRenderTarget(getRenderer(), btNoise1);
-	SDL_SetRenderDrawColor(getRenderer(), 0, 255, 0, 255);
-	SDL_RenderClear(getRenderer());
-	SDL_SetRenderTarget(getRenderer(), NULL);
-	gui->addChild(new UiObject(getWindowWidth() - 160, getWindowHeight() - 60, btNoise1, 30, 30, [&](SDL_Event &e){return btNoiseClicked(e, 0);}));
+	SDL_Texture *btNoise1Tex = createDrawnTexture(30, 30, 0, 255, 0, 255);
+	gui->addChild(new UiObject(gui->getWidth() - 160, gui->getHeight() - 60, 
+								btNoise1Tex, 30, 30, 
+								[&](SDL_Event &e){return btNoiseClicked(e, 0);}));
 
-	SDL_Texture *btNoise2 = SDL_CreateTexture(getRenderer(), SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_TARGET, 30, 30);
-	SDL_SetRenderTarget(getRenderer(), btNoise2);
-	SDL_SetRenderDrawColor(getRenderer(), 0, 255, 0, 255);
-	SDL_RenderClear(getRenderer());
-	SDL_SetRenderTarget(getRenderer(), NULL);
-	gui->addChild(new UiObject(getWindowWidth() - 110, getWindowHeight() - 60, btNoise2, 30, 30, [&](SDL_Event &e){return btNoiseClicked(e, 1);}));
+	SDL_Texture *btNoise2Tex = createDrawnTexture(30, 30, 0, 255, 0, 255);
+	gui->addChild(new UiObject(gui->getWidth() - 110, gui->getHeight() - 60, 
+								btNoise2Tex, 30, 30, 
+								[&](SDL_Event &e){return btNoiseClicked(e, 1);}));
 
-	SDL_Texture *btNoise3 = SDL_CreateTexture(getRenderer(), SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_TARGET, 30, 30);
-	SDL_SetRenderTarget(getRenderer(), btNoise3);
-	SDL_SetRenderDrawColor(getRenderer(), 0, 255, 0, 255);
-	SDL_RenderClear(getRenderer());
-	SDL_SetRenderTarget(getRenderer(), NULL);
-	gui->addChild(new UiObject(getWindowWidth() - 60, getWindowHeight() - 60, btNoise3, 30, 30, [&](SDL_Event &e){return btNoiseClicked(e, 2);}));
+	SDL_Texture *btNoise3Tex = createDrawnTexture(30, 30, 0, 255, 0, 255);
+	ui->addChild(new UiObject(gui->getWidth() - 60, gui->getHeight() - 60, 
+								btNoise3Tex, 30, 30, 
+								[&](SDL_Event &e){return btNoiseClicked(e, 2);}));
+	
+	/*// tests
+	auto parent = new UiObject(getWindowWidth() - 60, getWindowHeight() - 60, btNoise3Tex, 30, 30, 
+								[&](SDL_Event &e){	if(e.type == SDL_MOUSEBUTTONUP){
+														cout << "parent button clicked" << endl;
+														return true;
+													}else if(e.type == SDL_KEYDOWN)
+													{
+														if(e.key.keysym.sym == SDLK_p)
+														{
+															cout << "parent keyboard pressed" << endl;
+															return true;
+														}
+													}
+													return false;});
+
+	SDL_Texture *childTex = createDrawnTexture(10, 10, 0, 0, 255, 255);
+	auto childObj = new UiObject(10, 10, childTex, 10, 10, 
+								[&](SDL_Event &e){	if(e.type == SDL_MOUSEBUTTONUP){
+														cout << "child button clicked" << endl;
+														return true;
+													}else if(e.type == SDL_KEYDOWN)
+													{
+														if(e.key.keysym.sym == SDLK_p)
+														{
+															cout << "child keyboard pressed" << endl;
+															return true;
+														}
+													}
+													return false;});
+	parent->addChild(childObj);
+	gui->addChild(parent);//*/
 }
 
 bool updateMapEvent = false;
