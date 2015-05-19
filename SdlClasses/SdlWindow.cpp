@@ -6,6 +6,8 @@ SdlWindow::SdlWindow(char const *title, int x, int y, int w, int h, Uint32 windo
 {
 	width = w;
 	height = h;
+	originalWidth = w;
+	originalHeight = h;
 
 	mouseFocus = false;
 	keyboardFocus = false;
@@ -164,14 +166,24 @@ void SdlWindow::refresh()
 		SDL_RenderPresent(renderer);
 }
 
-int SdlWindow::getWidth()
+int SdlWindow::getWindowWidth()
 {
 	return width;
 }
 
-int SdlWindow::getHeight()
+int SdlWindow::getWindowHeight()
 {
 	return height;
+}
+
+double SdlWindow::getWindowWidthScale()
+{
+	return width / (double)originalWidth;
+}
+
+double SdlWindow::getWindowHeightScale()
+{
+	return height / (double)originalHeight;
 }
 
 bool SdlWindow::hasMouseFocus()

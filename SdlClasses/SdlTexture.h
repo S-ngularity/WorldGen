@@ -17,12 +17,15 @@ class SdlTexture
 		~SdlTexture();
 		
 		void render(SDL_Renderer *r, int x, int y);
+		void renderFitToArea(SDL_Renderer *r, int x, int y, int areaW, int areaH);
 
 		void setTexture(SDL_Texture *t, int width, int height);
 		void clearTexture();
 		
 		int getW();
 		int getH();
+
+		bool isNull();
 };
 
 #endif

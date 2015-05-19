@@ -13,6 +13,7 @@
 
 class Map;
 class Noise;
+class UiObject;
 
 const int SCREEN_WIDTH = 800;//map.getMapWidth();
 const int SCREEN_HEIGHT = 800;//map.getMapHeight();
@@ -43,13 +44,21 @@ class NoiseWindow : public SdlWindow
 
 		WalkWindow walkWindow;
 
+		UiObject *gui;
+
 		void mapPosFromMouse(int *x, int *y);
 		void updateInfoTex();
+
+		// GUI actions
+		bool btMapClicked(SDL_Event &e, int i);
+		bool btNoiseClicked(SDL_Event &e, int i);
 
 	public:
 		NoiseWindow(Map* mapVect[], int num);
 		~NoiseWindow();
 		
+		void createGui();
+
 		void handleImplementedEvents(SDL_Event& e);
 
 		void runNoise();

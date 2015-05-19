@@ -4,6 +4,7 @@
 #include "Noises/MyNoise.h"
 #include "Noises/DiamSqNoise.h"
 #include "Noises/OpenSimplexNoise.h"
+#include "SdlClasses/UiObject.h"
 
 #include <iostream>
 #include <iomanip>
@@ -14,7 +15,7 @@
 using namespace std;
 
 NoiseWindow::NoiseWindow(Map* mapVect[], int num) : 
-	SdlWindow("WorldGen", 20, 40, SCREEN_WIDTH, SCREEN_HEIGHT, SDL_WINDOW_RESIZABLE, SDL_RENDERER_ACCELERATED), // superclass window constructor
+	SdlWindow("WorldGen", 20, 40, SCREEN_WIDTH, SCREEN_HEIGHT, SDL_WINDOW_RESIZABLE, SDL_RENDERER_ACCELERATED | SDL_RENDERER_TARGETTEXTURE), // superclass window constructor
 	mapTexture(mapVect[0], getRenderer()),
 	walkWindow(mapVect[0])
 {
@@ -34,14 +35,17 @@ NoiseWindow::NoiseWindow(Map* mapVect[], int num) :
 	else
 		TTF_SetFontStyle(heightInfoFont, TTF_STYLE_BOLD);
 
-	//SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "linear");  // make the scaled rendering look smoother.
-	SDL_RenderSetLogicalSize(getRenderer(), mapVect[selectedMap]->getMapWidth(), mapVect[selectedMap]->getMapHeight());
+	SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "nearest");
+	//SDL_RenderSetLogicalSize(getRenderer(), mapVect[selectedMap]->getMapWidth(), mapVect[selectedMap]->getMapHeight());
+
+	createGui();
 
 	//Initialize renderer color
 	SDL_SetRenderDrawColor(getRenderer(), 0, 0, 0, 255);
 
 	mapTexture.update();
-	mapTexture.render(getRenderer(), 0, 0);
+	mapTexture.renderFitToArea(getRenderer(), 0, 0, getWindowWidth(), getWindowHeight());
+	gui->renderScaled(getRenderer(), 0, 0, getWindowWidthScale(), getWindowHeightScale());
 	refresh();
 }
 
@@ -53,14 +57,97 @@ NoiseWindow::~NoiseWindow()
 	TTF_CloseFont(heightInfoFont);
 }
 
+void NoiseWindow::createGui()
+{
+	gui = new UiObject(0, 0, NULL, getWindowWidth(), getWindowHeight(), NULL);
+
+	SDL_Texture *btMap1 = SDL_CreateTexture(getRenderer(), SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_TARGET, 30, 30);
+	SDL_SetRenderTarget(getRenderer(), btMap1);
+	SDL_SetRenderDrawColor(getRenderer(), 0, 255, 0, 255);
+	SDL_RenderClear(getRenderer());
+	SDL_SetRenderTarget(getRenderer(), NULL);
+	gui->addChild(new UiObject(30, getWindowHeight() - 60, btMap1, 30, 30, [&](SDL_Event &e){return btMapClicked(e, 0);}));
+
+	SDL_Texture *btMap2 = SDL_CreateTexture(getRenderer(), SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_TARGET, 30, 30);
+	SDL_SetRenderTarget(getRenderer(), btMap2);
+	SDL_SetRenderDrawColor(getRenderer(), 0, 255, 0, 255);
+	SDL_RenderClear(getRenderer());
+	SDL_SetRenderTarget(getRenderer(), NULL);
+	gui->addChild(new UiObject(80, getWindowHeight() - 60, btMap2, 30, 30, [&](SDL_Event &e){return btMapClicked(e, 1);}));
+
+	SDL_Texture *btMap3 = SDL_CreateTexture(getRenderer(), SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_TARGET, 30, 30);
+	SDL_SetRenderTarget(getRenderer(), btMap3);
+	SDL_SetRenderDrawColor(getRenderer(), 0, 255, 0, 255);
+	SDL_RenderClear(getRenderer());
+	SDL_SetRenderTarget(getRenderer(), NULL);
+	gui->addChild(new UiObject(130, getWindowHeight() - 60, btMap3, 30, 30, [&](SDL_Event &e){return btMapClicked(e, 2);}));
+
+	SDL_Texture *btNoise1 = SDL_CreateTexture(getRenderer(), SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_TARGET, 30, 30);
+	SDL_SetRenderTarget(getRenderer(), btNoise1);
+	SDL_SetRenderDrawColor(getRenderer(), 0, 255, 0, 255);
+	SDL_RenderClear(getRenderer());
+	SDL_SetRenderTarget(getRenderer(), NULL);
+	gui->addChild(new UiObject(getWindowWidth() - 160, getWindowHeight() - 60, btNoise1, 30, 30, [&](SDL_Event &e){return btNoiseClicked(e, 0);}));
+
+	SDL_Texture *btNoise2 = SDL_CreateTexture(getRenderer(), SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_TARGET, 30, 30);
+	SDL_SetRenderTarget(getRenderer(), btNoise2);
+	SDL_SetRenderDrawColor(getRenderer(), 0, 255, 0, 255);
+	SDL_RenderClear(getRenderer());
+	SDL_SetRenderTarget(getRenderer(), NULL);
+	gui->addChild(new UiObject(getWindowWidth() - 110, getWindowHeight() - 60, btNoise2, 30, 30, [&](SDL_Event &e){return btNoiseClicked(e, 1);}));
+
+	SDL_Texture *btNoise3 = SDL_CreateTexture(getRenderer(), SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_TARGET, 30, 30);
+	SDL_SetRenderTarget(getRenderer(), btNoise3);
+	SDL_SetRenderDrawColor(getRenderer(), 0, 255, 0, 255);
+	SDL_RenderClear(getRenderer());
+	SDL_SetRenderTarget(getRenderer(), NULL);
+	gui->addChild(new UiObject(getWindowWidth() - 60, getWindowHeight() - 60, btNoise3, 30, 30, [&](SDL_Event &e){return btNoiseClicked(e, 2);}));
+}
+
+bool updateMapEvent = false;
+
+bool NoiseWindow::btMapClicked(SDL_Event &e, int i)
+{
+	if(e.type == SDL_MOUSEBUTTONUP)
+	{
+		selectedMap = i;
+		mapTexture.setMap(mapVect[selectedMap]);
+		cout << endl << endl << "Map " << i+1 << endl;
+		cout << "Sea Level : " << setw(3) << setfill('0') << mapVect[selectedMap]->getSeaLvl();
+		updateMapEvent = true;
+
+		return true;
+	}
+
+	else
+		return false;
+}
+
+bool NoiseWindow::btNoiseClicked(SDL_Event &e, int i)
+{
+	if(e.type == SDL_MOUSEBUTTONUP)
+	{
+		selectedNoise = i;
+
+		return true;
+	}
+
+	else
+		return false;
+}
+
 void NoiseWindow::handleImplementedEvents(SDL_Event& e)
 {
 	walkWindow.handleEvent(e);
 
 	if(hasKeyboardFocus())
 	{
-		bool updateMapTexture = false, shouldRender = false;
-		
+		gui->handleEvent(e);
+
+		bool updateMapTexture = updateMapEvent;
+		bool shouldRender = false;
+		updateMapEvent = false;
+
 		switch(e.type)
 		{
 			case SDL_KEYDOWN:
@@ -154,7 +241,6 @@ void NoiseWindow::handleImplementedEvents(SDL_Event& e)
 							cout << "Sea Level : " << setw(3) << setfill('0') << mapVect[selectedMap]->getSeaLvl();
 							updateMapTexture = true;
 						}
-						
 					break;
 
 					case SDLK_2:
@@ -203,6 +289,12 @@ void NoiseWindow::handleImplementedEvents(SDL_Event& e)
 				updateInfoTex();
 				shouldRender = true;
 			break;
+
+			/*
+			case SDL_WINDOWEVENT:
+				if(e.window.event == SDL_WINDOWEVENT_SIZE_CHANGED)
+					shouldRender = true;
+			break;//*/
 		}
 
 		if(updateMapTexture)
@@ -215,16 +307,18 @@ void NoiseWindow::handleImplementedEvents(SDL_Event& e)
 
 		if(shouldRender)
 		{
-			int x, y;
-			mapPosFromMouse(&x, &y);
-
 			//Clear screen
 			SDL_SetRenderDrawColor(getRenderer(), 0, 0, 0, 255);
 			SDL_RenderClear(getRenderer());
 			
-			mapTexture.render(getRenderer(), 0, 0);
-			heightInfoTex.render(getRenderer(), x, y - 30);
-
+			mapTexture.renderFitToArea(getRenderer(), 0, 0, getWindowWidth(), getWindowHeight());
+			
+			int x, y;
+			//mapPosFromMouse(&x, &y); // usar se window tiver logical size ativado
+			SDL_GetMouseState(&x, &y);
+			heightInfoTex.render(getRenderer(), x, y - 30); // render tamanho original da fonte
+			
+			gui->renderScaled(getRenderer(), 0, 0, getWindowWidthScale(), getWindowHeightScale());
 			refresh();
 		}
 	}
@@ -277,7 +371,7 @@ void NoiseWindow::runNoise()
 		if(updateMapTexture)
 		{
 			mapTexture.update();
-			mapTexture.render(getRenderer(), 0, 0);
+			mapTexture.renderFitToArea(getRenderer(), 0, 0, getWindowWidth(), getWindowHeight());
 			
 			refresh();
 
@@ -342,19 +436,26 @@ void NoiseWindow::mapPosFromMouse(int *x, int *y)
 {
 	SDL_GetMouseState(x, y);
 
-	int winW, winH;
-	SDL_GetWindowSize(window, &winW, &winH);
+	int winW = getWindowWidth(), winH = getWindowHeight();
+	//SDL_GetWindowSize(window, &winW, &winH);
 
-	float scaleX, scaleY;
-	SDL_RenderGetScale(getRenderer(), &scaleX, &scaleY);
+	//float scaleX, scaleY;
+	//SDL_RenderGetScale(getRenderer(), &scaleX, &scaleY);
+	double scaleX, scaleY;
+	scaleX = (double)getWindowWidth() / mapVect[selectedMap]->getMapWidth();
+	scaleY = (double)getWindowHeight() / mapVect[selectedMap]->getMapHeight();
 
-	// regra de três: mouseX / winW assim como mapX / mapVect[selectedMap]->getMapWidth()
 	int sobra; // letterbox, soma dos 2 lados
-	if((float)mapVect[selectedMap]->getMapWidth() / winW - (float)mapVect[selectedMap]->getMapHeight() / winH > 0) // ratioW - ratioH (ratio do original em relação a janela)
+	
+	// regra de três: mouseX / winW assim como mapX / mapVect[selectedMap]->getMapWidth()
+	// if compara ratioW - ratioH (ratio do original em relação a janela) para saber 
+	// se letterbox está dos lados ou em cima/baixo
+	if((double)mapVect[selectedMap]->getMapWidth() / winW - (double)mapVect[selectedMap]->getMapHeight() / winH > 0)
 	{
-		sobra = (winH - mapVect[selectedMap]->getMapHeight() * scaleY); // total - tamanho do mapa(renderer logical size) * escala que esta sendo renderizado
+		// total - tamanho do mapa(renderer logical size) * escala que esta sendo renderizado
+		sobra = (winH - mapVect[selectedMap]->getMapHeight() * scaleY);
 		
-		*x = (*x * mapVect[selectedMap]->getMapWidth())/(float)winW;
+		*x = (*x * mapVect[selectedMap]->getMapWidth())/(double)winW;
 		if(*y < sobra/2) // está no letterbox antes
 			*y = 0;
 
@@ -362,14 +463,14 @@ void NoiseWindow::mapPosFromMouse(int *x, int *y)
 			*y = mapVect[selectedMap]->getMapHeight() - 1;
 
 		else // escala y sem letterbox em window size sem letterbox em relação ao mapa
-			*y = ((*y - sobra/2) * mapVect[selectedMap]->getMapHeight())/(float)(winH - sobra);
+			*y = ((*y - sobra/2) * mapVect[selectedMap]->getMapHeight())/(double)(winH - sobra);
 	}
 
 	else
 	{
 		sobra = (winW - mapVect[selectedMap]->getMapWidth() * scaleX);
 
-		*y = (*y * mapVect[selectedMap]->getMapHeight())/(float)winH;
+		*y = (*y * mapVect[selectedMap]->getMapHeight())/(double)winH;
 
 		if(*x < sobra/2)
 			*x = 0;
@@ -378,6 +479,6 @@ void NoiseWindow::mapPosFromMouse(int *x, int *y)
 			*x = mapVect[selectedMap]->getMapWidth() - 1;
 
 		else
-			*x = ((*x - sobra/2) * mapVect[selectedMap]->getMapWidth())/(float)(winW - sobra);
+			*x = ((*x - sobra/2) * mapVect[selectedMap]->getMapWidth())/(double)(winW - sobra);
 	}
 }

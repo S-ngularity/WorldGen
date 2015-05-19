@@ -13,6 +13,10 @@ class SdlWindow
 		int width;
 		int height;
 
+		// Original window dimensions
+		int originalWidth;
+		int originalHeight;
+
 		// Window focus
 		bool mouseFocus;
 		bool keyboardFocus;
@@ -42,8 +46,11 @@ class SdlWindow
 		void refresh();
 
 
-		int getWidth();
-		int getHeight();
+		int getWindowWidth();
+		int getWindowHeight();
+
+		double getWindowWidthScale();
+		double getWindowHeightScale();
 
 		// Window focii
 		bool hasMouseFocus();
