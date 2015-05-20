@@ -6,7 +6,7 @@
 
 #include <SDL2/SDL.h>
 
-class SdlEventHandler;
+class SdlTexture;
 
 class UiObject
 {
@@ -18,13 +18,17 @@ class UiObject
 		double scaleW, scaleH;
 
 		std::list<UiObject*> childList;
-		SDL_Texture *uiTexture;
+		SdlTexture *uiTexture;
 
 		std::function<bool(SDL_Event& e)> evtHandler;
 
 	public:
-		UiObject(int xOff, int yOff, SDL_Texture *t, int w, int h);
-		UiObject(int xOff, int yOff, SDL_Texture *t, int w, int h, std::function<bool(SDL_Event& e)> evth);
+		UiObject(int xOff, int yOff, int w, int h);
+		UiObject(int xOff, int yOff, int w, int h, std::function<bool(SDL_Event& e)> evth);
+		UiObject(int xOff, int yOff, SdlTexture *t);
+		UiObject(int xOff, int yOff, SdlTexture *t, std::function<bool(SDL_Event& e)> evth);
+		UiObject(int xOff, int yOff, int w, int h, SdlTexture *t);
+		UiObject(int xOff, int yOff, int w, int h, SdlTexture *t, std::function<bool(SDL_Event& e)> evth);
 		~UiObject();
 
 		void render(SDL_Renderer *r, int x, int y);
@@ -39,6 +43,8 @@ class UiObject
 		
 		int getWidth();
 		int getHeight();
+
+		static void getRelativeMousePos(UiObject *obj, int *x, int *y);
 };
 
 # endif

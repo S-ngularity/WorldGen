@@ -33,7 +33,7 @@ class SdlWindow
 		SDL_Window* window;
 		unsigned int windowID;
 
-		void setEventHandler(std::function<void(SDL_Event& e)> evth);
+		void setWindowSdlEvtHandler(std::function<void(SDL_Event& e)> evth);
 
 	public:
 		SdlWindow(char const *title, int x, int y, int w, int h, Uint32 windowFlags, Uint32 rendererFlags);

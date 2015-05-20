@@ -3,47 +3,31 @@
 
 
 #include "SdlClasses/SdlWindow.h"
-#include "SdlClasses/SdlTexture.h"
-#include "SdlClasses/SdlTextures/MapTexture.h"
 
 #include "SdlClasses/SdlWindows/WalkWindow.h"
 
+#include "SdlClasses/UiEventAggregator.h"
+#include "SdlClasses/UiObserver.h"
+
 #include <SDL2/SDL.h>
-#include <SDL2/SDL_ttf.h>
 
 class Map;
 class Noise;
 class UiObject;
 
-const int SCREEN_WIDTH = 800;//map.getMapWidth();
+const int SIDEBAR_WIDTH = 190;
+const int SCREEN_WIDTH = 800 + SIDEBAR_WIDTH;//map.getMapWidth();
 const int SCREEN_HEIGHT = 800;//map.getMapHeight();
 
-// Simplex noise settings
-const int octaves = 10; const double freq = 0.003, persistence = 0.6, freqDiv = 2.2;
-
-// ask for noise screen update at every X percent completed
-#define UPDATE_AT_PERCENT 20
-
-class NoiseWindow : public SdlWindow
+class NoiseWindow : public SdlWindow, public UiObserver
 {
 	private:
 		int numMaps;
 		Map* *mapVect;
-		MapTexture mapTexture;
-
-		int selectedMap;
-		int selectedNoise;
-
-		Noise* noiseVect[3];
-		//OpenSimplexNoise noiseSimplex;//(map, 10, 0.004, 0.6, 1.9);
-		//DiamSqNoise noiseDiam;
-		//MyNoise noiseMy;
-
-		SdlTexture heightInfoTex;
-		TTF_Font *heightInfoFont;
 
 		WalkWindow walkWindow;
 
+		UiEventAggregator evtAggregator;
 		UiObject *gui;
 
 		void createGui();
@@ -53,14 +37,9 @@ class NoiseWindow : public SdlWindow
 		bool btMapClicked(SDL_Event &e, int i);
 		bool btNoiseClicked(SDL_Event &e, int i);
 
-		// this window's specific event handler to be called in the superclass event handler
-		void eventHandlerFunc(SDL_Event& e);
-
-		void mapPosFromMouse(int *x, int *y);
-		void updateInfoTex();
-
-		void runNoise();
-		void resetNoise();
+		// this window's specific sdl event handler to be called in the superclass event handler
+		void handleSdlEvent(SDL_Event& e);
+		bool handleUiEvent(int evtId) override;
 
 	public:
 		NoiseWindow(Map* mapVect[], int num);

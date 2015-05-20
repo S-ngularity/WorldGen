@@ -60,7 +60,7 @@ SdlWindow::~SdlWindow()
 	window = NULL;
 }
 
-void SdlWindow::setEventHandler(std::function<void(SDL_Event& e)> evth)
+void SdlWindow::setWindowSdlEvtHandler(std::function<void(SDL_Event& e)> evth)
 {
 	evtHandler = evth;
 }

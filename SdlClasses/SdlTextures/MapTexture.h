@@ -24,7 +24,7 @@ class MapTexture : public SdlTexture
 		int seaRenderMode, landRenderMode;
 		
 	public:
-		MapTexture(Map *theMap, SDL_Renderer *r);
+		MapTexture(SDL_Renderer *r, Map *theMap);
 		~MapTexture();
 
 		void setMap(Map *theMap);

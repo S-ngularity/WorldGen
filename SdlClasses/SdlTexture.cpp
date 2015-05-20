@@ -47,6 +47,15 @@ void SdlTexture::render(SDL_Renderer *r, int x, int y)
 	}
 }
 
+void SdlTexture::renderScaled(SDL_Renderer *r, int x, int y, double sW, double sH)
+{
+	if(texture != NULL)
+	{
+		SDL_Rect renderRect = {x, y, (int)(width * sW), (int)(height * sH)};
+		SDL_RenderCopy(r, texture, NULL, &renderRect);
+	}
+}
+
 void SdlTexture::renderFitToArea(SDL_Renderer *r, int x, int y, int areaW, int areaH)
 {
 	if(texture != NULL)

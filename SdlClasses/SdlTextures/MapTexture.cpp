@@ -1,10 +1,10 @@
 #include "Map.h"
 #include "SdlClasses/SdlTextures/MapTexture.h"
 
-MapTexture::MapTexture(Map *theMap, SDL_Renderer *r)
+MapTexture::MapTexture(SDL_Renderer *r, Map *theMap)
 {
-	worldMap = theMap;
 	context = r;
+	worldMap = theMap;
 	mapPixels = new Uint32[worldMap->getMapWidth() * worldMap->getMapHeight()];
 	seaRenderMode = NO_SEA;
 	landRenderMode = FIXED;

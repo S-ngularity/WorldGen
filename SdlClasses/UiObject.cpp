@@ -1,32 +1,40 @@
 #include "UiObject.h"
 
-UiObject::UiObject(int xOff, int yOff, SDL_Texture *t, int w, int h)
-{
-	ancientX = xOff;
-	ancientY = yOff;
-	xOffset = xOff;
-	yOffset = yOff;
-	
-	uiTexture = t;
-	
-	width = w;
-	height = h;
-	scaleW = 1;
-	scaleH = 1;
-}
+#include "SdlClasses/SdlTexture.h"
 
-UiObject::UiObject(int xOff, int yOff, SDL_Texture *t, int w, int h, std::function<bool(SDL_Event& e)> evth) : 
+UiObject::UiObject(int xOff, int yOff, int w, int h) : 
+	UiObject(xOff, yOff, w, h, NULL, nullptr)
+{}
+
+UiObject::UiObject(int xOff, int yOff, int w, int h, std::function<bool(SDL_Event& e)> evth) : 
+	UiObject(xOff, yOff, w, h, NULL, evth)
+{}
+
+UiObject::UiObject(int xOff, int yOff, SdlTexture *t) : 
+	UiObject(xOff, yOff, t->getW(), t->getH(), t, nullptr)
+{}
+
+UiObject::UiObject(int xOff, int yOff, SdlTexture *t, std::function<bool(SDL_Event& e)> evth) : 
+	UiObject(xOff, yOff, t->getW(), t->getH(), t, evth)
+{}
+
+
+UiObject::UiObject(int xOff, int yOff, int w, int h, SdlTexture *t) :
+	UiObject(xOff, yOff, w, h, t, nullptr)
+{}
+
+UiObject::UiObject(int xOff, int yOff, int w, int h, SdlTexture *t, std::function<bool(SDL_Event& e)> evth) : 
 	evtHandler(evth)
 {
 	ancientX = xOff;
 	ancientY = yOff;
 	xOffset = xOff;
 	yOffset = yOff;
-	
-	uiTexture = t;
-	
 	width = w;
 	height = h;
+	
+	uiTexture = t;
+
 	scaleW = 1;
 	scaleH = 1;
 }
@@ -36,7 +44,8 @@ UiObject::~UiObject()
 	for(UiObject *childUiObj : childList)
 		delete childUiObj;
 
-	SDL_DestroyTexture(uiTexture);
+	if(uiTexture != NULL)
+		delete uiTexture;
 }
 
 void UiObject::render(SDL_Renderer *r, int x, int y) // parent's x & y
@@ -48,10 +57,7 @@ void UiObject::render(SDL_Renderer *r, int x, int y) // parent's x & y
 	scaleH = 1;
 
 	if(uiTexture != NULL)
-	{
-		SDL_Rect renderRect = {ancientX, ancientY, width, height};
-		SDL_RenderCopy(r, uiTexture, NULL, &renderRect);
-	}
+		uiTexture->renderFitToArea(r, ancientX, ancientY, width, height);
 
 	for(UiObject *childUiObj : childList)
 	{
@@ -68,10 +74,7 @@ void UiObject::renderScaled(SDL_Renderer *r, int x, int y, double sW, double sH)
 	scaleH = sH;
 
 	if(uiTexture != NULL)
-	{
-		SDL_Rect renderRect = {(int)(ancientX * scaleW), (int)(ancientY * scaleH), (int)(width * scaleW), (int)(height * scaleH)};
-		SDL_RenderCopy(r, uiTexture, NULL, &renderRect);
-	}
+		uiTexture->renderFitToArea(r, (int)(ancientX * scaleW), (int)(ancientY * scaleH), width * scaleW, height * scaleH);
 
 	for(UiObject *childUiObj : childList)
 	{
@@ -184,4 +187,10 @@ int UiObject::getWidth()
 int UiObject::getHeight()
 {
 	return height;
+}
+
+void UiObject::getRelativeMousePos(UiObject *obj, int *x, int *y)
+{
+	*x = *x - obj->ancientX * obj->scaleW;
+	*y = *y - obj->ancientY * obj->scaleH;
 }
