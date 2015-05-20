@@ -17,6 +17,8 @@ SdlWindow::SdlWindow(char const *title, int x, int y, int w, int h, Uint32 windo
 	minimized = false;
 	shown = false;
 
+	askingForRefresh = true;
+
 	window = SDL_CreateWindow(	title,
 								x,
 								y,
@@ -71,6 +73,8 @@ void SdlWindow::handleEvent(SDL_Event& e)
 	// If an event was detected for this window
 	if(e.window.windowID == windowID)
 	{
+		doRefreshIfAsked();
+
 		if(e.type == SDL_WINDOWEVENT)
 		{
 			switch(e.window.event)
@@ -89,13 +93,15 @@ void SdlWindow::handleEvent(SDL_Event& e)
 				case SDL_WINDOWEVENT_SIZE_CHANGED:
 					width = e.window.data1;
 					height = e.window.data2;
-					SDL_RenderPresent(renderer);
+					//SDL_RenderPresent(renderer);
+					refresh();
 					windowSizeChanged = true;
 				break;
 
 				// Repaint on expose
 				case SDL_WINDOWEVENT_EXPOSED:
-					SDL_RenderPresent(renderer);
+					//SDL_RenderPresent(renderer);
+					refresh();
 				break;
 
 				// Mouse enter
@@ -140,7 +146,7 @@ void SdlWindow::handleEvent(SDL_Event& e)
 			}
 		}
 		// handle other events with the implemented handler
-		else if(evtHandler)
+		if(evtHandler)
 			evtHandler(e);
 	}
 }
@@ -169,10 +175,20 @@ void SdlWindow::hide()
 	SDL_HideWindow(window);
 }
 
+void SdlWindow::doRefreshIfAsked()
+{
+	if(askingForRefresh)
+	{
+		if(!minimized && shown)
+			SDL_RenderPresent(renderer);
+
+		askingForRefresh = false;
+	}
+}
+
 void SdlWindow::refresh()
 {
-	if(!minimized && shown)
-		SDL_RenderPresent(renderer);
+	askingForRefresh = true;
 }
 
 int SdlWindow::getWindowWidth()

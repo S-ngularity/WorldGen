@@ -82,7 +82,7 @@ void UiObject::renderScaled(SDL_Renderer *r, int x, int y, double sW, double sH)
 	}
 }
 
-bool UiObject::handleEvent(SDL_Event& e)
+bool UiObject::handleSdlEvent(SDL_Event& e)
 {
 	bool isMouseEvt = 	e.type == SDL_MOUSEMOTION || 
 						e.type == SDL_MOUSEBUTTONDOWN || 
@@ -101,7 +101,7 @@ bool UiObject::handleEvent(SDL_Event& e)
 			
 			if(childUiObj->isMouseEvtInside(e))
 			{
-				childUiObj->handleEvent(e);
+				childUiObj->handleSdlEvent(e);
 
 				return true;
 			}
@@ -117,7 +117,7 @@ bool UiObject::handleEvent(SDL_Event& e)
 				// because keyboard events are "global" and not specific
 				// to where the mouse pointer is
 				
-				if(childUiObj->handleEvent(e) == true)
+				if(childUiObj->handleSdlEvent(e) == true)
 						return true;
 				else
 					// if the execution is here, it won't happen again for 

@@ -34,10 +34,10 @@ class UiObject
 		void render(SDL_Renderer *r, int x, int y);
 		void renderScaled(SDL_Renderer *r, int x, int y, double sW, double sH);
 
-		bool handleEvent(SDL_Event& e);
-		bool isMouseEvtInside(SDL_Event& e);
-
+		bool handleSdlEvent(SDL_Event& e);
 		void setEventHandler(std::function<bool(SDL_Event& e)> evth);
+
+		bool isMouseEvtInside(SDL_Event& e);
 
 		void addChild(UiObject *c);
 		

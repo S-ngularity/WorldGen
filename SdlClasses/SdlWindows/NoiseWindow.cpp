@@ -64,18 +64,18 @@ void NoiseWindow::handleSdlEvent(SDL_Event& e)
 {
 	//walkWindow.handleEvent(e);
 
-	if(hasKeyboardFocus())
+	if(hasWindowSizeChanged())
 	{
-		if(hasWindowSizeChanged())
-		{
-			SDL_SetRenderDrawColor(getRenderer(), 255, 0, 255, 255);
-			SDL_RenderClear(getRenderer());
-			gui->renderScaled(getRenderer(), 0, 0, getWindowWidthScale(), getWindowHeightScale());
-			refresh();
-		}
-
-		else if(gui != NULL)
-			gui->handleEvent(e);
+		SDL_SetRenderDrawColor(getRenderer(), 255, 0, 255, 255);
+		SDL_RenderClear(getRenderer());
+		gui->renderScaled(getRenderer(), 0, 0, getWindowWidthScale(), getWindowHeightScale());
+		refresh();
+	}
+	
+	else if(hasKeyboardFocus())
+	{
+		if(gui != NULL)
+			gui->handleSdlEvent(e);
 	}
 }
 
@@ -95,7 +95,6 @@ SDL_Texture* NoiseWindow::createDrawnTexture(int width, int height, int r, int g
 void NoiseWindow::createGui()
 {
 	gui = new UiObject(	0, 0, getWindowWidth(), getWindowHeight(), NULL);
-
 
 	auto mapTex = new MapTexture(getRenderer(), mapVect[0]);
 	// mapFrame has evtAggregator so it can publish events (to be treated here in NoiseWindow)

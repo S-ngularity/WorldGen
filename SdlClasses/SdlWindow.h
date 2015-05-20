@@ -31,6 +31,10 @@ class SdlWindow
 		bool minimized;
 		bool shown;
 
+		bool askingForRefresh;
+
+		void doRefreshIfAsked();
+
 	protected:
 		SDL_Window* window;
 		unsigned int windowID;
