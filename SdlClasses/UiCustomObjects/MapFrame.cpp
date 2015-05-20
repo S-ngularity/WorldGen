@@ -373,12 +373,6 @@ bool MapFrame::handleSdlEvent(SDL_Event &e)
 			returnValue = true;
 		break;
 
-		/*
-		case SDL_WINDOWEVENT:
-			if(e.window.event == SDL_WINDOWEVENT_SIZE_CHANGED)
-				shouldRender = true;
-		break;//*/
-
 		default:
 			// se evento não era nenhum dos tratados, retorna falso
 			returnValue = false;

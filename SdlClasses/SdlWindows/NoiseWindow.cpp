@@ -37,7 +37,7 @@ NoiseWindow::NoiseWindow(Map* mapVect[], int num) :
 
 	// initialize renderer color
 	SDL_SetRenderDrawColor(getRenderer(), 0, 0, 0, 255);
-
+	SDL_RenderClear(getRenderer());
 	gui->renderScaled(getRenderer(), 0, 0, getWindowWidthScale(), getWindowHeightScale());
 	refresh();
 }
@@ -51,6 +51,8 @@ bool NoiseWindow::handleUiEvent(int evtId)
 {
 	if(evtId == UIEVT_CONTENTSCHANGED)
 	{
+		SDL_SetRenderDrawColor(getRenderer(), 255, 0, 255, 255);
+		SDL_RenderClear(getRenderer());
 		gui->renderScaled(getRenderer(), 0, 0, getWindowWidthScale(), getWindowHeightScale());
 		refresh();
 	}
@@ -60,11 +62,19 @@ bool NoiseWindow::handleUiEvent(int evtId)
 
 void NoiseWindow::handleSdlEvent(SDL_Event& e)
 {
-	walkWindow.handleEvent(e);
+	//walkWindow.handleEvent(e);
 
 	if(hasKeyboardFocus())
 	{
-		if(gui != NULL)
+		if(hasWindowSizeChanged())
+		{
+			SDL_SetRenderDrawColor(getRenderer(), 255, 0, 255, 255);
+			SDL_RenderClear(getRenderer());
+			gui->renderScaled(getRenderer(), 0, 0, getWindowWidthScale(), getWindowHeightScale());
+			refresh();
+		}
+
+		else if(gui != NULL)
 			gui->handleEvent(e);
 	}
 }

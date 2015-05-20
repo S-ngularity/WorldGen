@@ -74,7 +74,7 @@ void UiObject::renderScaled(SDL_Renderer *r, int x, int y, double sW, double sH)
 	scaleH = sH;
 
 	if(uiTexture != NULL)
-		uiTexture->renderFitToArea(r, (int)(ancientX * scaleW), (int)(ancientY * scaleH), width * scaleW, height * scaleH);
+		uiTexture->renderFitToArea(r, ancientX * scaleW, ancientY * scaleH, width * scaleW, height * scaleH);
 
 	for(UiObject *childUiObj : childList)
 	{

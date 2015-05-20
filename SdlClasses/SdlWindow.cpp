@@ -11,6 +11,7 @@ SdlWindow::SdlWindow(char const *title, int x, int y, int w, int h, Uint32 windo
 	originalWidth = w;
 	originalHeight = h;
 
+	windowSizeChanged = false;
 	mouseFocus = false;
 	keyboardFocus = false;
 	minimized = false;
@@ -89,6 +90,7 @@ void SdlWindow::handleEvent(SDL_Event& e)
 					width = e.window.data1;
 					height = e.window.data2;
 					SDL_RenderPresent(renderer);
+					windowSizeChanged = true;
 				break;
 
 				// Repaint on expose
@@ -132,13 +134,15 @@ void SdlWindow::handleEvent(SDL_Event& e)
 				case SDL_WINDOWEVENT_CLOSE:
 					SDL_HideWindow(window);
 				break;
+
+				default:
+				break;
 			}
 		}
+		// handle other events with the implemented handler
+		else if(evtHandler)
+			evtHandler(e);
 	}
-
-	// handle other events with the implemented handler
-	if(evtHandler)
-		evtHandler(e);
 }
 
 SDL_Renderer* SdlWindow::getRenderer()
@@ -183,12 +187,24 @@ int SdlWindow::getWindowHeight()
 
 double SdlWindow::getWindowWidthScale()
 {
-	return width / (double)originalWidth;
+	return (double)width / (double)originalWidth;
 }
 
 double SdlWindow::getWindowHeightScale()
 {
-	return height / (double)originalHeight;
+	return (double)height / (double)originalHeight;
+}
+
+bool SdlWindow::hasWindowSizeChanged()
+{
+	if(windowSizeChanged)
+	{
+		windowSizeChanged = false;
+		return true;
+	}
+
+	else
+		return false;
 }
 
 bool SdlWindow::hasMouseFocus()
