@@ -23,7 +23,7 @@ class WalkWindow : public SdlWindow
 
 		void updateWalkTex();
 
-		void handleSdlEvent(SDL_Event& e);
+		bool handleInternalSdlEvent(SDL_Event& e);
 
 	public:
 		WalkWindow(Map *theMap);
