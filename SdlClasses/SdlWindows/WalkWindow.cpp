@@ -22,7 +22,7 @@ WalkWindow::WalkWindow(Map *theMap) :
 {
 	hide(); // set superclass settings to hidden window state to sync with SDL_WINDOW_HIDDEN 
 	
-	setWindowSdlEvtHandler([&](SDL_Event &e){return handleInternalSdlEvent(e);});
+	setWindowSdlEvtHandler([&](SDL_Event &e){handleSdlEvent(e);});
 
 	walkX = 0; // the center tile position
 	walkY = 0;
@@ -54,15 +54,12 @@ void WalkWindow::setMap(Map *m)
 	setPos(0, 0);
 }
 
-bool WalkWindow::handleInternalSdlEvent(SDL_Event& e)
+void WalkWindow::handleSdlEvent(SDL_Event& e)
 {
 	bool updateScreen = false;
-	bool returnValue = false;
 
 	if(hasKeyboardFocus())
 	{
-		returnValue = true;
-
 		switch(e.type)
 		{
 			case SDL_KEYDOWN:
@@ -110,15 +107,7 @@ bool WalkWindow::handleInternalSdlEvent(SDL_Event& e)
 
 						updateScreen = true;
 					break;
-
-					default:
-						returnValue = false;
-					break;
 				}
-			break;
-
-			default:
-				returnValue = false;
 			break;
 		}
 
@@ -129,8 +118,6 @@ bool WalkWindow::handleInternalSdlEvent(SDL_Event& e)
 			refresh();
 		}
 	}
-
-	return returnValue;
 }
 
 #define DOWN 0, 0, 0, 255

@@ -2,10 +2,9 @@
 
 #include <iostream>
 
-SdlWindow::SdlWindow(char const *title, int x, int y, int w, int h, Uint32 windowFlags, Uint32 rendererFlags) : 
-	gui(0, 0, w, h, NULL)
+SdlWindow::SdlWindow(char const *title, int x, int y, int w, int h, Uint32 windowFlags, Uint32 rendererFlags)
 {
-	sdlEvtHandler = NULL;
+	evtHandler = NULL;
 	
 	width = w;
 	height = h;
@@ -64,12 +63,12 @@ SdlWindow::~SdlWindow()
 	window = NULL;
 }
 
-void SdlWindow::setWindowSdlEvtHandler(std::function<bool(SDL_Event& e)> evth)
+void SdlWindow::setWindowSdlEvtHandler(std::function<void(SDL_Event& e)> evth)
 {
-	sdlEvtHandler = evth;
+	evtHandler = evth;
 }
 
-bool SdlWindow::handleSdlEvent(SDL_Event& e)
+void SdlWindow::handleEvent(SDL_Event& e)
 {
 	// If an event was detected for this window
 	if(e.window.windowID == windowID)
@@ -93,9 +92,6 @@ bool SdlWindow::handleSdlEvent(SDL_Event& e)
 					width = e.window.data1;
 					height = e.window.data2;
 					//SDL_RenderPresent(renderer);
-					SDL_SetRenderDrawColor(getRenderer(), 255, 0, 255, 255);
-					SDL_RenderClear(getRenderer());
-					gui.renderScaled(getRenderer(), 0, 0, getWindowWidthScale(), getWindowHeightScale());
 					refresh();
 					windowSizeChanged = true;
 				break;
@@ -147,25 +143,14 @@ bool SdlWindow::handleSdlEvent(SDL_Event& e)
 				break;
 			}
 		}
-
-		else
-		{
-			// handle other events with the implemented handler
-			gui.handleSdlEvent(e);
-
-			if(sdlEvtHandler)
-				sdlEvtHandler(e);
-			
-		}
+		// handle other events with the implemented handler
+		if(evtHandler)
+			evtHandler(e);
 
 		// after handling events (therefore rendering 
 		// to the window renderer what was needed)
 		doRefreshIfAsked();
-
-		return true;
 	}
-
-	return false;
 }
 
 SDL_Renderer* SdlWindow::getRenderer()
