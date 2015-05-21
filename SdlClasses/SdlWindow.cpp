@@ -73,8 +73,6 @@ void SdlWindow::handleEvent(SDL_Event& e)
 	// If an event was detected for this window
 	if(e.window.windowID == windowID)
 	{
-		doRefreshIfAsked();
-
 		if(e.type == SDL_WINDOWEVENT)
 		{
 			switch(e.window.event)
@@ -90,7 +88,7 @@ void SdlWindow::handleEvent(SDL_Event& e)
 				break;
 
 				// Get new dimensions and repaint
-				case SDL_WINDOWEVENT_SIZE_CHANGED:
+				case SDL_WINDOWEVENT_RESIZED:
 					width = e.window.data1;
 					height = e.window.data2;
 					//SDL_RenderPresent(renderer);
@@ -148,6 +146,10 @@ void SdlWindow::handleEvent(SDL_Event& e)
 		// handle other events with the implemented handler
 		if(evtHandler)
 			evtHandler(e);
+
+		// after handling events (therefore rendering 
+		// to the window renderer what was needed)
+		doRefreshIfAsked();
 	}
 }
 
