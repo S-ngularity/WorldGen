@@ -26,7 +26,7 @@ class UiObject
 		UiObject(int xOff, int yOff, int w, int h);
 		UiObject(int xOff, int yOff, SdlTexture *t, std::function<bool(SDL_Event& e)> evth);
 		UiObject(int xOff, int yOff, int w, int h, SdlTexture *t, std::function<bool(SDL_Event& e)> evth);
-		~UiObject();
+		virtual ~UiObject();
 
 		void render(SDL_Renderer *r, int x, int y);
 		void renderScaled(SDL_Renderer *r, int x, int y, double sW, double sH);

@@ -2,8 +2,8 @@
 
 #include <iostream>
 
-SdlWindow::SdlWindow(char const *title, int x, int y, int w, int h, Uint32 windowFlags, Uint32 rendererFlags)
-	//:gui(0, 0, w, h)
+SdlWindow::SdlWindow(char const *title, int x, int y, int w, int h, Uint32 windowFlags, Uint32 rendererFlags) : 
+	gui(0, 0, w, h)
 {
 	evtHandler = nullptr;
 	
@@ -12,7 +12,6 @@ SdlWindow::SdlWindow(char const *title, int x, int y, int w, int h, Uint32 windo
 	originalWidth = w;
 	originalHeight = h;
 
-	windowSizeChanged = false;
 	mouseFocus = false;
 	keyboardFocus = false;
 	minimized = false;
@@ -92,17 +91,16 @@ bool SdlWindow::handleSdlEvent(SDL_Event& e)
 				case SDL_WINDOWEVENT_RESIZED:
 					width = e.window.data1;
 					height = e.window.data2;
-					//SDL_RenderPresent(renderer);
-					//SDL_SetRenderDrawColor(getRenderer(), 255, 0, 255, 255);
-					//SDL_RenderClear(getRenderer());
-					//gui.renderScaled(getRenderer(), 0, 0, getWindowWidthScale(), getWindowHeightScale());
+					
+					SDL_RenderPresent(renderer);
+					SDL_SetRenderDrawColor(getRenderer(), 255, 0, 255, 255);
+					SDL_RenderClear(getRenderer());
+					gui.renderScaled(getRenderer(), 0, 0, getWindowWidthScale(), getWindowHeightScale());
 					refresh();
-					windowSizeChanged = true;
 				break;
 
 				// Repaint on expose
 				case SDL_WINDOWEVENT_EXPOSED:
-					//SDL_RenderPresent(renderer);
 					refresh();
 				break;
 
@@ -148,15 +146,15 @@ bool SdlWindow::handleSdlEvent(SDL_Event& e)
 			}
 		}
 
-		//else
-		//{
+		else
+		{
 			// handle other events with the implemented handler
-			//gui.handleSdlEvent(e);
+			gui.handleSdlEvent(e);
 
 			// handle other events with the implemented handler
 			if(evtHandler)
 				evtHandler(e);
-		//}
+		}
 
 		// after handling events (therefore rendering 
 		// to the window renderer what was needed)
@@ -226,18 +224,6 @@ double SdlWindow::getWindowWidthScale()
 double SdlWindow::getWindowHeightScale()
 {
 	return (double)height / (double)originalHeight;
-}
-
-bool SdlWindow::hasWindowSizeChanged()
-{
-	if(windowSizeChanged)
-	{
-		windowSizeChanged = false;
-		return true;
-	}
-
-	else
-		return false;
 }
 
 bool SdlWindow::hasMouseFocus()

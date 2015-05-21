@@ -1,9 +1,6 @@
 #include "SdlClasses/SdlWindows/NoiseWindow.h"
 
 #include "Map.h"
-#include "Noises/MyNoise.h"
-#include "Noises/DiamSqNoise.h"
-#include "Noises/OpenSimplexNoise.h"
 
 #include "SdlClasses/UiObject.h"
 #include "SdlClasses/UiCustomObjects/MapFrame.h"
@@ -11,19 +8,13 @@
 
 #include "SdlClasses/SdlTextures/MapTexture.h"
 
-#include <iostream>
-#include <iomanip>
 
-#include <string>
-#include <sstream>
-
-using namespace std;
-
-NoiseWindow::NoiseWindow(Map* mapVect[], int num) : 
+NoiseWindow::NoiseWindow(UiEventAggregator *uiEvtAggr, Map* mapVect[], int num) : 
 	SdlWindow("WorldGen", 20, 40, SCREEN_WIDTH, SCREEN_HEIGHT, SDL_WINDOW_RESIZABLE, SDL_RENDERER_ACCELERATED | SDL_RENDERER_TARGETTEXTURE), // superclass window constructor
-	walkWindow(mapVect[0])
+	walkWindow(mapVect[0]),
+	evtAggregator(uiEvtAggr)
 {
-	evtAggregator.addUiEventObserver(this);
+	evtAggregator->addUiEventObserver(this);
 
 	setWindowSdlEvtHandler([&](SDL_Event &e){return handleInternalSdlEvent(e);});
 
@@ -38,13 +29,13 @@ NoiseWindow::NoiseWindow(Map* mapVect[], int num) :
 	// initialize renderer color
 	SDL_SetRenderDrawColor(getRenderer(), 0, 0, 0, 255);
 	SDL_RenderClear(getRenderer());
-	gui->renderScaled(getRenderer(), 0, 0, getWindowWidthScale(), getWindowHeightScale());
+	gui.renderScaled(getRenderer(), 0, 0, getWindowWidthScale(), getWindowHeightScale());
 	refresh();
 }
 
 NoiseWindow::~NoiseWindow()
 {
-	evtAggregator.removeUiEventObserver(this);
+	evtAggregator->removeUiEventObserver(this);
 }
 
 bool NoiseWindow::handleUiEvent(int evtId)
@@ -53,7 +44,7 @@ bool NoiseWindow::handleUiEvent(int evtId)
 	{
 		SDL_SetRenderDrawColor(getRenderer(), 255, 0, 255, 255);
 		SDL_RenderClear(getRenderer());
-		gui->renderScaled(getRenderer(), 0, 0, getWindowWidthScale(), getWindowHeightScale());
+		gui.renderScaled(getRenderer(), 0, 0, getWindowWidthScale(), getWindowHeightScale());
 		refresh();
 	}
 
@@ -62,23 +53,7 @@ bool NoiseWindow::handleUiEvent(int evtId)
 
 bool NoiseWindow::handleInternalSdlEvent(SDL_Event& e)
 {
-	//walkWindow.handleEvent(e);
-
-	//*
-	if(hasWindowSizeChanged())
-	{
-		SDL_SetRenderDrawColor(getRenderer(), 255, 0, 255, 255);
-		SDL_RenderClear(getRenderer());
-		gui->renderScaled(getRenderer(), 0, 0, getWindowWidthScale(), getWindowHeightScale());
-		refresh();
-	}
-	
-	else if(hasKeyboardFocus())
-	{
-		if(gui != NULL)
-			gui->handleSdlEvent(e);
-	}//*/
-
+	//return walkWindow.handleEvent(e);
 	return true;
 }
 
@@ -97,16 +72,14 @@ SDL_Texture* NoiseWindow::createDrawnTexture(int width, int height, int r, int g
 
 void NoiseWindow::createGui()
 {
-	gui = new UiObject(	0, 0, getWindowWidth(), getWindowHeight(), NULL, nullptr);
-
 	auto mapTex = new MapTexture(getRenderer(), mapVect[0]);
 	// mapFrame has evtAggregator so it can publish events (to be treated here in NoiseWindow)
 	// and observe events from other UiObjects
-	gui->addChild(new MapFrame(	0, 0, getWindowWidth() - SIDEBAR_WIDTH, getWindowHeight(), 
-								mapTex, mapVect, numMaps, &evtAggregator));
+	gui.addChild(new MapFrame(	0, 0, getWindowWidth() - SIDEBAR_WIDTH, getWindowHeight(), 
+								mapTex, mapVect, numMaps, evtAggregator));
 
-	SdlTexture *bgTex = new SdlTexture(createDrawnTexture(SIDEBAR_WIDTH, gui->getHeight(), 0, 126, 126, 255), SIDEBAR_WIDTH, gui->getHeight());
-	auto bgUi = new UiObject(gui->getWidth() - SIDEBAR_WIDTH, 0,  bgTex, 
+	SdlTexture *bgTex = new SdlTexture(createDrawnTexture(SIDEBAR_WIDTH, gui.getHeight(), 0, 126, 126, 255), SIDEBAR_WIDTH, gui.getHeight());
+	auto bgUi = new UiObject(gui.getWidth() - SIDEBAR_WIDTH, 0,  bgTex, 
 							 nullptr);
 
 	SdlTexture *btMap1Tex = new SdlTexture(createDrawnTexture(30, 30, 0, 255, 0, 255), 30, 30);
@@ -133,7 +106,7 @@ void NoiseWindow::createGui()
 	bgUi->addChild(new UiObject(	130, 80, btNoise3Tex, 
 								[&](SDL_Event &e){return btNoiseClicked(e, 2);}));
 
-	gui->addChild(bgUi);
+	gui.addChild(bgUi);
 }
 
 bool NoiseWindow::btMapClicked(SDL_Event &e, int i)
@@ -143,15 +116,15 @@ bool NoiseWindow::btMapClicked(SDL_Event &e, int i)
 		switch(i)
 		{
 			case 0:
-				evtAggregator.publishUiEvent(UIEVT_BTCLICKEDMAP0);
+				evtAggregator->publishUiEvent(UIEVT_BTCLICKEDMAP0);
 			break;
 
 			case 1:
-				evtAggregator.publishUiEvent(UIEVT_BTCLICKEDMAP1);
+				evtAggregator->publishUiEvent(UIEVT_BTCLICKEDMAP1);
 			break;
 
 			case 2:
-				evtAggregator.publishUiEvent(UIEVT_BTCLICKEDMAP2);
+				evtAggregator->publishUiEvent(UIEVT_BTCLICKEDMAP2);
 			break;
 		}
 
@@ -169,15 +142,15 @@ bool NoiseWindow::btNoiseClicked(SDL_Event &e, int i)
 		switch(i)
 		{
 			case 0:
-				evtAggregator.publishUiEvent(UIEVT_BTCLICKEDNOISE0);
+				evtAggregator->publishUiEvent(UIEVT_BTCLICKEDNOISE0);
 			break;
 
 			case 1:
-				evtAggregator.publishUiEvent(UIEVT_BTCLICKEDNOISE1);
+				evtAggregator->publishUiEvent(UIEVT_BTCLICKEDNOISE1);
 			break;
 
 			case 2:
-				evtAggregator.publishUiEvent(UIEVT_BTCLICKEDNOISE2);
+				evtAggregator->publishUiEvent(UIEVT_BTCLICKEDNOISE2);
 			break;
 		}
 

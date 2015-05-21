@@ -27,8 +27,7 @@ class NoiseWindow : public SdlWindow, public UiObserver
 
 		WalkWindow walkWindow;
 
-		UiEventAggregator evtAggregator;
-		UiObject *gui;
+		UiEventAggregator *evtAggregator;
 
 		void createGui();
 		SDL_Texture* createDrawnTexture(int width, int height, int r, int g, int b, int a);
@@ -42,7 +41,7 @@ class NoiseWindow : public SdlWindow, public UiObserver
 		bool handleUiEvent(int evtId) override;
 
 	public:
-		NoiseWindow(Map* mapVect[], int num);
+		NoiseWindow(UiEventAggregator *uiEvtAggr, Map* mapVect[], int num);
 		~NoiseWindow();
 };
 

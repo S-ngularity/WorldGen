@@ -24,8 +24,6 @@ class SdlWindow
 		int originalWidth;
 		int originalHeight;
 
-		bool windowSizeChanged;
-
 		// Window focus
 		bool mouseFocus;
 		bool keyboardFocus;
@@ -38,7 +36,7 @@ class SdlWindow
 		void doRefreshIfAsked();
 
 	protected:
-		//UiObject gui;
+		UiObject gui;
 
 		SDL_Window* window;
 		unsigned int windowID;
@@ -65,8 +63,6 @@ class SdlWindow
 
 		double getWindowWidthScale();
 		double getWindowHeightScale();
-
-		bool hasWindowSizeChanged();
 		
 		// Window focii
 		bool hasMouseFocus();
