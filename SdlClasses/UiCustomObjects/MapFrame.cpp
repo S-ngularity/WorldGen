@@ -20,7 +20,7 @@ using namespace std;
 
 MapFrame::MapFrame(int x, int y, int w, int h, MapTexture *mapTex, Map* mapVect[], int num, UiEventAggregator *evtAggr) : 
 	UiObject(x, y, w, h, mapTex,
-			[&](SDL_Event &e){return handleSdlEvent(e);}),
+			[&](SDL_Event &e){return handleInternalSdlEvent(e);}),
 	UiPublisher(evtAggr),
 	mapTexture(mapTex)
 {
@@ -213,7 +213,7 @@ void MapFrame::mapPosFromMouse(int *x, int *y)
 	}
 }
 
-bool MapFrame::handleSdlEvent(SDL_Event &e)
+bool MapFrame::handleInternalSdlEvent(SDL_Event &e)
 {
 	bool returnValue = false;
 

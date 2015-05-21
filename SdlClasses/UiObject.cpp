@@ -6,21 +6,8 @@ UiObject::UiObject(int xOff, int yOff, int w, int h) :
 	UiObject(xOff, yOff, w, h, NULL, nullptr)
 {}
 
-UiObject::UiObject(int xOff, int yOff, int w, int h, std::function<bool(SDL_Event& e)> evth) : 
-	UiObject(xOff, yOff, w, h, NULL, evth)
-{}
-
-UiObject::UiObject(int xOff, int yOff, SdlTexture *t) : 
-	UiObject(xOff, yOff, t->getW(), t->getH(), t, nullptr)
-{}
-
 UiObject::UiObject(int xOff, int yOff, SdlTexture *t, std::function<bool(SDL_Event& e)> evth) : 
 	UiObject(xOff, yOff, t->getW(), t->getH(), t, evth)
-{}
-
-
-UiObject::UiObject(int xOff, int yOff, int w, int h, SdlTexture *t) :
-	UiObject(xOff, yOff, w, h, t, nullptr)
 {}
 
 UiObject::UiObject(int xOff, int yOff, int w, int h, SdlTexture *t, std::function<bool(SDL_Event& e)> evth) : 
@@ -169,7 +156,7 @@ bool UiObject::isMouseEvtInside(SDL_Event& e)
 		return false;
 }
 
-void UiObject::setEventHandler(std::function<bool(SDL_Event& e)> evth)
+void UiObject::setSdlEventHandler(std::function<bool(SDL_Event& e)> evth)
 {
 	evtHandler = evth;
 }

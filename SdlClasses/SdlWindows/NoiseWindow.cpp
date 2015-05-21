@@ -25,7 +25,7 @@ NoiseWindow::NoiseWindow(Map* mapVect[], int num) :
 {
 	evtAggregator.addUiEventObserver(this);
 
-	setWindowSdlEvtHandler([&](SDL_Event &e){handleSdlEvent(e);});
+	setWindowSdlEvtHandler([&](SDL_Event &e){return handleInternalSdlEvent(e);});
 
 	this->mapVect = mapVect;
 	numMaps = num;
@@ -60,10 +60,11 @@ bool NoiseWindow::handleUiEvent(int evtId)
 	return true;
 }
 
-void NoiseWindow::handleSdlEvent(SDL_Event& e)
+bool NoiseWindow::handleInternalSdlEvent(SDL_Event& e)
 {
 	//walkWindow.handleEvent(e);
 
+	//*
 	if(hasWindowSizeChanged())
 	{
 		SDL_SetRenderDrawColor(getRenderer(), 255, 0, 255, 255);
@@ -76,7 +77,9 @@ void NoiseWindow::handleSdlEvent(SDL_Event& e)
 	{
 		if(gui != NULL)
 			gui->handleSdlEvent(e);
-	}
+	}//*/
+
+	return true;
 }
 
 // GUI
@@ -94,7 +97,7 @@ SDL_Texture* NoiseWindow::createDrawnTexture(int width, int height, int r, int g
 
 void NoiseWindow::createGui()
 {
-	gui = new UiObject(	0, 0, getWindowWidth(), getWindowHeight(), NULL);
+	gui = new UiObject(	0, 0, getWindowWidth(), getWindowHeight(), NULL, nullptr);
 
 	auto mapTex = new MapTexture(getRenderer(), mapVect[0]);
 	// mapFrame has evtAggregator so it can publish events (to be treated here in NoiseWindow)
@@ -104,7 +107,7 @@ void NoiseWindow::createGui()
 
 	SdlTexture *bgTex = new SdlTexture(createDrawnTexture(SIDEBAR_WIDTH, gui->getHeight(), 0, 126, 126, 255), SIDEBAR_WIDTH, gui->getHeight());
 	auto bgUi = new UiObject(gui->getWidth() - SIDEBAR_WIDTH, 0,  bgTex, 
-							 NULL);
+							 nullptr);
 
 	SdlTexture *btMap1Tex = new SdlTexture(createDrawnTexture(30, 30, 0, 255, 0, 255), 30, 30);
 	bgUi->addChild(new UiObject(30, 30, btMap1Tex, 

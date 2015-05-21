@@ -46,7 +46,7 @@ class MapFrame : public UiObject, public UiObserver, public UiPublisher
 		void runNoise();
 		void resetNoise();
 
-		bool handleSdlEvent(SDL_Event &e);
+		bool handleInternalSdlEvent(SDL_Event &e);
 		bool handleUiEvent(int evtId) override;
 	public:
 		MapFrame(int x, int y, int w, int h, MapTexture *mapTex, Map* mapVect[], int num, UiEventAggregator *evtAggr);

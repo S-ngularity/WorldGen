@@ -3,13 +3,15 @@
 
 #include <functional>
 
+#include "UiObject.h"
+
 #include <SDL2/SDL.h>
 
 class SdlWindow
 {
 	private:
 		// Custom event handler
-		std::function<void(SDL_Event& e)> evtHandler;
+		std::function<bool(SDL_Event& e)> evtHandler;
 		
 		// Window data
 		SDL_Renderer* renderer;
@@ -36,16 +38,18 @@ class SdlWindow
 		void doRefreshIfAsked();
 
 	protected:
+		//UiObject gui;
+
 		SDL_Window* window;
 		unsigned int windowID;
 
-		void setWindowSdlEvtHandler(std::function<void(SDL_Event& e)> evth);
+		void setWindowSdlEvtHandler(std::function<bool(SDL_Event& e)> evth);
 
 	public:
 		SdlWindow(char const *title, int x, int y, int w, int h, Uint32 windowFlags, Uint32 rendererFlags);
 		virtual ~SdlWindow();
 
-		void handleEvent(SDL_Event& e);
+		bool handleSdlEvent(SDL_Event& e);
 
 		// returns window's renderer so others can render onto it
 		SDL_Renderer* getRenderer();

@@ -38,7 +38,7 @@ class NoiseWindow : public SdlWindow, public UiObserver
 		bool btNoiseClicked(SDL_Event &e, int i);
 
 		// this window's specific sdl event handler to be called in the superclass event handler
-		void handleSdlEvent(SDL_Event& e);
+		bool handleInternalSdlEvent(SDL_Event& e);
 		bool handleUiEvent(int evtId) override;
 
 	public:

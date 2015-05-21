@@ -54,7 +54,7 @@ int main(int argc, char* args[])
 	{
 		while(SDL_PollEvent(&event))
 		{
-			noiseWindow->handleEvent(event);
+			noiseWindow->handleSdlEvent(event);
 		}
 	}
 

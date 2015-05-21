@@ -24,10 +24,7 @@ class UiObject
 
 	public:
 		UiObject(int xOff, int yOff, int w, int h);
-		UiObject(int xOff, int yOff, int w, int h, std::function<bool(SDL_Event& e)> evth);
-		UiObject(int xOff, int yOff, SdlTexture *t);
 		UiObject(int xOff, int yOff, SdlTexture *t, std::function<bool(SDL_Event& e)> evth);
-		UiObject(int xOff, int yOff, int w, int h, SdlTexture *t);
 		UiObject(int xOff, int yOff, int w, int h, SdlTexture *t, std::function<bool(SDL_Event& e)> evth);
 		~UiObject();
 
@@ -35,7 +32,7 @@ class UiObject
 		void renderScaled(SDL_Renderer *r, int x, int y, double sW, double sH);
 
 		bool handleSdlEvent(SDL_Event& e);
-		void setEventHandler(std::function<bool(SDL_Event& e)> evth);
+		void setSdlEventHandler(std::function<bool(SDL_Event& e)> evth);
 
 		bool isMouseEvtInside(SDL_Event& e);
 
