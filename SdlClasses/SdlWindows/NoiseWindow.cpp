@@ -10,7 +10,10 @@
 
 
 NoiseWindow::NoiseWindow(UiEventAggregator *uiEvtAggr, Map* mapVect[], int num) : 
-	SdlWindow("WorldGen", 20, 40, SCREEN_WIDTH, SCREEN_HEIGHT, SDL_WINDOW_RESIZABLE, SDL_RENDERER_ACCELERATED | SDL_RENDERER_TARGETTEXTURE), // superclass window constructor
+	SdlWindow(	"WorldGen", 20, 40, 
+				SCREEN_WIDTH, SCREEN_HEIGHT, // window size 
+				SCREEN_WIDTH, SCREEN_HEIGHT, // window resolution
+				SDL_WINDOW_RESIZABLE, SDL_RENDERER_ACCELERATED | SDL_RENDERER_TARGETTEXTURE), // superclass window constructor
 	walkWindow(mapVect[0]),
 	evtAggregator(uiEvtAggr)
 {
@@ -26,10 +29,6 @@ NoiseWindow::NoiseWindow(UiEventAggregator *uiEvtAggr, Map* mapVect[], int num) 
 
 	createGui();
 
-	// initialize renderer color
-	SDL_SetRenderDrawColor(getRenderer(), 0, 0, 0, 255);
-	SDL_RenderClear(getRenderer());
-	gui.renderScaled(getRenderer(), 0, 0, getWindowWidthScale(), getWindowHeightScale());
 	refresh();
 }
 
@@ -41,12 +40,7 @@ NoiseWindow::~NoiseWindow()
 bool NoiseWindow::handleUiEvent(int evtId)
 {
 	if(evtId == UIEVT_CONTENTSCHANGED)
-	{
-		SDL_SetRenderDrawColor(getRenderer(), 255, 0, 255, 255);
-		SDL_RenderClear(getRenderer());
-		gui.renderScaled(getRenderer(), 0, 0, getWindowWidthScale(), getWindowHeightScale());
 		refresh();
-	}
 
 	return true;
 }
@@ -75,7 +69,7 @@ void NoiseWindow::createGui()
 	auto mapTex = new MapTexture(getRenderer(), mapVect[0]);
 	// mapFrame has evtAggregator so it can publish events (to be treated here in NoiseWindow)
 	// and observe events from other UiObjects
-	gui.addChild(new MapFrame(	0, 0, getWindowWidth() - SIDEBAR_WIDTH, getWindowHeight(), 
+	gui.addChild(new MapFrame(	0, 0, gui.getWidth() - SIDEBAR_WIDTH, gui.getHeight(), 
 								mapTex, mapVect, numMaps, evtAggregator));
 
 	SdlTexture *bgTex = new SdlTexture(createDrawnTexture(SIDEBAR_WIDTH, gui.getHeight(), 0, 126, 126, 255), SIDEBAR_WIDTH, gui.getHeight());

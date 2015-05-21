@@ -24,6 +24,8 @@ UiObject::UiObject(int xOff, int yOff, int w, int h, SdlTexture *t, std::functio
 
 	scaleW = 1;
 	scaleH = 1;
+	mouseScaleW = 1;
+	mouseScaleH = 1;
 }
 
 UiObject::~UiObject()
@@ -47,9 +49,7 @@ void UiObject::render(SDL_Renderer *r, int x, int y) // parent's x & y
 		uiTexture->renderFitToArea(r, ancientX, ancientY, width, height);
 
 	for(UiObject *childUiObj : childList)
-	{
 		childUiObj->render(r, ancientX, ancientY);
-	}
 }
 
 void UiObject::renderScaled(SDL_Renderer *r, int x, int y, double sW, double sH)
@@ -138,16 +138,21 @@ bool UiObject::handleSdlEvent(SDL_Event& e)
 	}
 }
 
+void UiObject::setSdlEventHandler(std::function<bool(SDL_Event& e)> evth)
+{
+	evtHandler = evth;
+}
+
 bool UiObject::isMouseEvtInside(SDL_Event& e)
 {
 	int x, y;
 
 	SDL_GetMouseState(&x, &y);
 
-	if(	x >= ancientX * scaleW && 
-		x < (ancientX + width) * scaleW &&
-		y >= ancientY * scaleH && 
-		y < (ancientY + height) * scaleH )
+	if(	x >= ancientX * mouseScaleW && 
+		x < (ancientX + width) * mouseScaleW &&
+		y >= ancientY * mouseScaleH && 
+		y < (ancientY + height) * mouseScaleH)
 	{
 		return true;
 	}
@@ -156,9 +161,13 @@ bool UiObject::isMouseEvtInside(SDL_Event& e)
 		return false;
 }
 
-void UiObject::setSdlEventHandler(std::function<bool(SDL_Event& e)> evth)
+void UiObject::setMouseScale(double sW, double sH)
 {
-	evtHandler = evth;
+	mouseScaleW = sW;
+	mouseScaleH = sH;
+
+	for(UiObject *childUiObj : childList)
+		childUiObj->setMouseScale(sW, sH);
 }
 
 void UiObject::addChild(UiObject *c)

@@ -16,6 +16,7 @@ class UiObject
 		
 		int width, height;
 		double scaleW, scaleH;
+		double mouseScaleW, mouseScaleH;
 
 		std::list<UiObject*> childList;
 		SdlTexture *uiTexture;
@@ -35,6 +36,7 @@ class UiObject
 		void setSdlEventHandler(std::function<bool(SDL_Event& e)> evth);
 
 		bool isMouseEvtInside(SDL_Event& e);
+		void setMouseScale(double sW, double sH);
 
 		void addChild(UiObject *c);
 		

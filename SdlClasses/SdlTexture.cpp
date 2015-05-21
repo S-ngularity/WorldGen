@@ -68,6 +68,16 @@ void SdlTexture::renderFitToArea(SDL_Renderer *r, int x, int y, int areaW, int a
 	}
 }
 
+void SdlTexture::setAsRenderTarget(SDL_Renderer *r)
+{
+	SDL_SetRenderTarget(r, texture);
+}
+
+void SdlTexture::releaseRenderTarget(SDL_Renderer *r)
+{
+	SDL_SetRenderTarget(r, NULL);
+}
+
 int SdlTexture::getW()
 {
 	return width;

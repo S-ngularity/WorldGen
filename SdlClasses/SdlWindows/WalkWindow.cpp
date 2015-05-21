@@ -14,8 +14,8 @@ WalkWindow::WalkWindow(Map *theMap) :
 	SdlWindow(	"WorldGen Walker", 
 				SDL_WINDOWPOS_CENTERED, 
 				SDL_WINDOWPOS_CENTERED, 
-				WALK_SCREEN_SIZE, 
-				WALK_SCREEN_SIZE, 
+				WALK_SCREEN_SIZE, WALK_SCREEN_SIZE, // window size
+				WALK_SCREEN_SIZE, WALK_SCREEN_SIZE, // window resolution
 				SDL_WINDOW_RESIZABLE | SDL_WINDOW_HIDDEN, 
 				SDL_RENDERER_ACCELERATED | SDL_RENDERER_TARGETTEXTURE), 
 	worldMap(theMap)

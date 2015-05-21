@@ -2,15 +2,17 @@
 
 #include <iostream>
 
-SdlWindow::SdlWindow(char const *title, int x, int y, int w, int h, Uint32 windowFlags, Uint32 rendererFlags) : 
-	gui(0, 0, w, h)
+SdlWindow::SdlWindow(char const *title, int x, int y, int w, int h, int resW, int resH, Uint32 windowFlags, Uint32 rendererFlags) : 
+	gui(0, 0, resW, resH)
 {
 	evtHandler = nullptr;
-	
-	width = w;
-	height = h;
-	originalWidth = w;
-	originalHeight = h;
+
+	originalWndWidth = w;
+	originalWndHeight = h;
+	windowWidth = w;
+	windowHeight = h;
+	resolutionWidth = resW;
+	resolutionHeight = resH;
 
 	mouseFocus = false;
 	keyboardFocus = false;
@@ -32,9 +34,9 @@ SdlWindow::SdlWindow(char const *title, int x, int y, int w, int h, Uint32 windo
 	else
 	{
 		//Create renderer for window
-		renderer = SDL_CreateRenderer(window, -1, rendererFlags);
+		wndRenderer = SDL_CreateRenderer(window, -1, rendererFlags | SDL_RENDERER_TARGETTEXTURE);
 		
-		if(renderer == NULL)
+		if(wndRenderer == NULL)
 		{
 			std::cout << "Renderer for " << title << " could not be created! SDL Error: " << SDL_GetError() << std::endl;
 			
@@ -45,8 +47,32 @@ SdlWindow::SdlWindow(char const *title, int x, int y, int w, int h, Uint32 windo
 		else
 		{
 			windowID = SDL_GetWindowID(window);
-
 			shown = true;
+
+			SDL_Texture *resTex = SDL_CreateTexture(wndRenderer, SDL_PIXELFORMAT_RGBA8888, 
+													SDL_TEXTUREACCESS_TARGET, 
+													resolutionWidth, resolutionHeight);
+			if(resTex == NULL)
+			{
+				std::cout << "Resolution texture for " << title << " could not be created! SDL Error: " << SDL_GetError() << std::endl;
+				
+				SDL_DestroyRenderer(wndRenderer);
+				SDL_DestroyWindow(window);
+				wndRenderer = NULL;
+				window = NULL;
+			}
+
+			else
+			{
+				resolutionTexture.setTexture(resTex, resolutionWidth, resolutionHeight);
+
+				resolutionTexture.setAsRenderTarget(wndRenderer);
+				SDL_SetRenderDrawColor(wndRenderer, 255, 0, 255, 255);
+				SDL_RenderClear(wndRenderer);
+				resolutionTexture.releaseRenderTarget(wndRenderer);
+
+			}
+
 		}
 	}
 }
@@ -56,10 +82,10 @@ SdlWindow::~SdlWindow()
 	if(window != NULL)
 		SDL_DestroyWindow(window);
 
-	if(renderer != NULL)
-		SDL_DestroyRenderer(renderer);
+	if(wndRenderer != NULL)
+		SDL_DestroyRenderer(wndRenderer);
 
-	renderer = NULL;
+	wndRenderer = NULL;
 	window = NULL;
 }
 
@@ -89,13 +115,9 @@ bool SdlWindow::handleSdlEvent(SDL_Event& e)
 
 				// Get new dimensions and repaint
 				case SDL_WINDOWEVENT_RESIZED:
-					width = e.window.data1;
-					height = e.window.data2;
-					
-					SDL_RenderPresent(renderer);
-					SDL_SetRenderDrawColor(getRenderer(), 255, 0, 255, 255);
-					SDL_RenderClear(getRenderer());
-					gui.renderScaled(getRenderer(), 0, 0, getWindowWidthScale(), getWindowHeightScale());
+					windowWidth = e.window.data1;
+					windowHeight = e.window.data2;
+					gui.setMouseScale(getWindowWidthScale(), getWindowHeightScale());
 					refresh();
 				break;
 
@@ -161,14 +183,14 @@ bool SdlWindow::handleSdlEvent(SDL_Event& e)
 		doRefreshIfAsked();
 
 		return true;
-	}
+	} // event had this window's windowId
 
 	return false;
 }
 
 SDL_Renderer* SdlWindow::getRenderer()
 {
-	return renderer;
+	return wndRenderer;
 }
 
 void SdlWindow::show()
@@ -195,7 +217,17 @@ void SdlWindow::doRefreshIfAsked()
 	if(askingForRefresh)
 	{
 		if(!minimized && shown)
-			SDL_RenderPresent(renderer);
+		{
+			resolutionTexture.setAsRenderTarget(wndRenderer);
+			SDL_SetRenderDrawColor(wndRenderer, 255, 0, 255, 255);
+			SDL_RenderClear(wndRenderer);
+			gui.render(wndRenderer, 0, 0);
+			resolutionTexture.releaseRenderTarget(wndRenderer);
+
+			resolutionTexture.renderFitToArea(wndRenderer, 0, 0, windowWidth, windowHeight);
+
+			SDL_RenderPresent(wndRenderer);
+		}
 
 		askingForRefresh = false;
 	}
@@ -203,27 +235,39 @@ void SdlWindow::doRefreshIfAsked()
 
 void SdlWindow::refresh()
 {
+	/*if(!minimized && shown)
+	{
+		resolutionTexture.setAsRenderTarget(wndRenderer);
+		SDL_SetRenderDrawColor(wndRenderer, 255, 0, 255, 255);
+		SDL_RenderClear(wndRenderer);
+		gui.render(wndRenderer, 0, 0);
+		resolutionTexture.releaseRenderTarget(wndRenderer);
+
+		resolutionTexture.renderFitToArea(wndRenderer, 0, 0, windowWidth, windowHeight);
+
+		SDL_RenderPresent(wndRenderer);
+	}//*/
 	askingForRefresh = true;
 }
 
 int SdlWindow::getWindowWidth()
 {
-	return width;
+	return windowWidth;
 }
 
 int SdlWindow::getWindowHeight()
 {
-	return height;
+	return windowHeight;
 }
 
 double SdlWindow::getWindowWidthScale()
 {
-	return (double)width / (double)originalWidth;
+	return (double)windowWidth / (double)originalWndWidth;
 }
 
 double SdlWindow::getWindowHeightScale()
 {
-	return (double)height / (double)originalHeight;
+	return (double)windowHeight / (double)originalWndHeight;
 }
 
 bool SdlWindow::hasMouseFocus()

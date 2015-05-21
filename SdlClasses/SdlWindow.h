@@ -3,7 +3,9 @@
 
 #include <functional>
 
-#include "UiObject.h"
+#include "SdlClasses/SdlTexture.h"
+
+#include "SdlClasses/UiObject.h"
 
 #include <SDL2/SDL.h>
 
@@ -12,17 +14,23 @@ class SdlWindow
 	private:
 		// Custom event handler
 		std::function<bool(SDL_Event& e)> evtHandler;
-		
+
 		// Window data
-		SDL_Renderer* renderer;
+		SDL_Renderer *wndRenderer;
+
+		SdlTexture resolutionTexture;
+
+		// Resolution independent from window size
+		int resolutionWidth;
+		int resolutionHeight;
 
 		// Window dimensions
-		int width;
-		int height;
+		int windowWidth;
+		int windowHeight;
 
 		// Original window dimensions
-		int originalWidth;
-		int originalHeight;
+		int originalWndWidth;
+		int originalWndHeight;
 
 		// Window focus
 		bool mouseFocus;
@@ -44,7 +52,7 @@ class SdlWindow
 		void setWindowSdlEvtHandler(std::function<bool(SDL_Event& e)> evth);
 
 	public:
-		SdlWindow(char const *title, int x, int y, int w, int h, Uint32 windowFlags, Uint32 rendererFlags);
+		SdlWindow(char const *title, int x, int y, int w, int h, int resW, int resH, Uint32 windowFlags, Uint32 rendererFlags);
 		virtual ~SdlWindow();
 
 		bool handleSdlEvent(SDL_Event& e);
