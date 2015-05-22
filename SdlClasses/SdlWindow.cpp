@@ -19,8 +19,6 @@ SdlWindow::SdlWindow(char const *title, int x, int y, int w, int h, int resW, in
 	minimized = false;
 	shown = false;
 
-	askingForRefresh = true;
-
 	window = SDL_CreateWindow(	title,
 								x,
 								y,
@@ -178,10 +176,6 @@ bool SdlWindow::handleSdlEvent(SDL_Event& e)
 				evtHandler(e);
 		}
 
-		// after handling events (therefore rendering 
-		// to the window renderer what was needed)
-		doRefreshIfAsked();
-
 		return true;
 	} // event had this window's windowId
 
@@ -212,30 +206,9 @@ void SdlWindow::hide()
 	SDL_HideWindow(window);
 }
 
-void SdlWindow::doRefreshIfAsked()
-{
-	if(askingForRefresh)
-	{
-		if(!minimized && shown)
-		{
-			resolutionTexture.setAsRenderTarget(wndRenderer);
-			SDL_SetRenderDrawColor(wndRenderer, 255, 0, 255, 255);
-			SDL_RenderClear(wndRenderer);
-			gui.render(wndRenderer, 0, 0);
-			resolutionTexture.releaseRenderTarget(wndRenderer);
-
-			resolutionTexture.renderFitToArea(wndRenderer, 0, 0, windowWidth, windowHeight);
-
-			SDL_RenderPresent(wndRenderer);
-		}
-
-		askingForRefresh = false;
-	}
-}
-
 void SdlWindow::refresh()
 {
-	/*if(!minimized && shown)
+	if(!minimized && shown)
 	{
 		resolutionTexture.setAsRenderTarget(wndRenderer);
 		SDL_SetRenderDrawColor(wndRenderer, 255, 0, 255, 255);
@@ -246,8 +219,7 @@ void SdlWindow::refresh()
 		resolutionTexture.renderFitToArea(wndRenderer, 0, 0, windowWidth, windowHeight);
 
 		SDL_RenderPresent(wndRenderer);
-	}//*/
-	askingForRefresh = true;
+	}
 }
 
 int SdlWindow::getWindowWidth()

@@ -21,11 +21,11 @@ using namespace std;
 MapFrame::MapFrame(int x, int y, int w, int h, MapTexture *mapTex, Map* mapVect[], int num, UiEventAggregator *evtAggr) : 
 	UiObject(x, y, w, h, mapTex,
 			[&](SDL_Event &e){return handleInternalSdlEvent(e);}),
-	UiPublisher(evtAggr),
+	evtAggregator(evtAggr),
 	mapTexture(mapTex)
 {
 	// make mapFrame observe events, so it may respond to other UiObjects
-	evtAggregator->addUiEventObserver(this);	
+	addUiEventObserver(evtAggregator, this);	
 
 	this->mapVect = mapVect;
 	numMaps = num;
@@ -44,7 +44,7 @@ MapFrame::MapFrame(int x, int y, int w, int h, MapTexture *mapTex, Map* mapVect[
 		TTF_SetFontStyle(heightInfoFont, TTF_STYLE_BOLD);
 
 	mapTexture->update();
-	publishUiEvent(UIEVT_CONTENTSCHANGED);
+	publishUiEvent(evtAggregator, UIEVT_CONTENTSCHANGED);
 }
 
 MapFrame::~MapFrame()
@@ -54,7 +54,7 @@ MapFrame::~MapFrame()
 
 	TTF_CloseFont(heightInfoFont);
 
-	evtAggregator->removeUiEventObserver(this);
+	removeUiEventObserver(evtAggregator, this);
 }
 
 void MapFrame::runNoise()
@@ -104,7 +104,7 @@ void MapFrame::runNoise()
 		if(updateMapTexture)
 		{
 			mapTexture->update();
-			publishUiEvent(UIEVT_CONTENTSCHANGED);
+			publishUiEvent(evtAggregator, UIEVT_CONTENTSCHANGED);
 			updateMapTexture = false;
 		}
 
@@ -393,7 +393,7 @@ bool MapFrame::handleInternalSdlEvent(SDL_Event &e)
 ////mapPosFromMouse(&x, &y); // usar se window tiver logical size ativado
 //SDL_GetMouseState(&x, &y);
 //heightInfoTex.render(getRenderer(), x, y - 30); // render tamanho original da fonte
-		publishUiEvent(UIEVT_CONTENTSCHANGED);
+		publishUiEvent(evtAggregator, UIEVT_CONTENTSCHANGED);
 	}
 
 	return returnValue;
@@ -422,7 +422,7 @@ bool MapFrame::handleUiEvent(int evtId)
 			cout << "Sea Level : " << setw(3) << setfill('0') << mapVect[selectedMap]->getSeaLvl();
 
 			mapTexture->update();
-			publishUiEvent(UIEVT_CONTENTSCHANGED);
+			publishUiEvent(evtAggregator, UIEVT_CONTENTSCHANGED);
 		break;
 
 		case UIEVT_BTCLICKEDMAP1:
@@ -432,7 +432,7 @@ bool MapFrame::handleUiEvent(int evtId)
 			cout << "Sea Level : " << setw(3) << setfill('0') << mapVect[selectedMap]->getSeaLvl();
 
 			mapTexture->update();
-			publishUiEvent(UIEVT_CONTENTSCHANGED);
+			publishUiEvent(evtAggregator, UIEVT_CONTENTSCHANGED);
 		break;
 
 		case UIEVT_BTCLICKEDMAP2:
@@ -442,7 +442,7 @@ bool MapFrame::handleUiEvent(int evtId)
 			cout << "Sea Level : " << setw(3) << setfill('0') << mapVect[selectedMap]->getSeaLvl();
 
 			mapTexture->update();
-			publishUiEvent(UIEVT_CONTENTSCHANGED);
+			publishUiEvent(evtAggregator, UIEVT_CONTENTSCHANGED);
 		break;
 
 		return true;

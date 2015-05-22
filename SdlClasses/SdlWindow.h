@@ -39,10 +39,6 @@ class SdlWindow
 		bool minimized;
 		bool shown;
 
-		bool askingForRefresh;
-
-		void doRefreshIfAsked();
-
 	protected:
 		UiObject gui;
 

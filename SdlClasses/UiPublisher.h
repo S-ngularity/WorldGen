@@ -5,13 +5,11 @@
 
 class UiPublisher
 {
-	protected:
-		UiEventAggregator *evtAggregator;
-
 	public:
-		UiPublisher(UiEventAggregator *evtAggr) {evtAggregator = evtAggr;}
-
-		void publishUiEvent(int evtId) { evtAggregator->publishUiEvent(evtId); }
+		void publishUiEvent(UiEventAggregator *evtAggr, int evtId)
+		{
+			evtAggr->publishUiEvent(evtId);
+		}
 };
 
 #endif

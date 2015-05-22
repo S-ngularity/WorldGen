@@ -24,6 +24,8 @@ const int octaves = 10; const double freq = 0.003, persistence = 0.6, freqDiv = 
 class MapFrame : public UiObject, public UiObserver, public UiPublisher
 {
 	private:
+		UiEventAggregator *evtAggregator;
+
 		MapTexture *const mapTexture;
 
 		SdlTexture heightInfoTex;

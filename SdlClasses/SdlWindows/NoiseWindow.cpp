@@ -17,7 +17,7 @@ NoiseWindow::NoiseWindow(UiEventAggregator *uiEvtAggr, Map* mapVect[], int num) 
 	walkWindow(mapVect[0]),
 	evtAggregator(uiEvtAggr)
 {
-	evtAggregator->addUiEventObserver(this);
+	addUiEventObserver(evtAggregator, this);
 
 	setWindowSdlEvtHandler([&](SDL_Event &e){return handleInternalSdlEvent(e);});
 
@@ -34,7 +34,7 @@ NoiseWindow::NoiseWindow(UiEventAggregator *uiEvtAggr, Map* mapVect[], int num) 
 
 NoiseWindow::~NoiseWindow()
 {
-	evtAggregator->removeUiEventObserver(this);
+	removeUiEventObserver(evtAggregator, this);
 }
 
 bool NoiseWindow::handleUiEvent(int evtId)
@@ -110,15 +110,15 @@ bool NoiseWindow::btMapClicked(SDL_Event &e, int i)
 		switch(i)
 		{
 			case 0:
-				evtAggregator->publishUiEvent(UIEVT_BTCLICKEDMAP0);
+				publishUiEvent(evtAggregator, UIEVT_BTCLICKEDMAP0);
 			break;
 
 			case 1:
-				evtAggregator->publishUiEvent(UIEVT_BTCLICKEDMAP1);
+				publishUiEvent(evtAggregator, UIEVT_BTCLICKEDMAP1);
 			break;
 
 			case 2:
-				evtAggregator->publishUiEvent(UIEVT_BTCLICKEDMAP2);
+				publishUiEvent(evtAggregator, UIEVT_BTCLICKEDMAP2);
 			break;
 		}
 
@@ -136,15 +136,15 @@ bool NoiseWindow::btNoiseClicked(SDL_Event &e, int i)
 		switch(i)
 		{
 			case 0:
-				evtAggregator->publishUiEvent(UIEVT_BTCLICKEDNOISE0);
+				publishUiEvent(evtAggregator, UIEVT_BTCLICKEDNOISE0);
 			break;
 
 			case 1:
-				evtAggregator->publishUiEvent(UIEVT_BTCLICKEDNOISE1);
+				publishUiEvent(evtAggregator, UIEVT_BTCLICKEDNOISE1);
 			break;
 
 			case 2:
-				evtAggregator->publishUiEvent(UIEVT_BTCLICKEDNOISE2);
+				publishUiEvent(evtAggregator, UIEVT_BTCLICKEDNOISE2);
 			break;
 		}
 

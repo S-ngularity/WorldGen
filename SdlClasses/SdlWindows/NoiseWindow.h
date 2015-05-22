@@ -8,6 +8,7 @@
 
 #include "SdlClasses/UiEventAggregator.h"
 #include "SdlClasses/UiObserver.h"
+#include "SdlClasses/UiPublisher.h"
 
 #include <SDL2/SDL.h>
 
@@ -19,7 +20,7 @@ const int SIDEBAR_WIDTH = 190;
 const int SCREEN_WIDTH = 800 + SIDEBAR_WIDTH;//map.getMapWidth();
 const int SCREEN_HEIGHT = 800;//map.getMapHeight();
 
-class NoiseWindow : public SdlWindow, public UiObserver
+class NoiseWindow : public SdlWindow, public UiObserver, public UiPublisher
 {
 	private:
 		int numMaps;
