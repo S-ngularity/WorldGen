@@ -62,9 +62,12 @@ SDL_Texture* NoiseWindow::createDrawnTexture(int width, int height, int r, int g
 	return targetTex;
 }
 
+MapFrame *mapFrame = nullptr;
+
 void NoiseWindow::createGui()
 {
-	gui->addChild(new MapFrame(	getRenderer(), 0, 0, gui->getWidth() - SIDEBAR_WIDTH, gui->getHeight(), mapArray, numMaps));
+	mapFrame = new MapFrame(getRenderer(), 0, 0, gui->getWidth() - SIDEBAR_WIDTH, gui->getHeight(), mapArray, numMaps);
+	gui->addChild(mapFrame);
 
 	SdlTexture *bgTex = new SdlTexture(createDrawnTexture(SIDEBAR_WIDTH, gui->getHeight(), 0, 126, 126, 255), SIDEBAR_WIDTH, gui->getHeight());
 	auto bgUi = new UiObject(getRenderer(), gui->getWidth() - SIDEBAR_WIDTH, 0,  bgTex, 
@@ -72,27 +75,27 @@ void NoiseWindow::createGui()
 
 	SdlTexture *btMap1Tex = new SdlTexture(createDrawnTexture(30, 30, 0, 255, 0, 255), 30, 30);
 	bgUi->addChild(new UiObject(getRenderer(), 30, 30, btMap1Tex, 
-								[&](SDL_Event &e){return btMapClicked(e, 0);}));
+								[&](SDL_Event &e){ return btMapClicked(e, 0); }));
 
 	SdlTexture *btMap2Tex = new SdlTexture(createDrawnTexture(30, 30, 0, 255, 0, 255), 30, 30);
 	bgUi->addChild(new UiObject(getRenderer(), 80, 30, btMap2Tex, 
-								[&](SDL_Event &e){return btMapClicked(e, 1);}));
+								[&](SDL_Event &e){ return btMapClicked(e, 1); }));
 
 	SdlTexture *btMap3Tex = new SdlTexture(createDrawnTexture(30, 30, 0, 255, 0, 255), 30, 30);
 	bgUi->addChild(new UiObject(getRenderer(), 130, 30, btMap3Tex, 
-								[&](SDL_Event &e){return btMapClicked(e, 2);}));
+								[&](SDL_Event &e){ return btMapClicked(e, 2); }));
 
 	SdlTexture *btNoise1Tex = new SdlTexture(createDrawnTexture(30, 30, 0, 255, 0, 255), 30, 30);
 	bgUi->addChild(new UiObject(getRenderer(), 30, 80, btNoise1Tex, 
-								[&](SDL_Event &e){return btNoiseClicked(e, 0);}));
+								[&](SDL_Event &e){ return btNoiseClicked(e, 0); }));
 
 	SdlTexture *btNoise2Tex = new SdlTexture(createDrawnTexture(30, 30, 0, 255, 0, 255), 30, 30);
 	bgUi->addChild(new UiObject(getRenderer(), 80, 80, btNoise2Tex, 
-								[&](SDL_Event &e){return btNoiseClicked(e, 1);}));
+								[&](SDL_Event &e){ return btNoiseClicked(e, 1); }));
 
 	SdlTexture *btNoise3Tex = new SdlTexture(createDrawnTexture(30, 30, 0, 255, 0, 255), 30, 30);
 	bgUi->addChild(new UiObject(getRenderer(), 130, 80, btNoise3Tex, 
-								[&](SDL_Event &e){return btNoiseClicked(e, 2);}));
+								[&](SDL_Event &e){ return btNoiseClicked(e, 2); }));
 
 	gui->addChild(bgUi);
 }
@@ -101,20 +104,7 @@ bool NoiseWindow::btMapClicked(SDL_Event &e, int i)
 {
 	if(e.type == SDL_MOUSEBUTTONUP)
 	{
-		switch(i)
-		{
-			case 0:
-				publishUiEvent(UIEVT_BTCLICKEDMAP0);
-			break;
-
-			case 1:
-				publishUiEvent(UIEVT_BTCLICKEDMAP1);
-			break;
-
-			case 2:
-				publishUiEvent(UIEVT_BTCLICKEDMAP2);
-			break;
-		}
+		mapFrame->selectMap(i);
 
 		return true;
 	}
@@ -127,20 +117,7 @@ bool NoiseWindow::btNoiseClicked(SDL_Event &e, int i)
 {
 	if(e.type == SDL_MOUSEBUTTONUP)
 	{
-		switch(i)
-		{
-			case 0:
-				publishUiEvent(UIEVT_BTCLICKEDNOISE0);
-			break;
-
-			case 1:
-				publishUiEvent(UIEVT_BTCLICKEDNOISE1);
-			break;
-
-			case 2:
-				publishUiEvent(UIEVT_BTCLICKEDNOISE2);
-			break;
-		}
+		mapFrame->selectNoise(0);
 
 		return true;
 	}

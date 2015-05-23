@@ -49,9 +49,22 @@ class MapFrame : public UiObject, public UiObserver, public UiPublisher
 
 		bool handleInternalSdlEvent(SDL_Event &e);
 		bool handleUiEvent(int evtId) override;
+
 	public:
 		MapFrame(SDL_Renderer *r, int x, int y, int w, int h, Map* mapArr[], int num);
 		~MapFrame();
+
+		void selectMap(int i);
+		void selectNoise(int i);
+
+		void normalizeMap();
+
+		void increaseSeaLevel();
+		void decreaseSeaLevel();
+
+		void setLandRenderMode(int mode);
+		void setSeaRenderMode(int mode);
+		void setLandAndSeaRenderModes(int modeLand, int modeSea);
 };
 
 #endif

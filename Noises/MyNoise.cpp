@@ -48,7 +48,7 @@ void MyNoise::runOnce()
 		map->setHighestH(INIT_H);
 		map->setLowestH(INIT_H);
 
-		map->setSeaLvl(SEA_LEVEL);
+		map->setSeaLevel(SEA_LEVEL);
 	}
 
 	if(doneIts <= totalTecIts)

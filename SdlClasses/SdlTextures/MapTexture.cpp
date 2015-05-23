@@ -15,7 +15,7 @@ MapTexture::~MapTexture()
 	delete mapPixels;
 }
 
-void MapTexture::setMap(Map *theMap)
+void MapTexture::setMapAndUpdate(Map *theMap)
 {
 	int w = worldMap->getMapWidth();
 	int h = worldMap->getMapHeight();
@@ -27,6 +27,8 @@ void MapTexture::setMap(Map *theMap)
 		delete mapPixels;
 		mapPixels = new Uint32[worldMap->getMapWidth() * worldMap->getMapHeight()];
 	}
+
+	update();
 }
 
 void MapTexture::update()
@@ -53,7 +55,7 @@ void MapTexture::update()
 				SDL_SetRenderDrawColor(noiseRenderer, 0, 255, 0, 255);
 			//*/
 
-			else if(seaRenderMode == WITH_SEA && worldMap->Tile(x, y).getH() <= worldMap->getSeaLvl())
+			else if(seaRenderMode == WITH_SEA && worldMap->Tile(x, y).getH() <= worldMap->getSeaLevel())
 			{
 				r = 25;
 				g = 45;
@@ -64,24 +66,24 @@ void MapTexture::update()
 			{
 				Uint8 baseColor, hColor;
 				
-				if(landRenderMode == VARYING_HIGHEST) // BRANCO VARIAVEL worldMap->getSeaLvl() até HighestH
+				if(landRenderMode == VARYING_HIGHEST) // BRANCO VARIAVEL worldMap->getSeaLevel() até HighestH
 				{
 					baseColor = 100;
-					int varBy = (worldMap->getHighestH() - worldMap->getSeaLvl());
+					int varBy = (worldMap->getHighestH() - worldMap->getSeaLevel());
 					if(varBy == 0) varBy = 1;
 					float multiplierColor = (float)(255 - baseColor) / varBy;
 					
-					hColor = (worldMap->Tile(x, y).getH() - worldMap->getSeaLvl()) * multiplierColor;
+					hColor = (worldMap->Tile(x, y).getH() - worldMap->getSeaLevel()) * multiplierColor;
 				}//*/
 				//*
-				else if(landRenderMode == VARYING_MAX) // BRANCO VARIAVEL worldMap->getSeaLvl() até MAX_H
+				else if(landRenderMode == VARYING_MAX) // BRANCO VARIAVEL worldMap->getSeaLevel() até MAX_H
 				{
 					baseColor = 100;
-					int varBy = (MAX_H - worldMap->getSeaLvl());
+					int varBy = (MAX_H - worldMap->getSeaLevel());
 					if(varBy == 0) varBy = 1;
 					float multiplierColor = (float)(255 - baseColor) / varBy;
 					
-					hColor = (worldMap->Tile(x, y).getH() - worldMap->getSeaLvl()) * multiplierColor;
+					hColor = (worldMap->Tile(x, y).getH() - worldMap->getSeaLevel()) * multiplierColor;
 				}//*/
 
 				else if(landRenderMode == FIXED) // BRANCO FIXO

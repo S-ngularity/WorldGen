@@ -141,22 +141,22 @@ void Map::setLowestH(int h)
 	lowestH = h;
 }
 
-int Map::getSeaLvl()
+int Map::getSeaLevel()
 {
 	return seaLevel;
 }
 
-void Map::setSeaLvl(int lvl)
+void Map::setSeaLevel(int lvl)
 {
 	seaLevel = lvl;
 }
 
-void Map::increaseSeaLvl()
+void Map::increaseSeaLevel()
 {
 	seaLevel++;
 }
 
-void Map::decreaseSeaLvl()
+void Map::decreaseSeaLevel()
 {
 	seaLevel--;
 }

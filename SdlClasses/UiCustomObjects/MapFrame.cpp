@@ -90,7 +90,7 @@ void MapFrame::runNoise()
 					mapTexture->setSeaRenderMode(WITH_SEA);
 					mapTexture->setLandRenderMode(VARYING_HIGHEST);
 					updateMapTexture = true; // last noise print
-					cout << "Sea Level : " << setw(3) << setfill('0') << mapArray[selectedMap]->getSeaLvl();
+					cout << "Sea Level : " << setw(3) << setfill('0') << mapArray[selectedMap]->getSeaLevel();
 				}
 			}
 		}
@@ -105,7 +105,7 @@ void MapFrame::runNoise()
 		SDL_PumpEvents();
 	}
 
-	mapArray[selectedMap]->setSeaLvl(SEA_LEVEL);
+	mapArray[selectedMap]->setSeaLevel(SEA_LEVEL);
 }
 
 void MapFrame::resetNoise()
@@ -122,7 +122,7 @@ void MapFrame::updateMouseText()
 		int h = mapArray[selectedMap]->Tile(mapX, mapY).getH();
 		string text;
 
-		if(mapTexture->getSeaRenderMode() == WITH_SEA && h <= mapArray[selectedMap]->getSeaLvl())
+		if(mapTexture->getSeaRenderMode() == WITH_SEA && h <= mapArray[selectedMap]->getSeaLevel())
 			text = "Sea";
 
 		else
@@ -158,72 +158,44 @@ bool MapFrame::mapPosFromMouse(int *x, int *y)
 
 bool MapFrame::handleInternalSdlEvent(SDL_Event &e)
 {
-	bool updateMapTexture = false;
-
 	switch(e.type)
 	{
 		case SDL_KEYDOWN:
 			switch(e.key.keysym.sym)
 			{
 				case SDLK_UP:
-					// up always shows sea (without increasing sealvl on first press)
+					// up always shows sea (without increasing seaLevel on first press)
 					if(mapTexture->getSeaRenderMode() != WITH_SEA)
-					{
-						mapTexture->setSeaRenderMode(WITH_SEA);
-						updateMapTexture = true;
-					}
+						setSeaRenderMode(WITH_SEA);
 
-					// up = +1 sea_lvl when with_sea
-					else if(!(e.key.keysym.mod & KMOD_SHIFT) && mapArray[selectedMap]->getSeaLvl() + 1 < mapArray[selectedMap]->getHighestH())
-					{
-						mapArray[selectedMap]->increaseSeaLvl();
-						cout << "\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b" << "Sea Level : " << setw(3) << setfill('0') << mapArray[selectedMap]->getSeaLvl();
-						
-						updateMapTexture = true;
-					}
+					// up = +1 sea_Level when with_sea
+					else if(!(e.key.keysym.mod & KMOD_SHIFT) && mapArray[selectedMap]->getSeaLevel() + 1 <= mapArray[selectedMap]->getHighestH())
+						increaseSeaLevel();
 				break;
 
 				case SDLK_DOWN:
 					// shift+down = no_sea (no update when not needed)
 					if(e.key.keysym.mod & KMOD_SHIFT && mapTexture->getSeaRenderMode() != NO_SEA)
-					{
-						mapTexture->setSeaRenderMode(NO_SEA);
-						mapTexture->setLandRenderMode(FIXED);
-						updateMapTexture = true;
-					}
+						setLandAndSeaRenderModes(FIXED, NO_SEA);
 
-					// down = -1 sealvl when with_sea
-					else if(!(e.key.keysym.mod & KMOD_SHIFT) && mapArray[selectedMap]->getSeaLvl() - 1 > 0 && mapTexture->getSeaRenderMode() == WITH_SEA)
-					{
-						mapArray[selectedMap]->decreaseSeaLvl();
-						cout << "\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b" << "Sea Level : " << setw(3) << setfill('0') << mapArray[selectedMap]->getSeaLvl();
-
-						updateMapTexture = true;
-					}
+					// down = -1 seaLevel when with_sea
+					else if(!(e.key.keysym.mod & KMOD_SHIFT) && mapArray[selectedMap]->getSeaLevel() - 1 >= 0 && mapTexture->getSeaRenderMode() == WITH_SEA)
+						decreaseSeaLevel();
 				break;
 
 				case SDLK_z:
 					if(mapTexture->getSeaRenderMode() != NO_SEA)
-					{
-						mapTexture->setLandRenderMode(VARYING_HIGHEST);
-						updateMapTexture = true;
-					}
+						setLandRenderMode(VARYING_HIGHEST);
 				break;
 
 				case SDLK_x:
 					if(mapTexture->getSeaRenderMode() != NO_SEA)
-					{
-						mapTexture->setLandRenderMode(VARYING_MAX);
-						updateMapTexture = true;
-					}
+						setLandRenderMode(VARYING_MAX);
 				break;
 
 				case SDLK_c:
 					if(mapTexture->getSeaRenderMode() != NO_SEA)
-					{
-						mapTexture->setLandRenderMode(FIXED);
-						updateMapTexture = true;
-					}
+						setLandRenderMode(FIXED);
 				break;
 
 				case SDLK_r:
@@ -232,59 +204,35 @@ bool MapFrame::handleInternalSdlEvent(SDL_Event &e)
 				break;
 
 				case SDLK_n:
-					int n;
-					cout << endl << "Normalize: ";
-					cin >> n;
-					mapArray[selectedMap]->normalize(n);
-					mapArray[selectedMap]->setSeaLvl((mapArray[selectedMap]->getHighestH() / 2 ) - 1);
-					cout << "Sea Level : " << setw(3) << setfill('0') << mapArray[selectedMap]->getSeaLvl();
-					updateMapTexture = true;
+					normalizeMap();
 				break;
 
 				case SDLK_1:
 					if(e.key.keysym.mod & KMOD_SHIFT)
-						selectedNoise = 0;
+						selectNoise(0);
 
 					else if(!(e.key.keysym.mod & KMOD_SHIFT))
-					{
-						selectedMap = 0;
-						mapTexture->setMap(mapArray[selectedMap]);
-						cout << endl << endl << "Map 1" << endl;
-						cout << "Sea Level : " << setw(3) << setfill('0') << mapArray[selectedMap]->getSeaLvl();
-						updateMapTexture = true;
-					}
+						selectMap(0);
 				break;
 
 				case SDLK_2:
 					if(e.key.keysym.mod & KMOD_SHIFT)
-						selectedNoise = 1;
+						selectNoise(1);
 
 					else if(!(e.key.keysym.mod & KMOD_SHIFT))
-					{
-						selectedMap = 1;
-						mapTexture->setMap(mapArray[selectedMap]);
-						cout << endl << endl << "Map 2" << endl;
-						cout << "Sea Level : " << setw(3) << setfill('0') << mapArray[selectedMap]->getSeaLvl();
-						updateMapTexture = true;
-					}
+						selectMap(1);
 				break;
 
 				case SDLK_3:
 					if(e.key.keysym.mod & KMOD_SHIFT)
-						selectedNoise = 2;
+						selectNoise(2);
 
 					else if(!(e.key.keysym.mod & KMOD_SHIFT))
-					{
-						selectedMap = 2;
-						mapTexture->setMap(mapArray[selectedMap]);
-						cout << endl << endl << "Map 3" << endl;
-						cout << "Sea Level : " << setw(3) << setfill('0') << mapArray[selectedMap]->getSeaLvl();
-						updateMapTexture = true;
-					}
+						selectMap(2);
 				break;
 
+				// if event was from keyboard but wasn't handled, returns to parent
 				default:
-					// if event was from keyboard but wasn't handled, returns to parent
 					return false;
 				break;
 			}
@@ -309,16 +257,10 @@ bool MapFrame::handleInternalSdlEvent(SDL_Event &e)
 			publishUiEvent(UIEVT_CONTENTSCHANGED);
 		break;
 
+		// if event wasn't from keyboard, doesn't return to parent
 		default:
-			// if event wasn't from keyboard, doesn't return to parent
 			return true;
 		break;
-	}
-
-	if(updateMapTexture)
-	{
-		mapTexture->update();
-		publishUiEvent(UIEVT_CONTENTSCHANGED);
 	}
 
 	return true;
@@ -329,49 +271,108 @@ bool MapFrame::handleUiEvent(int evtId)
 	switch(evtId)
 	{
 		case UIEVT_BTCLICKEDNOISE0:
-			selectedNoise = 0;
+			selectNoise(0);
 		break;
 
 		case UIEVT_BTCLICKEDNOISE1:
-			selectedNoise = 1;
+			selectNoise(1);
 		break;
 
 		case UIEVT_BTCLICKEDNOISE2:
-			selectedNoise = 2;
+			selectNoise(2);
 		break;
 
 		case UIEVT_BTCLICKEDMAP0:
-			selectedMap = 0;
-			mapTexture->setMap(mapArray[selectedMap]);
-			cout << endl << endl << "Map " << selectedMap+1 << endl;
-			cout << "Sea Level : " << setw(3) << setfill('0') << mapArray[selectedMap]->getSeaLvl();
-
-			mapTexture->update();
-			publishUiEvent(UIEVT_CONTENTSCHANGED);
+			selectMap(0);
 		break;
 
 		case UIEVT_BTCLICKEDMAP1:
-			selectedMap = 1;
-			mapTexture->setMap(mapArray[selectedMap]);
-			cout << endl << endl << "Map " << selectedMap+1 << endl;
-			cout << "Sea Level : " << setw(3) << setfill('0') << mapArray[selectedMap]->getSeaLvl();
-
-			mapTexture->update();
-			publishUiEvent(UIEVT_CONTENTSCHANGED);
+			selectMap(1);
 		break;
 
 		case UIEVT_BTCLICKEDMAP2:
-			selectedMap = 2;
-			mapTexture->setMap(mapArray[selectedMap]);
-			cout << endl << endl << "Map " << selectedMap+1 << endl;
-			cout << "Sea Level : " << setw(3) << setfill('0') << mapArray[selectedMap]->getSeaLvl();
-
-			mapTexture->update();
-			publishUiEvent(UIEVT_CONTENTSCHANGED);
+			selectMap(2);
 		break;
 
 		return true;
 	}
 
 	return false;
+}
+
+void MapFrame::selectMap(int i)
+{
+	selectedMap = i;
+
+	mapTexture->setMapAndUpdate(mapArray[selectedMap]);
+	cout << endl << endl << "Map " << selectedMap+1 << endl;
+	cout << "Sea Level : " << setw(3) << setfill('0') << mapArray[selectedMap]->getSeaLevel();
+
+	publishUiEvent(UIEVT_CONTENTSCHANGED);
+}
+
+void MapFrame::selectNoise(int i)
+{
+	selectedNoise = i;
+}
+
+void MapFrame::normalizeMap()
+{
+	int n;
+
+	cout << endl << "Normalize: ";
+	cin >> n;
+
+	mapArray[selectedMap]->normalize(n);
+	
+	// reset sea level after normalization
+	mapArray[selectedMap]->setSeaLevel((mapArray[selectedMap]->getHighestH() / 2 ) - 1);
+	
+	cout << "Sea Level : " << setw(3) << setfill('0') << mapArray[selectedMap]->getSeaLevel();
+	
+	mapTexture->update();
+	publishUiEvent(UIEVT_CONTENTSCHANGED);
+}
+
+void MapFrame::increaseSeaLevel()
+{
+	mapArray[selectedMap]->increaseSeaLevel();
+	cout << "\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b" << "Sea Level : " << setw(3) << setfill('0') << mapArray[selectedMap]->getSeaLevel();
+
+	mapTexture->update();
+	publishUiEvent(UIEVT_CONTENTSCHANGED);
+}
+
+void MapFrame::decreaseSeaLevel()
+{
+	mapArray[selectedMap]->decreaseSeaLevel();
+	cout << "\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b" << "Sea Level : " << setw(3) << setfill('0') << mapArray[selectedMap]->getSeaLevel();
+
+	mapTexture->update();
+	publishUiEvent(UIEVT_CONTENTSCHANGED);
+}
+
+void MapFrame::setLandRenderMode(int mode)
+{
+	mapTexture->setLandRenderMode(mode);
+
+	mapTexture->update();
+	publishUiEvent(UIEVT_CONTENTSCHANGED);
+}
+
+void MapFrame::setSeaRenderMode(int mode)
+{
+	mapTexture->setSeaRenderMode(mode);
+
+	mapTexture->update();
+	publishUiEvent(UIEVT_CONTENTSCHANGED);
+}
+
+void MapFrame::setLandAndSeaRenderModes(int modeLand, int modeSea)
+{
+	mapTexture->setLandRenderMode(modeLand);
+	mapTexture->setSeaRenderMode(modeSea);
+
+	mapTexture->update();
+	publishUiEvent(UIEVT_CONTENTSCHANGED);
 }

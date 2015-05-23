@@ -27,7 +27,7 @@ class MapTexture : public SdlTexture
 		MapTexture(SDL_Renderer *r, Map *theMap);
 		~MapTexture();
 
-		void setMap(Map *theMap);
+		void setMapAndUpdate(Map *theMap);
 
 		void update();
 

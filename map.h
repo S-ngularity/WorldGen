@@ -46,10 +46,10 @@ class Map
 		int getLowestH();
 		void setLowestH(int h);
 
-		int getSeaLvl();
-		void setSeaLvl(int lvl);
-		void increaseSeaLvl();
-		void decreaseSeaLvl();
+		int getSeaLevel();
+		void setSeaLevel(int lvl);
+		void increaseSeaLevel();
+		void decreaseSeaLevel();
 };
 
 #endif

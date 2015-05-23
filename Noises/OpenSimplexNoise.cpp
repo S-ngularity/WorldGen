@@ -60,7 +60,7 @@ void OpenSimplexNoise::runOnce()
 		{
 			map->setHighestH(0);
 			map->setLowestH(MAX_H);
-			map->setSeaLvl(SEA_LEVEL);
+			map->setSeaLevel(SEA_LEVEL);
 		}
 
 		if(nowY < map->getMapHeight()) // uma linha por chamada
@@ -147,11 +147,11 @@ void OpenSimplexNoise::checkIfFinished()
 			for(int y = 0; y < map->getMapHeight(); y++)
 				for(int x = 0; x < map->getMapWidth(); x++)
 				{
-					if(map->Tile(x, y).getH() <= map->getSeaLvl())
-						imageData[(map->getMapHeight() - 1 - y) * map->getMapWidth() + x] = 0;//(unsigned char)(((float)(map->getSeaLvl() - 1) / MAX_H) * 256.0);
+					if(map->Tile(x, y).getH() <= map->getSeaLevel())
+						imageData[(map->getMapHeight() - 1 - y) * map->getMapWidth() + x] = 0;//(unsigned char)(((float)(map->getSeaLevel() - 1) / MAX_H) * 256.0);
 
 					else
-						imageData[(map->getMapHeight() - 1 - y) * map->getMapWidth() + x] = (unsigned char)((int)((map->Tile(x, y).getH() - map->getSeaLvl()) / (float)(MAX_H - map->getSeaLvl()) * 255.0)); //(unsigned char)((int)(((float)map->Tile(x, y).getH() / MAX_H) * 256.0));
+						imageData[(map->getMapHeight() - 1 - y) * map->getMapWidth() + x] = (unsigned char)((int)((map->Tile(x, y).getH() - map->getSeaLevel()) / (float)(MAX_H - map->getSeaLevel()) * 255.0)); //(unsigned char)((int)(((float)map->Tile(x, y).getH() / MAX_H) * 256.0));
 				}
 
 			tgaSave("t.tga", map->getMapWidth(), map->getMapHeight(), 8, imageData);
