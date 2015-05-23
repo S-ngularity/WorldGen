@@ -16,7 +16,7 @@ class UiObject
 
 		int width, height;
 		double scaleW, scaleH;
-		double mouseScaleW, mouseScaleH;
+		double windowScaleW, windowScaleH;
 
 		SDL_Renderer *renderer;
 		SdlTexture *uiTexture;
@@ -38,30 +38,32 @@ class UiObject
 
 		void addChild(UiObject *c);
 
+		// Settings
 		void setUiObjectTexture(SdlTexture *t);
-		void setUiObjectOffset(int x, int y);
+		void setUiObjectOffset(int x, int y); // Offset from parent
 		void setUiObjectSize(int w, int h);
-
-		void setPreRenderProcedure(std::function<void()> procedure);
-		void setPostRenderProcedure(std::function<void()> procedure);
-
-		void render(int parentX, int parentY);
-		void renderScaled(int parentX, int parentY, double sW, double sH);
-
-		void setSdlEventHandler(std::function<bool(SDL_Event& e)> evth);
 		
-		bool handleSdlEvent(SDL_Event& e);
-
 		int getWidth();
 		int getHeight();
 
-		int getAbsoluteX();
-		int getAbsoluteY();
+		// Render
+		void setPreRenderProcedure(std::function<void()> procedure);
+		void setPostRenderProcedure(std::function<void()> procedure);
+		void render(int parentX, int parentY);
+		void renderScaled(int parentX, int parentY, double sW, double sH);
 
-		void setMouseScale(double sW, double sH);
+		// Events
+		void setSdlEventHandler(std::function<bool(SDL_Event& e)> evth);
+		bool handleSdlEvent(SDL_Event& e);
 
+		// Mouse
 		bool isMouseInside();
 		static bool getRelativeMousePos(UiObject *obj, int *x, int *y);
+
+		// Window
+		void setWindowScale(double sW, double sH);
+		double getWindowScaleW();
+		double getWindowScaleH();
 };
 
 # endif

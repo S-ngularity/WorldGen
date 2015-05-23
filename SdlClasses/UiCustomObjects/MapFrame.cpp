@@ -17,28 +17,28 @@
 
 using namespace std;
 
-MapFrame::MapFrame(SDL_Renderer *r, int x, int y, int w, int h, Map* mapVect[], int num) : 
+MapFrame::MapFrame(SDL_Renderer *r, int x, int y, int w, int h, Map* mapArr[], int num) : 
 	UiObject(r, x, y, w, h, NULL,
 			[&](SDL_Event &e){return handleInternalSdlEvent(e);})
 {
 	// make mapFrame observe events, so it may respond to other UiObjects
 	addUiEventObserver(this);
 
-	this->mapVect = mapVect;
+	mapArray = mapArr;
 	numMaps = num;
 	selectedMap = 0;
 
-	noiseVect[0] = new OpenSimplexNoise(mapVect[0], octaves, freq, persistence, freqDiv);
-	noiseVect[1] = new DiamSqNoise(mapVect[0]);
-	noiseVect[2] = new MyNoise(mapVect[0]);
+	noiseArray[0] = new OpenSimplexNoise(mapArray[0], octaves, freq, persistence, freqDiv);
+	noiseArray[1] = new DiamSqNoise(mapArray[0]);
+	noiseArray[2] = new MyNoise(mapArray[0]);
 	selectedNoise = 0;
 
-	mapTexture = new MapTexture(getRenderer(), mapVect[selectedMap]);
+	mapTexture = new MapTexture(getRenderer(), mapArray[selectedMap]);
 	mapTexture->update();
 	setUiObjectTexture(mapTexture);
 
 	mouseText = new MouseHeightText(getRenderer());
-	setPostRenderProcedure([&](){ renderMouseText(); });
+	addChild(mouseText);
 	
 	publishUiEvent(UIEVT_CONTENTSCHANGED);
 }
@@ -46,7 +46,7 @@ MapFrame::MapFrame(SDL_Renderer *r, int x, int y, int w, int h, Map* mapVect[], 
 MapFrame::~MapFrame()
 {
 	for(int i = 0; i < 3; i++)
-		delete noiseVect[i];
+		delete noiseArray[i];
 
 	removeUiEventObserver(this);
 }
@@ -56,29 +56,29 @@ void MapFrame::runNoise()
 	bool updateMapTexture = false;
 	int shownPercent = -1;
 
-	noiseVect[selectedNoise]->setMap(mapVect[selectedMap]);
+	noiseArray[selectedNoise]->setMap(mapArray[selectedMap]);
 
 	cout << endl << endl;
 
-	while(noiseVect[selectedNoise]->getPercentComplete() < 100) // noise iterations
+	while(noiseArray[selectedNoise]->getPercentComplete() < 100) // noise iterations
 	{
-		noiseVect[selectedNoise]->runOnce();
+		noiseArray[selectedNoise]->runOnce();
 
 		// update only once per percent
-		if(noiseVect[selectedNoise]->getPercentComplete() != shownPercent)
+		if(noiseArray[selectedNoise]->getPercentComplete() != shownPercent)
 		{
-			shownPercent = noiseVect[selectedNoise]->getPercentComplete();
+			shownPercent = noiseArray[selectedNoise]->getPercentComplete();
 
 			cout << "\b\b\b\b" << shownPercent << "%";
 
 			if(shownPercent == 100) // show highest at each phase (if appliable)
 				cout << endl 
-				<< endl << "Highest point: " << mapVect[selectedMap]->getHighestH()
-				<< endl << "Lowest point: " << mapVect[selectedMap]->getLowestH() << endl << endl;
+				<< endl << "Highest point: " << mapArray[selectedMap]->getHighestH()
+				<< endl << "Lowest point: " << mapArray[selectedMap]->getLowestH() << endl << endl;
 			
 			if(shownPercent % UPDATE_AT_PERCENT == 0)
 			{
-				if(noiseVect[selectedNoise]->getPercentComplete() < 100) // no sea while not done
+				if(noiseArray[selectedNoise]->getPercentComplete() < 100) // no sea while not done
 				{
 					mapTexture->setSeaRenderMode(NO_SEA);
 					mapTexture->setLandRenderMode(FIXED);
@@ -90,7 +90,7 @@ void MapFrame::runNoise()
 					mapTexture->setSeaRenderMode(WITH_SEA);
 					mapTexture->setLandRenderMode(VARYING_HIGHEST);
 					updateMapTexture = true; // last noise print
-					cout << "Sea Level : " << setw(3) << setfill('0') << mapVect[selectedMap]->getSeaLvl();
+					cout << "Sea Level : " << setw(3) << setfill('0') << mapArray[selectedMap]->getSeaLvl();
 				}
 			}
 		}
@@ -105,24 +105,24 @@ void MapFrame::runNoise()
 		SDL_PumpEvents();
 	}
 
-	mapVect[selectedMap]->setSeaLvl(SEA_LEVEL);
+	mapArray[selectedMap]->setSeaLvl(SEA_LEVEL);
 }
 
 void MapFrame::resetNoise()
 {
-	noiseVect[selectedNoise]->reset();
+	noiseArray[selectedNoise]->reset();
 }
 
 void MapFrame::updateMouseText()
 {
-	int x, y;
+	int mapX, mapY;
 	
-	if(mapPosFromMouse(&x, &y))
+	if(mapPosFromMouse(&mapX, &mapY))
 	{
-		int h = mapVect[selectedMap]->Tile(x, y).getH();
+		int h = mapArray[selectedMap]->Tile(mapX, mapY).getH();
 		string text;
 
-		if(mapTexture->getSeaRenderMode() == WITH_SEA && h <= mapVect[selectedMap]->getSeaLvl())
+		if(mapTexture->getSeaRenderMode() == WITH_SEA && h <= mapArray[selectedMap]->getSeaLvl())
 			text = "Sea";
 
 		else
@@ -133,12 +133,11 @@ void MapFrame::updateMouseText()
 		}
 
 		mouseText->update(text);
-	}
-}
 
-void MapFrame::renderMouseText()
-{
-	mouseText->render(getAbsoluteX(), getAbsoluteY());
+		int x, y;
+		UiObject::getRelativeMousePos(this, &x, &y);
+		mouseText->setUiObjectOffset(x, y - 30);
+	}
 }
 
 bool MapFrame::mapPosFromMouse(int *x, int *y)
@@ -146,49 +145,13 @@ bool MapFrame::mapPosFromMouse(int *x, int *y)
 	if(!UiObject::getRelativeMousePos(this, x, y))
 		return false;
 
-	int tamTexW = getWidth(), tamTexH = getHeight();
+	int mapFrameWidth = getWidth();
+	int mapFrameHeight = getHeight();
 
-	double scaleX, scaleY;
-	scaleX = (double)tamTexW / mapVect[selectedMap]->getMapWidth();
-	scaleY = (double)tamTexH / mapVect[selectedMap]->getMapHeight();
-
-	int sobra; // letterbox, soma dos 2 lados
-	
-	// regra de três: mouseX / winW assim como mapX / mapVect[selectedMap]->getMapWidth()
-	// regra de três: mouseX / tamanhoTex assim como mapX / mapVect[selectedMap]->getMapWidth()
-	// if compara ratioW - ratioH (ratio do original em relação a janela) para saber 
-	// se letterbox está dos lados ou em cima/baixo
-	if((double)mapVect[selectedMap]->getMapWidth() / tamTexW - (double)mapVect[selectedMap]->getMapHeight() / tamTexH > 0)
-	{
-		// total - tamanho do mapa(renderer logical size) * escala que esta sendo renderizado
-		sobra = (tamTexH - mapVect[selectedMap]->getMapHeight() * scaleY);
-		
-		*x = (*x * mapVect[selectedMap]->getMapWidth()) / (double)tamTexW;
-		if(*y < sobra/2) // está no letterbox antes
-			*y = 0;
-
-		else if(*y > mapVect[selectedMap]->getMapHeight() * scaleY + sobra/2) // está no letterbox depois
-			*y = mapVect[selectedMap]->getMapHeight() - 1;
-
-		else // escala y sem letterbox em window size sem letterbox em relação ao mapa
-			*y = ((*y - sobra/2) * mapVect[selectedMap]->getMapHeight()) / (double)(tamTexH - sobra);
-	}
-
-	else
-	{
-		sobra = (tamTexW - mapVect[selectedMap]->getMapWidth() * scaleX);
-
-		*y = (*y * mapVect[selectedMap]->getMapHeight()) / (double)tamTexH;
-
-		if(*x < sobra/2)
-			*x = 0;
-
-		else if(*x >  mapVect[selectedMap]->getMapWidth() * scaleX + sobra/2)
-			*x = mapVect[selectedMap]->getMapWidth() - 1;
-
-		else
-			*x = ((*x - sobra/2) * mapVect[selectedMap]->getMapWidth()) / (double)(tamTexW - sobra);
-	}
+	// mousePos / frameSize = mapPos / mapSize --> 
+	// mapPos = (mousePos / frameSize) * mapSize
+	*x = (*x / (double)mapFrameWidth) * mapArray[selectedMap]->getMapWidth();
+	*y = (*y / (double)mapFrameHeight) * mapArray[selectedMap]->getMapHeight();
 
 	return true;
 }
@@ -211,10 +174,10 @@ bool MapFrame::handleInternalSdlEvent(SDL_Event &e)
 					}
 
 					// up = +1 sea_lvl when with_sea
-					else if(!(e.key.keysym.mod & KMOD_SHIFT) && mapVect[selectedMap]->getSeaLvl() + 1 < mapVect[selectedMap]->getHighestH())
+					else if(!(e.key.keysym.mod & KMOD_SHIFT) && mapArray[selectedMap]->getSeaLvl() + 1 < mapArray[selectedMap]->getHighestH())
 					{
-						mapVect[selectedMap]->increaseSeaLvl();
-						cout << "\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b" << "Sea Level : " << setw(3) << setfill('0') << mapVect[selectedMap]->getSeaLvl();
+						mapArray[selectedMap]->increaseSeaLvl();
+						cout << "\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b" << "Sea Level : " << setw(3) << setfill('0') << mapArray[selectedMap]->getSeaLvl();
 						
 						updateMapTexture = true;
 					}
@@ -230,10 +193,10 @@ bool MapFrame::handleInternalSdlEvent(SDL_Event &e)
 					}
 
 					// down = -1 sealvl when with_sea
-					else if(!(e.key.keysym.mod & KMOD_SHIFT) && mapVect[selectedMap]->getSeaLvl() - 1 > 0 && mapTexture->getSeaRenderMode() == WITH_SEA)
+					else if(!(e.key.keysym.mod & KMOD_SHIFT) && mapArray[selectedMap]->getSeaLvl() - 1 > 0 && mapTexture->getSeaRenderMode() == WITH_SEA)
 					{
-						mapVect[selectedMap]->decreaseSeaLvl();
-						cout << "\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b" << "Sea Level : " << setw(3) << setfill('0') << mapVect[selectedMap]->getSeaLvl();
+						mapArray[selectedMap]->decreaseSeaLvl();
+						cout << "\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b" << "Sea Level : " << setw(3) << setfill('0') << mapArray[selectedMap]->getSeaLvl();
 
 						updateMapTexture = true;
 					}
@@ -272,9 +235,9 @@ bool MapFrame::handleInternalSdlEvent(SDL_Event &e)
 					int n;
 					cout << endl << "Normalize: ";
 					cin >> n;
-					mapVect[selectedMap]->normalize(n);
-					mapVect[selectedMap]->setSeaLvl((mapVect[selectedMap]->getHighestH() / 2 ) - 1);
-					cout << "Sea Level : " << setw(3) << setfill('0') << mapVect[selectedMap]->getSeaLvl();
+					mapArray[selectedMap]->normalize(n);
+					mapArray[selectedMap]->setSeaLvl((mapArray[selectedMap]->getHighestH() / 2 ) - 1);
+					cout << "Sea Level : " << setw(3) << setfill('0') << mapArray[selectedMap]->getSeaLvl();
 					updateMapTexture = true;
 				break;
 
@@ -285,9 +248,9 @@ bool MapFrame::handleInternalSdlEvent(SDL_Event &e)
 					else if(!(e.key.keysym.mod & KMOD_SHIFT))
 					{
 						selectedMap = 0;
-						mapTexture->setMap(mapVect[selectedMap]);
+						mapTexture->setMap(mapArray[selectedMap]);
 						cout << endl << endl << "Map 1" << endl;
-						cout << "Sea Level : " << setw(3) << setfill('0') << mapVect[selectedMap]->getSeaLvl();
+						cout << "Sea Level : " << setw(3) << setfill('0') << mapArray[selectedMap]->getSeaLvl();
 						updateMapTexture = true;
 					}
 				break;
@@ -299,9 +262,9 @@ bool MapFrame::handleInternalSdlEvent(SDL_Event &e)
 					else if(!(e.key.keysym.mod & KMOD_SHIFT))
 					{
 						selectedMap = 1;
-						mapTexture->setMap(mapVect[selectedMap]);
+						mapTexture->setMap(mapArray[selectedMap]);
 						cout << endl << endl << "Map 2" << endl;
-						cout << "Sea Level : " << setw(3) << setfill('0') << mapVect[selectedMap]->getSeaLvl();
+						cout << "Sea Level : " << setw(3) << setfill('0') << mapArray[selectedMap]->getSeaLvl();
 						updateMapTexture = true;
 					}
 				break;
@@ -313,15 +276,15 @@ bool MapFrame::handleInternalSdlEvent(SDL_Event &e)
 					else if(!(e.key.keysym.mod & KMOD_SHIFT))
 					{
 						selectedMap = 2;
-						mapTexture->setMap(mapVect[selectedMap]);
+						mapTexture->setMap(mapArray[selectedMap]);
 						cout << endl << endl << "Map 3" << endl;
-						cout << "Sea Level : " << setw(3) << setfill('0') << mapVect[selectedMap]->getSeaLvl();
+						cout << "Sea Level : " << setw(3) << setfill('0') << mapArray[selectedMap]->getSeaLvl();
 						updateMapTexture = true;
 					}
 				break;
 
 				default:
-					// se evento foi keyboard mas não era nenhum dos tratados, retorna evento pro pai
+					// if event was from keyboard but wasn't handled, returns to parent
 					return false;
 				break;
 			}
@@ -334,7 +297,7 @@ bool MapFrame::handleInternalSdlEvent(SDL_Event &e)
 				
 				if(mapPosFromMouse(&x, &y))
 				{
-//walkWindow.setMap(mapVect[selectedMap]);
+//walkWindow.setMap(mapArray[selectedMap]);
 //walkWindow.show(); // must happen before setPos
 //walkWindow.setPos(x, y);
 				}
@@ -347,7 +310,7 @@ bool MapFrame::handleInternalSdlEvent(SDL_Event &e)
 		break;
 
 		default:
-			// se era outro tipo de evento, não retorna pro pai
+			// if event wasn't from keyboard, doesn't return to parent
 			return true;
 		break;
 	}
@@ -379,9 +342,9 @@ bool MapFrame::handleUiEvent(int evtId)
 
 		case UIEVT_BTCLICKEDMAP0:
 			selectedMap = 0;
-			mapTexture->setMap(mapVect[selectedMap]);
+			mapTexture->setMap(mapArray[selectedMap]);
 			cout << endl << endl << "Map " << selectedMap+1 << endl;
-			cout << "Sea Level : " << setw(3) << setfill('0') << mapVect[selectedMap]->getSeaLvl();
+			cout << "Sea Level : " << setw(3) << setfill('0') << mapArray[selectedMap]->getSeaLvl();
 
 			mapTexture->update();
 			publishUiEvent(UIEVT_CONTENTSCHANGED);
@@ -389,9 +352,9 @@ bool MapFrame::handleUiEvent(int evtId)
 
 		case UIEVT_BTCLICKEDMAP1:
 			selectedMap = 1;
-			mapTexture->setMap(mapVect[selectedMap]);
+			mapTexture->setMap(mapArray[selectedMap]);
 			cout << endl << endl << "Map " << selectedMap+1 << endl;
-			cout << "Sea Level : " << setw(3) << setfill('0') << mapVect[selectedMap]->getSeaLvl();
+			cout << "Sea Level : " << setw(3) << setfill('0') << mapArray[selectedMap]->getSeaLvl();
 
 			mapTexture->update();
 			publishUiEvent(UIEVT_CONTENTSCHANGED);
@@ -399,9 +362,9 @@ bool MapFrame::handleUiEvent(int evtId)
 
 		case UIEVT_BTCLICKEDMAP2:
 			selectedMap = 2;
-			mapTexture->setMap(mapVect[selectedMap]);
+			mapTexture->setMap(mapArray[selectedMap]);
 			cout << endl << endl << "Map " << selectedMap+1 << endl;
-			cout << "Sea Level : " << setw(3) << setfill('0') << mapVect[selectedMap]->getSeaLvl();
+			cout << "Sea Level : " << setw(3) << setfill('0') << mapArray[selectedMap]->getSeaLvl();
 
 			mapTexture->update();
 			publishUiEvent(UIEVT_CONTENTSCHANGED);

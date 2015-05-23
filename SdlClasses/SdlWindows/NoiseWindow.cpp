@@ -9,22 +9,21 @@
 #include "SdlClasses/SdlTextures/MapTexture.h"
 
 
-NoiseWindow::NoiseWindow(Map* mapVect[], int num) : 
+NoiseWindow::NoiseWindow(Map* mapArr[], int num) : 
 	SdlWindow(	"WorldGen", 20, 40, 
 				SCREEN_WIDTH, SCREEN_HEIGHT, // window size 
 				SCREEN_WIDTH, SCREEN_HEIGHT, // window resolution
 				SDL_WINDOW_RESIZABLE, SDL_RENDERER_ACCELERATED | SDL_RENDERER_TARGETTEXTURE), // superclass window constructor
-	walkWindow(mapVect[0])
+	walkWindow(mapArr[0])
 {
 	addUiEventObserver(this);
-
 	setWindowSdlEvtHandler([&](SDL_Event &e){return handleInternalSdlEvent(e);});
 
-	this->mapVect = mapVect;
+	mapArray = mapArr;
 	numMaps = num;
 
 	SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "nearest");
-	//SDL_RenderSetLogicalSize(getRenderer(), mapVect[selectedMap]->getMapWidth(), mapVect[selectedMap]->getMapHeight());
+	//SDL_RenderSetLogicalSize(getRenderer(), mapArray[selectedMap]->getMapWidth(), mapArray[selectedMap]->getMapHeight());
 
 	createGui();
 
@@ -50,7 +49,7 @@ bool NoiseWindow::handleInternalSdlEvent(SDL_Event& e)
 	return true;
 }
 
-// GUI
+// UI
 
 SDL_Texture* NoiseWindow::createDrawnTexture(int width, int height, int r, int g, int b, int a)
 {
@@ -65,7 +64,7 @@ SDL_Texture* NoiseWindow::createDrawnTexture(int width, int height, int r, int g
 
 void NoiseWindow::createGui()
 {
-	gui->addChild(new MapFrame(	getRenderer(), 0, 0, gui->getWidth() - SIDEBAR_WIDTH, gui->getHeight(), mapVect, numMaps));
+	gui->addChild(new MapFrame(	getRenderer(), 0, 0, gui->getWidth() - SIDEBAR_WIDTH, gui->getHeight(), mapArray, numMaps));
 
 	SdlTexture *bgTex = new SdlTexture(createDrawnTexture(SIDEBAR_WIDTH, gui->getHeight(), 0, 126, 126, 255), SIDEBAR_WIDTH, gui->getHeight());
 	auto bgUi = new UiObject(getRenderer(), gui->getWidth() - SIDEBAR_WIDTH, 0,  bgTex, 

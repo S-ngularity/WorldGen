@@ -45,10 +45,6 @@ void MouseHeightText::update(std::string text)
 		setUiObjectTexture(new SdlTexture(tempTex, tempSurface->w, tempSurface->h));
 		setUiObjectSize(tempSurface->w, tempSurface->h);
 
-		int x, y;
-		SDL_GetMouseState(&x, &y);
-		setUiObjectOffset(x, y - 30);
-
 		SDL_FreeSurface(tempSurface);
     }
 }

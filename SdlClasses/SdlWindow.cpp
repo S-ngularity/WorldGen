@@ -115,7 +115,7 @@ bool SdlWindow::handleSdlEvent(SDL_Event& e)
 				case SDL_WINDOWEVENT_RESIZED:
 					windowWidth = e.window.data1;
 					windowHeight = e.window.data2;
-					gui->setMouseScale(getWindowWidthScale(), getWindowHeightScale());
+					gui->setWindowScale(getWindowWidthScale(), getWindowHeightScale());
 					refresh();
 				break;
 

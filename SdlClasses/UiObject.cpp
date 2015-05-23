@@ -27,8 +27,8 @@ UiObject::UiObject(SDL_Renderer *r, int xOff, int yOff, int w, int h, SdlTexture
 	height = h;
 	scaleW = 1;
 	scaleH = 1;
-	mouseScaleW = 1;
-	mouseScaleH = 1;
+	windowScaleW = 1;
+	windowScaleH = 1;
 	
 	renderer = r;
 	uiTexture = t;
@@ -43,6 +43,51 @@ UiObject::~UiObject()
 	if(uiTexture != NULL)
 		delete uiTexture;
 }
+
+
+void UiObject::addChild(UiObject *c)
+{
+	childList.push_front(c);
+}
+
+// ----- Settings ----- //
+
+void UiObject::setUiObjectTexture(SdlTexture *t)
+{
+	if(uiTexture != NULL)
+		delete uiTexture;
+
+	uiTexture = t;
+}
+
+void UiObject::setUiObjectOffset(int x, int y)
+{
+	xOffset = x;
+	yOffset = y;
+}
+
+void UiObject::setUiObjectSize(int w, int h)
+{
+	width = w;
+	height = h;
+}
+
+int UiObject::getWidth()
+{
+	return width;
+}
+
+int UiObject::getHeight()
+{
+	return height;
+}
+
+SDL_Renderer* UiObject::getRenderer()
+{
+	return renderer;
+}
+
+// ----- Render ----- //
 
 void UiObject::setPreRenderProcedure(std::function<void()> procedure)
 {
@@ -71,8 +116,10 @@ void UiObject::render(int parentX, int parentY)
 	if(postRenderProcedure)
 		postRenderProcedure();
 
-	for(UiObject *childUiObj : childList)
-		childUiObj->render(absoluteX, absoluteY);
+	for(auto it = childList.rbegin(); it != childList.rend(); ++it)
+	{
+		(*it)->render(absoluteX, absoluteY);
+	}
 }
 
 void UiObject::renderScaled(int parentX, int parentY, double sW, double sH)
@@ -92,10 +139,17 @@ void UiObject::renderScaled(int parentX, int parentY, double sW, double sH)
 	if(postRenderProcedure)
 		postRenderProcedure();
 
-	for(UiObject *childUiObj : childList)
+	for(auto it = childList.rbegin(); it != childList.rend(); ++it)
 	{
-		childUiObj->renderScaled(absoluteX, absoluteY, scaleW, scaleH);
+		(*it)->renderScaled(absoluteX, absoluteY, scaleW, scaleH);
 	}
+}
+
+// ----- Event ----- //
+
+void UiObject::setSdlEventHandler(std::function<bool(SDL_Event& e)> evth)
+{
+	evtHandler = evth;
 }
 
 bool UiObject::handleSdlEvent(SDL_Event& e)
@@ -167,10 +221,7 @@ bool UiObject::handleSdlEvent(SDL_Event& e)
 	}
 }
 
-void UiObject::setSdlEventHandler(std::function<bool(SDL_Event& e)> evth)
-{
-	evtHandler = evth;
-}
+// ----- Mouse ----- //
 
 bool UiObject::isMouseInside()
 {
@@ -178,10 +229,10 @@ bool UiObject::isMouseInside()
 
 	SDL_GetMouseState(&x, &y);
 
-	if(	x >= absoluteX * mouseScaleW && 
-		x < (absoluteX + width) * mouseScaleW &&
-		y >= absoluteY * mouseScaleH && 
-		y < (absoluteY + height) * mouseScaleH)
+	if(	x >= absoluteX * windowScaleW && 
+		x < (absoluteX + width) * windowScaleW &&
+		y >= absoluteY * windowScaleH && 
+		y < (absoluteY + height) * windowScaleH)
 	{
 		return true;
 	}
@@ -190,73 +241,15 @@ bool UiObject::isMouseInside()
 		return false;
 }
 
-void UiObject::setMouseScale(double sW, double sH)
-{
-	mouseScaleW = sW;
-	mouseScaleH = sH;
-
-	for(UiObject *childUiObj : childList)
-		childUiObj->setMouseScale(sW, sH);
-}
-
-void UiObject::addChild(UiObject *c)
-{
-	childList.push_front(c);
-}
-
-void UiObject::setUiObjectTexture(SdlTexture *t)
-{
-	if(uiTexture != NULL)
-		delete uiTexture;
-
-	uiTexture = t;
-}
-
-void UiObject::setUiObjectOffset(int x, int y)
-{
-	xOffset = x;
-	yOffset = y;
-}
-
-void UiObject::setUiObjectSize(int w, int h)
-{
-	width = w;
-	height = h;
-}
-
-int UiObject::getWidth()
-{
-	return width;
-}
-
-int UiObject::getHeight()
-{
-	return height;
-}
-
-int UiObject::getAbsoluteX()
-{
-	return absoluteX;
-}
-
-int UiObject::getAbsoluteY()
-{
-	return absoluteY;
-}
-
-SDL_Renderer* UiObject::getRenderer()
-{
-	return renderer;
-}
-
 bool UiObject::getRelativeMousePos(UiObject *obj, int *x, int *y)
 {
 	SDL_GetMouseState(x, y);
 
-	*x = *x - obj->absoluteX * obj->scaleW;
-	*y = *y - obj->absoluteY * obj->scaleH;
+	*x = (*x - obj->absoluteX * obj->windowScaleW) / obj->windowScaleW;
+	*y = (*y - obj->absoluteY * obj->windowScaleH) / obj->windowScaleH;
 
-	if(*x < 0 || *x > obj->width || *y < 0 || *y > obj->height)
+	if(	*x < 0 || *x > obj->width || 
+		*y < 0 || *y > obj->height)
 	{
 		*x = -1;
 		*y = -1;
@@ -266,4 +259,25 @@ bool UiObject::getRelativeMousePos(UiObject *obj, int *x, int *y)
 
 	else
 		return true;
+}
+
+// ----- Window ----- //
+
+void UiObject::setWindowScale(double sW, double sH)
+{
+	windowScaleW = sW;
+	windowScaleH = sH;
+
+	for(UiObject *childUiObj : childList)
+		childUiObj->setWindowScale(sW, sH);
+}
+
+double UiObject::getWindowScaleW()
+{
+	return windowScaleW;
+}
+
+double UiObject::getWindowScaleH()
+{
+	return windowScaleH;
 }

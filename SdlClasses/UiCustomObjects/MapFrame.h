@@ -28,30 +28,29 @@ class MapFrame : public UiObject, public UiObserver, public UiPublisher
 		MapTexture *mapTexture;
 
 		int numMaps;
-		Map* *mapVect;
+		Map* *mapArray;
 
 		int selectedMap;
 		int selectedNoise;
 
-		Noise* noiseVect[3];
+		Noise* noiseArray[3];
 		//OpenSimplexNoise noiseSimplex;//(map, 10, 0.004, 0.6, 1.9);
 		//DiamSqNoise noiseDiam;
 		//MyNoise noiseMy;
 
 		MouseHeightText *mouseText;
 
-		bool mapPosFromMouse(int *x, int *y);
-		
-		void updateMouseText();
-		void renderMouseText();
-
 		void runNoise();
 		void resetNoise();
+
+		void updateMouseText();
+		
+		bool mapPosFromMouse(int *x, int *y);
 
 		bool handleInternalSdlEvent(SDL_Event &e);
 		bool handleUiEvent(int evtId) override;
 	public:
-		MapFrame(SDL_Renderer *r, int x, int y, int w, int h, Map* mapVect[], int num);
+		MapFrame(SDL_Renderer *r, int x, int y, int w, int h, Map* mapArr[], int num);
 		~MapFrame();
 };
 
