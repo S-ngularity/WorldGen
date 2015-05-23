@@ -6,14 +6,14 @@
 class UiObserver
 {
 	public:
-		void addUiEventObserver(UiEventAggregator *evtAggr, UiObserver* obsv)
+		void addUiEventObserver(UiObserver* obsv)
 		{
-			evtAggr->addUiEventObserver(obsv);
+			UiEventAggregator::Instance()->addUiEventObserver(obsv);
 		}
 		
-		void removeUiEventObserver(UiEventAggregator *evtAggr, UiObserver* obsv)
+		void removeUiEventObserver(UiObserver* obsv)
 		{
-			evtAggr->removeUiEventObserver(obsv);
+			UiEventAggregator::Instance()->removeUiEventObserver(obsv);
 		}
 
 		virtual bool handleUiEvent(int evtId) = 0;

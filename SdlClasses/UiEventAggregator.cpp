@@ -2,6 +2,8 @@
 
 #include "SdlClasses/UiObserver.h"
 
+UiEventAggregator* UiEventAggregator::evtAggrInstance = nullptr;
+
 void UiEventAggregator::addUiEventObserver(UiObserver* obsv)
 {
 	observerList.push_front(obsv);

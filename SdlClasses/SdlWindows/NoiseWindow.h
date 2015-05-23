@@ -6,7 +6,6 @@
 
 #include "SdlClasses/SdlWindows/WalkWindow.h"
 
-#include "SdlClasses/UiEventAggregator.h"
 #include "SdlClasses/UiObserver.h"
 #include "SdlClasses/UiPublisher.h"
 
@@ -28,8 +27,6 @@ class NoiseWindow : public SdlWindow, public UiObserver, public UiPublisher
 
 		WalkWindow walkWindow;
 
-		UiEventAggregator *evtAggregator;
-
 		void createGui();
 		SDL_Texture* createDrawnTexture(int width, int height, int r, int g, int b, int a);
 
@@ -42,7 +39,7 @@ class NoiseWindow : public SdlWindow, public UiObserver, public UiPublisher
 		bool handleUiEvent(int evtId) override;
 
 	public:
-		NoiseWindow(UiEventAggregator *uiEvtAggr, Map* mapVect[], int num);
+		NoiseWindow(Map* mapVect[], int num);
 		~NoiseWindow();
 };
 

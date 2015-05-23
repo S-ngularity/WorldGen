@@ -13,7 +13,6 @@
 class Map;
 class Noise;
 class MapTexture;
-class UiEventAggregator;
 
 // Simplex noise settings
 const int octaves = 10; const double freq = 0.003, persistence = 0.6, freqDiv = 2.2;
@@ -24,8 +23,6 @@ const int octaves = 10; const double freq = 0.003, persistence = 0.6, freqDiv = 
 class MapFrame : public UiObject, public UiObserver, public UiPublisher
 {
 	private:
-		UiEventAggregator *evtAggregator;
-
 		MapTexture *const mapTexture;
 
 		SdlTexture heightInfoTex;
@@ -51,7 +48,7 @@ class MapFrame : public UiObject, public UiObserver, public UiPublisher
 		bool handleInternalSdlEvent(SDL_Event &e);
 		bool handleUiEvent(int evtId) override;
 	public:
-		MapFrame(int x, int y, int w, int h, MapTexture *mapTex, Map* mapVect[], int num, UiEventAggregator *evtAggr);
+		MapFrame(int x, int y, int w, int h, MapTexture *mapTex, Map* mapVect[], int num);
 		~MapFrame();
 };
 

@@ -11,8 +11,6 @@
 #include "SdlClasses/SdlWindows/NoiseWindow.h"
 //#include "SdlClasses/SdlWindows/WalkWindow.h"
 
-#include "SdlClasses/UiEventAggregator.h"
-
 #include <SDL2/SDL.h>
 
 using namespace std;
@@ -27,8 +25,6 @@ Map worldMap(1025, 1025);
 Map worldMap2(1025, 1025);
 Map worldMap3(1025, 1025);
 Map* worldMapsVect[mapNum] = {&worldMap, &worldMap2, &worldMap3};
-
-UiEventAggregator uiEvtAggr;
 
 //funções SDL
 bool SDLStart();
@@ -52,7 +48,7 @@ int main(int argc, char* args[])
 		return -1;
 	}
 
-	noiseWindow = new NoiseWindow(&uiEvtAggr, worldMapsVect, mapNum);
+	noiseWindow = new NoiseWindow(worldMapsVect, mapNum);
 
 	// while window is open
 	while(noiseWindow->isShown())

@@ -6,9 +6,9 @@
 class UiPublisher
 {
 	public:
-		void publishUiEvent(UiEventAggregator *evtAggr, int evtId)
+		void publishUiEvent(int evtId)
 		{
-			evtAggr->publishUiEvent(evtId);
+			UiEventAggregator::Instance()->publishUiEvent(evtId);
 		}
 };
 
