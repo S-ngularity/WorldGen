@@ -11,39 +11,57 @@ class SdlTexture;
 class UiObject
 {
 	private:
-		int ancientX, ancientY;
+		int absoluteX, absoluteY;
 		int xOffset, yOffset; // offset from parent's 0, 0
-		
+
 		int width, height;
 		double scaleW, scaleH;
 		double mouseScaleW, mouseScaleH;
 
-		std::list<UiObject*> childList;
+		SDL_Renderer *renderer;
 		SdlTexture *uiTexture;
 
 		std::function<bool(SDL_Event& e)> evtHandler;
+		std::function<void()> preRenderProcedure;
+		std::function<void()> postRenderProcedure;
+
+		std::list<UiObject*> childList;
+
+	protected:
+		SDL_Renderer* getRenderer();
 
 	public:
-		UiObject(int xOff, int yOff, int w, int h);
-		UiObject(int xOff, int yOff, SdlTexture *t, std::function<bool(SDL_Event& e)> evth);
-		UiObject(int xOff, int yOff, int w, int h, SdlTexture *t, std::function<bool(SDL_Event& e)> evth);
+		UiObject(SDL_Renderer *r, int xOff, int yOff, int w, int h);
+		UiObject(SDL_Renderer *r, int xOff, int yOff, SdlTexture *t, std::function<bool(SDL_Event& e)> evth);
+		UiObject(SDL_Renderer *r, int xOff, int yOff, int w, int h, SdlTexture *t, std::function<bool(SDL_Event& e)> evth);
 		virtual ~UiObject();
 
-		void render(SDL_Renderer *r, int x, int y);
-		void renderScaled(SDL_Renderer *r, int x, int y, double sW, double sH);
-
-		bool handleSdlEvent(SDL_Event& e);
-		void setSdlEventHandler(std::function<bool(SDL_Event& e)> evth);
-
-		bool isMouseEvtInside(SDL_Event& e);
-		void setMouseScale(double sW, double sH);
-
 		void addChild(UiObject *c);
+
+		void setUiObjectTexture(SdlTexture *t);
+		void setUiObjectOffset(int x, int y);
+		void setUiObjectSize(int w, int h);
+
+		void setPreRenderProcedure(std::function<void()> procedure);
+		void setPostRenderProcedure(std::function<void()> procedure);
+
+		void render(int parentX, int parentY);
+		void renderScaled(int parentX, int parentY, double sW, double sH);
+
+		void setSdlEventHandler(std::function<bool(SDL_Event& e)> evth);
 		
+		bool handleSdlEvent(SDL_Event& e);
+
 		int getWidth();
 		int getHeight();
 
-		static void getRelativeMousePos(UiObject *obj, int *x, int *y);
+		int getAbsoluteX();
+		int getAbsoluteY();
+
+		void setMouseScale(double sW, double sH);
+
+		bool isMouseInside();
+		static bool getRelativeMousePos(UiObject *obj, int *x, int *y);
 };
 
 # endif

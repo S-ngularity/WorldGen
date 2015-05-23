@@ -28,7 +28,6 @@ class MapTexture : public SdlTexture
 		~MapTexture();
 
 		void setMap(Map *theMap);
-		void setContext(SDL_Renderer *r);
 
 		void update();
 

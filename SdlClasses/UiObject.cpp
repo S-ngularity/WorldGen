@@ -2,30 +2,37 @@
 
 #include "SdlClasses/SdlTexture.h"
 
-UiObject::UiObject(int xOff, int yOff, int w, int h) : 
-	UiObject(xOff, yOff, w, h, NULL, nullptr)
+UiObject::UiObject(SDL_Renderer *r, int xOff, int yOff, int w, int h) : 
+	UiObject(r, xOff, yOff, w, h, NULL, nullptr)
 {}
 
-UiObject::UiObject(int xOff, int yOff, SdlTexture *t, std::function<bool(SDL_Event& e)> evth) : 
-	UiObject(xOff, yOff, t->getW(), t->getH(), t, evth)
-{}
-
-UiObject::UiObject(int xOff, int yOff, int w, int h, SdlTexture *t, std::function<bool(SDL_Event& e)> evth) : 
-	evtHandler(evth)
+UiObject::UiObject(SDL_Renderer *r, int xOff, int yOff, SdlTexture *t, std::function<bool(SDL_Event& e)> evth) : 
+	UiObject(r, xOff, yOff, 0, 0, t, evth)
 {
-	ancientX = xOff;
-	ancientY = yOff;
+	if(t != NULL)
+		setUiObjectSize(t->getW(), t->getH());
+}
+
+UiObject::UiObject(SDL_Renderer *r, int xOff, int yOff, int w, int h, SdlTexture *t, std::function<bool(SDL_Event& e)> evth) : 
+	evtHandler(evth),
+	preRenderProcedure(nullptr),
+	postRenderProcedure(nullptr)
+{
+	absoluteX = 0;
+	absoluteY = 0;
 	xOffset = xOff;
 	yOffset = yOff;
+
 	width = w;
 	height = h;
-	
-	uiTexture = t;
-
 	scaleW = 1;
 	scaleH = 1;
 	mouseScaleW = 1;
 	mouseScaleH = 1;
+	
+	renderer = r;
+	uiTexture = t;
+
 }
 
 UiObject::~UiObject()
@@ -37,35 +44,57 @@ UiObject::~UiObject()
 		delete uiTexture;
 }
 
-void UiObject::render(SDL_Renderer *r, int x, int y) // parent's x & y
+void UiObject::setPreRenderProcedure(std::function<void()> procedure)
 {
-	ancientX = x + xOffset;
-	ancientY = y + yOffset;
+	preRenderProcedure = procedure;
+}
+
+void UiObject::setPostRenderProcedure(std::function<void()> procedure)
+{
+	postRenderProcedure = procedure;
+}
+
+void UiObject::render(int parentX, int parentY)
+{
+	if(preRenderProcedure)
+		preRenderProcedure();
+
+	absoluteX = parentX + xOffset;
+	absoluteY = parentY + yOffset;
 
 	scaleW = 1;
 	scaleH = 1;
 
 	if(uiTexture != NULL)
-		uiTexture->renderFitToArea(r, ancientX, ancientY, width, height);
+		uiTexture->renderFitToArea(renderer, absoluteX, absoluteY, width, height);
+
+	if(postRenderProcedure)
+		postRenderProcedure();
 
 	for(UiObject *childUiObj : childList)
-		childUiObj->render(r, ancientX, ancientY);
+		childUiObj->render(absoluteX, absoluteY);
 }
 
-void UiObject::renderScaled(SDL_Renderer *r, int x, int y, double sW, double sH)
+void UiObject::renderScaled(int parentX, int parentY, double sW, double sH)
 {
-	ancientX = x + xOffset;
-	ancientY = y + yOffset;
+	if(preRenderProcedure)
+		preRenderProcedure();
+
+	absoluteX = parentX + xOffset;
+	absoluteY = parentY + yOffset;
 
 	scaleW = sW;
 	scaleH = sH;
 
 	if(uiTexture != NULL)
-		uiTexture->renderFitToArea(r, ancientX * scaleW, ancientY * scaleH, width * scaleW, height * scaleH);
+		uiTexture->renderFitToArea(renderer, absoluteX * scaleW, absoluteY * scaleH, width * scaleW, height * scaleH);
+
+	if(postRenderProcedure)
+		postRenderProcedure();
 
 	for(UiObject *childUiObj : childList)
 	{
-		childUiObj->renderScaled(r, ancientX, ancientY, scaleW, scaleH);
+		childUiObj->renderScaled(absoluteX, absoluteY, scaleW, scaleH);
 	}
 }
 
@@ -86,7 +115,7 @@ bool UiObject::handleSdlEvent(SDL_Event& e)
 			// or else it would be as if the click "passed
 			// through" the object and had an effect on the object behind
 			
-			if(childUiObj->isMouseEvtInside(e))
+			if(childUiObj->isMouseInside())
 			{
 				childUiObj->handleSdlEvent(e);
 
@@ -97,7 +126,7 @@ bool UiObject::handleSdlEvent(SDL_Event& e)
 		else
 		{
 			// should be "isChildSelected/Focused"
-			if(childUiObj->isMouseEvtInside(e))
+			if(childUiObj->isMouseInside())
 			{
 				// handle keyboard with child's handler or else
 				// redirect the keyboard event to parent object's handler
@@ -143,16 +172,16 @@ void UiObject::setSdlEventHandler(std::function<bool(SDL_Event& e)> evth)
 	evtHandler = evth;
 }
 
-bool UiObject::isMouseEvtInside(SDL_Event& e)
+bool UiObject::isMouseInside()
 {
 	int x, y;
 
 	SDL_GetMouseState(&x, &y);
 
-	if(	x >= ancientX * mouseScaleW && 
-		x < (ancientX + width) * mouseScaleW &&
-		y >= ancientY * mouseScaleH && 
-		y < (ancientY + height) * mouseScaleH)
+	if(	x >= absoluteX * mouseScaleW && 
+		x < (absoluteX + width) * mouseScaleW &&
+		y >= absoluteY * mouseScaleH && 
+		y < (absoluteY + height) * mouseScaleH)
 	{
 		return true;
 	}
@@ -175,6 +204,26 @@ void UiObject::addChild(UiObject *c)
 	childList.push_front(c);
 }
 
+void UiObject::setUiObjectTexture(SdlTexture *t)
+{
+	if(uiTexture != NULL)
+		delete uiTexture;
+
+	uiTexture = t;
+}
+
+void UiObject::setUiObjectOffset(int x, int y)
+{
+	xOffset = x;
+	yOffset = y;
+}
+
+void UiObject::setUiObjectSize(int w, int h)
+{
+	width = w;
+	height = h;
+}
+
 int UiObject::getWidth()
 {
 	return width;
@@ -185,8 +234,36 @@ int UiObject::getHeight()
 	return height;
 }
 
-void UiObject::getRelativeMousePos(UiObject *obj, int *x, int *y)
+int UiObject::getAbsoluteX()
 {
-	*x = *x - obj->ancientX * obj->scaleW;
-	*y = *y - obj->ancientY * obj->scaleH;
+	return absoluteX;
+}
+
+int UiObject::getAbsoluteY()
+{
+	return absoluteY;
+}
+
+SDL_Renderer* UiObject::getRenderer()
+{
+	return renderer;
+}
+
+bool UiObject::getRelativeMousePos(UiObject *obj, int *x, int *y)
+{
+	SDL_GetMouseState(x, y);
+
+	*x = *x - obj->absoluteX * obj->scaleW;
+	*y = *y - obj->absoluteY * obj->scaleH;
+
+	if(*x < 0 || *x > obj->width || *y < 0 || *y > obj->height)
+	{
+		*x = -1;
+		*y = -1;
+
+		return false;
+	}
+
+	else
+		return true;
 }

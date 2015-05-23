@@ -7,6 +7,8 @@
 #include "SdlClasses/UiObserver.h"
 #include "SdlClasses/UiPublisher.h"
 
+#include "SdlClasses/UiCustomObjects/MouseHeightText.h"
+
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_ttf.h>
 
@@ -23,10 +25,7 @@ const int octaves = 10; const double freq = 0.003, persistence = 0.6, freqDiv = 
 class MapFrame : public UiObject, public UiObserver, public UiPublisher
 {
 	private:
-		MapTexture *const mapTexture;
-
-		SdlTexture heightInfoTex;
-		TTF_Font *heightInfoFont;
+		MapTexture *mapTexture;
 
 		int numMaps;
 		Map* *mapVect;
@@ -39,8 +38,12 @@ class MapFrame : public UiObject, public UiObserver, public UiPublisher
 		//DiamSqNoise noiseDiam;
 		//MyNoise noiseMy;
 
-		void mapPosFromMouse(int *x, int *y);
-		void updateInfoTex();
+		MouseHeightText *mouseText;
+
+		bool mapPosFromMouse(int *x, int *y);
+		
+		void updateMouseText();
+		void renderMouseText();
 
 		void runNoise();
 		void resetNoise();
@@ -48,7 +51,7 @@ class MapFrame : public UiObject, public UiObserver, public UiPublisher
 		bool handleInternalSdlEvent(SDL_Event &e);
 		bool handleUiEvent(int evtId) override;
 	public:
-		MapFrame(int x, int y, int w, int h, MapTexture *mapTex, Map* mapVect[], int num);
+		MapFrame(SDL_Renderer *r, int x, int y, int w, int h, Map* mapVect[], int num);
 		~MapFrame();
 };
 

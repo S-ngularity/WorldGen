@@ -40,21 +40,21 @@ class SdlWindow
 		bool shown;
 
 	protected:
-		UiObject gui;
+		UiObject *gui;
 
 		SDL_Window* window;
 		unsigned int windowID;
 
 		void setWindowSdlEvtHandler(std::function<bool(SDL_Event& e)> evth);
 
+		// returns window's renderer so others can render onto it
+		SDL_Renderer* getRenderer();
+
 	public:
 		SdlWindow(char const *title, int x, int y, int w, int h, int resW, int resH, Uint32 windowFlags, Uint32 rendererFlags);
 		virtual ~SdlWindow();
 
 		bool handleSdlEvent(SDL_Event& e);
-
-		// returns window's renderer so others can render onto it
-		SDL_Renderer* getRenderer();
 
 		void show();
 		void hide();

@@ -29,11 +29,6 @@ void MapTexture::setMap(Map *theMap)
 	}
 }
 
-void MapTexture::setContext(SDL_Renderer *r)
-{
-	context = r;
-}
-
 void MapTexture::update()
 {
 	SDL_Texture *temp = SDL_CreateTexture(context, 

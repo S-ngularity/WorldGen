@@ -17,13 +17,12 @@
 
 using namespace std;
 
-MapFrame::MapFrame(int x, int y, int w, int h, MapTexture *mapTex, Map* mapVect[], int num) : 
-	UiObject(x, y, w, h, mapTex,
-			[&](SDL_Event &e){return handleInternalSdlEvent(e);}),
-	mapTexture(mapTex)
+MapFrame::MapFrame(SDL_Renderer *r, int x, int y, int w, int h, Map* mapVect[], int num) : 
+	UiObject(r, x, y, w, h, NULL,
+			[&](SDL_Event &e){return handleInternalSdlEvent(e);})
 {
 	// make mapFrame observe events, so it may respond to other UiObjects
-	addUiEventObserver(this);	
+	addUiEventObserver(this);
 
 	this->mapVect = mapVect;
 	numMaps = num;
@@ -34,14 +33,13 @@ MapFrame::MapFrame(int x, int y, int w, int h, MapTexture *mapTex, Map* mapVect[
 	noiseVect[2] = new MyNoise(mapVect[0]);
 	selectedNoise = 0;
 
-	heightInfoFont = TTF_OpenFont("Resources/OpenSans-Regular.ttf", 20);
-	if(heightInfoFont == NULL)
-		std::cout << "Failed to load heightInfoFont! SDL_ttf Error: " << TTF_GetError() << std::endl;
-
-	else
-		TTF_SetFontStyle(heightInfoFont, TTF_STYLE_BOLD);
-
+	mapTexture = new MapTexture(getRenderer(), mapVect[selectedMap]);
 	mapTexture->update();
+	setUiObjectTexture(mapTexture);
+
+	mouseText = new MouseHeightText(getRenderer());
+	setPostRenderProcedure([&](){ renderMouseText(); });
+	
 	publishUiEvent(UIEVT_CONTENTSCHANGED);
 }
 
@@ -49,8 +47,6 @@ MapFrame::~MapFrame()
 {
 	for(int i = 0; i < 3; i++)
 		delete noiseVect[i];
-
-	TTF_CloseFont(heightInfoFont);
 
 	removeUiEventObserver(this);
 }
@@ -117,54 +113,38 @@ void MapFrame::resetNoise()
 	noiseVect[selectedNoise]->reset();
 }
 
-void MapFrame::updateInfoTex()
+void MapFrame::updateMouseText()
 {
-	/*
 	int x, y;
-	mapPosFromMouse(&x, &y);
-
-	int h = mapVect[selectedMap]->Tile(x, y).getH();
-	string info;
-
-	if(mapTexture->getSeaRenderMode() == WITH_SEA && h <= mapVect[selectedMap]->getSeaLvl())
-		info = "Sea";
-
-	else
+	
+	if(mapPosFromMouse(&x, &y))
 	{
-		stringstream ss;
-		ss << h;
-		info = ss.str();
-	}
+		int h = mapVect[selectedMap]->Tile(x, y).getH();
+		string text;
 
-	SDL_Surface* tempSurface = TTF_RenderText_Blended(heightInfoFont, info.c_str(), {220,20,60});
-	if(tempSurface == NULL)
-	{
-		std::cout << "Unable to render text surface! SDL_ttf Error: " << TTF_GetError() << std::endl;
-		return;
-	}
+		if(mapTexture->getSeaRenderMode() == WITH_SEA && h <= mapVect[selectedMap]->getSeaLvl())
+			text = "Sea";
 
-	else
-	{
-		//Create texture from surface pixels
-		SDL_Texture *tempTex = SDL_CreateTextureFromSurface(getRenderer(), tempSurface); // SDL_TEXTUREACCESS_STATIC
-		if(tempTex == NULL)
+		else
 		{
-			std::cout << "Unable to create texture from rendered text! SDL Error: " << SDL_GetError() << std::endl;
-			SDL_FreeSurface(tempSurface);
-
-			return;
+			stringstream ss;
+			ss << h;
+			text = ss.str();
 		}
 
-		heightInfoTex.setTexture(tempTex, tempSurface->w, tempSurface->h);
-
-		SDL_FreeSurface(tempSurface);
-    }//*/
+		mouseText->update(text);
+	}
 }
 
-void MapFrame::mapPosFromMouse(int *x, int *y)
+void MapFrame::renderMouseText()
 {
-	SDL_GetMouseState(x, y);
-	UiObject::getRelativeMousePos(this, x, y);
+	mouseText->render(getAbsoluteX(), getAbsoluteY());
+}
+
+bool MapFrame::mapPosFromMouse(int *x, int *y)
+{
+	if(!UiObject::getRelativeMousePos(this, x, y))
+		return false;
 
 	int tamTexW = getWidth(), tamTexH = getHeight();
 
@@ -209,20 +189,17 @@ void MapFrame::mapPosFromMouse(int *x, int *y)
 		else
 			*x = ((*x - sobra/2) * mapVect[selectedMap]->getMapWidth()) / (double)(tamTexW - sobra);
 	}
+
+	return true;
 }
 
 bool MapFrame::handleInternalSdlEvent(SDL_Event &e)
 {
-	bool returnValue = false;
-
 	bool updateMapTexture = false;
-	bool shouldRender = false;
 
 	switch(e.type)
 	{
 		case SDL_KEYDOWN:
-			returnValue = true;
-
 			switch(e.key.keysym.sym)
 			{
 				case SDLK_UP:
@@ -344,8 +321,8 @@ bool MapFrame::handleInternalSdlEvent(SDL_Event &e)
 				break;
 
 				default:
-					// se evento não era nenhum dos tratados, retorna falso
-					returnValue = false;
+					// se evento foi keyboard mas não era nenhum dos tratados, retorna evento pro pai
+					return false;
 				break;
 			}
 		break;
@@ -354,47 +331,34 @@ bool MapFrame::handleInternalSdlEvent(SDL_Event &e)
 			if(e.button.button == SDL_BUTTON_RIGHT)
 			{
 				int x, y;
-				mapPosFromMouse(&x, &y);
-
+				
+				if(mapPosFromMouse(&x, &y))
+				{
 //walkWindow.setMap(mapVect[selectedMap]);
 //walkWindow.show(); // must happen before setPos
 //walkWindow.setPos(x, y);
-
-				returnValue = true;
+				}
 			}
 		break;
 
 		case SDL_MOUSEMOTION:
-			updateInfoTex();
-			shouldRender = true;
-
-			returnValue = true;
+			updateMouseText();
+			publishUiEvent(UIEVT_CONTENTSCHANGED);
 		break;
 
 		default:
-			// se evento não era nenhum dos tratados, retorna falso
-			returnValue = false;
+			// se era outro tipo de evento, não retorna pro pai
+			return true;
 		break;
 	}
 
 	if(updateMapTexture)
 	{
-		updateInfoTex(); // in case it became sea
 		mapTexture->update();
-
-		shouldRender = true;
-	}
-
-	if(shouldRender)
-	{
-//int x, y;
-////mapPosFromMouse(&x, &y); // usar se window tiver logical size ativado
-//SDL_GetMouseState(&x, &y);
-//heightInfoTex.render(getRenderer(), x, y - 30); // render tamanho original da fonte
 		publishUiEvent(UIEVT_CONTENTSCHANGED);
 	}
 
-	return returnValue;
+	return true;
 }
 
 bool MapFrame::handleUiEvent(int evtId)

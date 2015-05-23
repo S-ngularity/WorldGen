@@ -2,8 +2,7 @@
 
 #include <iostream>
 
-SdlWindow::SdlWindow(char const *title, int x, int y, int w, int h, int resW, int resH, Uint32 windowFlags, Uint32 rendererFlags) : 
-	gui(0, 0, resW, resH)
+SdlWindow::SdlWindow(char const *title, int x, int y, int w, int h, int resW, int resH, Uint32 windowFlags, Uint32 rendererFlags)
 {
 	evtHandler = nullptr;
 
@@ -69,6 +68,7 @@ SdlWindow::SdlWindow(char const *title, int x, int y, int w, int h, int resW, in
 				SDL_RenderClear(wndRenderer);
 				resolutionTexture.releaseRenderTarget(wndRenderer);
 
+				gui = new UiObject(wndRenderer, 0, 0, resW, resH); // create base gui object
 			}
 
 		}
@@ -115,7 +115,7 @@ bool SdlWindow::handleSdlEvent(SDL_Event& e)
 				case SDL_WINDOWEVENT_RESIZED:
 					windowWidth = e.window.data1;
 					windowHeight = e.window.data2;
-					gui.setMouseScale(getWindowWidthScale(), getWindowHeightScale());
+					gui->setMouseScale(getWindowWidthScale(), getWindowHeightScale());
 					refresh();
 				break;
 
@@ -169,7 +169,7 @@ bool SdlWindow::handleSdlEvent(SDL_Event& e)
 		else
 		{
 			// handle other events with the implemented handler
-			gui.handleSdlEvent(e);
+			gui->handleSdlEvent(e);
 
 			// handle other events with the implemented handler
 			if(evtHandler)
@@ -213,7 +213,7 @@ void SdlWindow::refresh()
 		resolutionTexture.setAsRenderTarget(wndRenderer);
 		SDL_SetRenderDrawColor(wndRenderer, 255, 0, 255, 255);
 		SDL_RenderClear(wndRenderer);
-		gui.render(wndRenderer, 0, 0);
+		gui->render(0, 0);
 		resolutionTexture.releaseRenderTarget(wndRenderer);
 
 		resolutionTexture.renderFitToArea(wndRenderer, 0, 0, windowWidth, windowHeight);
