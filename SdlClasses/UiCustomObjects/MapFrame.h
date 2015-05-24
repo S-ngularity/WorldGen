@@ -22,7 +22,7 @@ const int octaves = 10; const double freq = 0.003, persistence = 0.6, freqDiv = 
 // ask for noise screen update at every X percent completed
 #define UPDATE_AT_PERCENT 20
 
-class MapFrame : public UiObject, public UiObserver, public UiPublisher
+class MapFrame : public UiObject, public UiPublisher
 {
 	private:
 		MapTexture *mapTexture;
@@ -48,7 +48,6 @@ class MapFrame : public UiObject, public UiObserver, public UiPublisher
 		bool mapPosFromMouse(int *x, int *y);
 
 		bool handleInternalSdlEvent(SDL_Event &e);
-		bool handleUiEvent(int evtId) override;
 
 	public:
 		MapFrame(SDL_Renderer *r, int x, int y, int w, int h, Map* mapArr[], int num);

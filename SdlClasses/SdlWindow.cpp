@@ -18,6 +18,8 @@ SdlWindow::SdlWindow(char const *title, int x, int y, int w, int h, int resW, in
 	minimized = false;
 	shown = false;
 
+	refreshSignaled = false;
+
 	window = SDL_CreateWindow(	title,
 								x,
 								y,
@@ -87,6 +89,11 @@ SdlWindow::~SdlWindow()
 	window = NULL;
 }
 
+void SdlWindow::addChildWindow(SdlWindow *c)
+{
+	childList.push_front(c);
+}
+
 void SdlWindow::setWindowSdlEvtHandler(std::function<bool(SDL_Event& e)> evth)
 {
 	evtHandler = evth;
@@ -116,12 +123,12 @@ bool SdlWindow::handleSdlEvent(SDL_Event& e)
 					windowWidth = e.window.data1;
 					windowHeight = e.window.data2;
 					gui->setWindowScale(getWindowWidthScale(), getWindowHeightScale());
-					refresh();
+					signalRefresh();
 				break;
 
 				// Repaint on expose
 				case SDL_WINDOWEVENT_EXPOSED:
-					refresh();
+					signalRefresh();
 				break;
 
 				// Mouse enter
@@ -206,19 +213,32 @@ void SdlWindow::hide()
 	SDL_HideWindow(window);
 }
 
-void SdlWindow::refresh()
+void SdlWindow::signalRefresh()
 {
-	if(!minimized && shown)
+	refreshSignaled = true;
+}
+
+void SdlWindow::doRefresh()
+{
+	if(refreshSignaled)
 	{
-		resolutionTexture.setAsRenderTarget(wndRenderer);
-		SDL_SetRenderDrawColor(wndRenderer, 255, 0, 255, 255);
-		SDL_RenderClear(wndRenderer);
-		gui->render(0, 0);
-		resolutionTexture.releaseRenderTarget(wndRenderer);
+		if(!minimized && shown)
+		{
+			resolutionTexture.setAsRenderTarget(wndRenderer);
+			SDL_SetRenderDrawColor(wndRenderer, 255, 0, 255, 255);
+			SDL_RenderClear(wndRenderer);
+			gui->render(0, 0);
+			resolutionTexture.releaseRenderTarget(wndRenderer);
 
-		resolutionTexture.renderFitToArea(wndRenderer, 0, 0, windowWidth, windowHeight);
+			resolutionTexture.renderFitToArea(wndRenderer, 0, 0, windowWidth, windowHeight);
 
-		SDL_RenderPresent(wndRenderer);
+			SDL_RenderPresent(wndRenderer);
+		}
+
+		for(SdlWindow *childWindow : childList)
+			childWindow->doRefresh();
+
+		refreshSignaled = false;
 	}
 }
 

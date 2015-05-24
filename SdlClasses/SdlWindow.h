@@ -1,17 +1,21 @@
 #ifndef SDLWINDOW
 #define SDLWINDOW
 
-#include <functional>
-
 #include "SdlClasses/SdlTexture.h"
 
 #include "SdlClasses/UiObject.h"
+
+#include <list>
+#include <functional>
 
 #include <SDL2/SDL.h>
 
 class SdlWindow
 {
 	private:
+		// Child windows
+		std::list<SdlWindow*> childList;
+
 		// Custom event handler
 		std::function<bool(SDL_Event& e)> evtHandler;
 
@@ -35,15 +39,20 @@ class SdlWindow
 		// Window focus
 		bool mouseFocus;
 		bool keyboardFocus;
-		// bool fullScreen;
+		//bool fullScreen;
 		bool minimized;
 		bool shown;
+
+		// Refreshing flag
+		bool refreshSignaled;
 
 	protected:
 		UiObject *gui;
 
 		SDL_Window* window;
 		unsigned int windowID;
+
+		void addChildWindow(SdlWindow *c);
 
 		void setWindowSdlEvtHandler(std::function<bool(SDL_Event& e)> evth);
 
@@ -60,7 +69,8 @@ class SdlWindow
 		void hide();
 
 		// Shows windows contents
-		void refresh();
+		void signalRefresh();
+		void doRefresh();
 
 		int getWindowWidth();
 		int getWindowHeight();

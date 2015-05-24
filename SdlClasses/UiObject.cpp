@@ -82,6 +82,16 @@ int UiObject::getHeight()
 	return height;
 }
 
+int UiObject::getAbsoluteX()
+{
+	return absoluteX;
+}
+
+int UiObject::getAbsoluteY()
+{
+	return absoluteY;
+}
+
 SDL_Renderer* UiObject::getRenderer()
 {
 	return renderer;

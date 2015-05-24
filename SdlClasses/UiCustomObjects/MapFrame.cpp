@@ -21,9 +21,6 @@ MapFrame::MapFrame(SDL_Renderer *r, int x, int y, int w, int h, Map* mapArr[], i
 	UiObject(r, x, y, w, h, NULL,
 			[&](SDL_Event &e){return handleInternalSdlEvent(e);})
 {
-	// make mapFrame observe events, so it may respond to other UiObjects
-	addUiEventObserver(this);
-
 	mapArray = mapArr;
 	numMaps = num;
 	selectedMap = 0;
@@ -38,7 +35,7 @@ MapFrame::MapFrame(SDL_Renderer *r, int x, int y, int w, int h, Map* mapArr[], i
 	setUiObjectTexture(mapTexture);
 
 	mouseText = new MouseHeightText(getRenderer());
-	addChild(mouseText);
+	setPostRenderProcedure([&]() { mouseText->render(getAbsoluteX(), getAbsoluteY()); });
 	
 	publishUiEvent(UIEVT_CONTENTSCHANGED);
 }
@@ -47,8 +44,6 @@ MapFrame::~MapFrame()
 {
 	for(int i = 0; i < 3; i++)
 		delete noiseArray[i];
-
-	removeUiEventObserver(this);
 }
 
 void MapFrame::runNoise()
@@ -264,40 +259,6 @@ bool MapFrame::handleInternalSdlEvent(SDL_Event &e)
 	}
 
 	return true;
-}
-
-bool MapFrame::handleUiEvent(int evtId)
-{
-	switch(evtId)
-	{
-		case UIEVT_BTCLICKEDNOISE0:
-			selectNoise(0);
-		break;
-
-		case UIEVT_BTCLICKEDNOISE1:
-			selectNoise(1);
-		break;
-
-		case UIEVT_BTCLICKEDNOISE2:
-			selectNoise(2);
-		break;
-
-		case UIEVT_BTCLICKEDMAP0:
-			selectMap(0);
-		break;
-
-		case UIEVT_BTCLICKEDMAP1:
-			selectMap(1);
-		break;
-
-		case UIEVT_BTCLICKEDMAP2:
-			selectMap(2);
-		break;
-
-		return true;
-	}
-
-	return false;
 }
 
 void MapFrame::selectMap(int i)

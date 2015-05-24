@@ -16,6 +16,8 @@ NoiseWindow::NoiseWindow(Map* mapArr[], int num) :
 				SDL_WINDOW_RESIZABLE, SDL_RENDERER_ACCELERATED | SDL_RENDERER_TARGETTEXTURE), // superclass window constructor
 	walkWindow(mapArr[0])
 {
+	addChildWindow(&walkWindow);
+
 	addUiEventObserver(this);
 	setWindowSdlEvtHandler([&](SDL_Event &e){return handleInternalSdlEvent(e);});
 
@@ -27,7 +29,7 @@ NoiseWindow::NoiseWindow(Map* mapArr[], int num) :
 
 	createGui();
 
-	refresh();
+	signalRefresh();
 }
 
 NoiseWindow::~NoiseWindow()
@@ -38,7 +40,7 @@ NoiseWindow::~NoiseWindow()
 bool NoiseWindow::handleUiEvent(int evtId)
 {
 	if(evtId == UIEVT_CONTENTSCHANGED)
-		refresh();
+		signalRefresh();
 
 	return true;
 }
@@ -117,7 +119,7 @@ bool NoiseWindow::btNoiseClicked(SDL_Event &e, int i)
 {
 	if(e.type == SDL_MOUSEBUTTONUP)
 	{
-		mapFrame->selectNoise(0);
+		mapFrame->selectNoise(i);
 
 		return true;
 	}

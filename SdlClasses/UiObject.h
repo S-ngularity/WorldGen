@@ -46,6 +46,9 @@ class UiObject
 		int getWidth();
 		int getHeight();
 
+		int getAbsoluteX();
+		int getAbsoluteY();
+
 		// Render
 		void setPreRenderProcedure(std::function<void()> procedure);
 		void setPostRenderProcedure(std::function<void()> procedure);

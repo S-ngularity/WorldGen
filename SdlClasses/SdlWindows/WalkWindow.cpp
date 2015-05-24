@@ -35,7 +35,7 @@ WalkWindow::WalkWindow(Map *theMap) :
 
 	updateWalkTex();
 	walkTexture.render(getRenderer(), 0, 0);
-	refresh();
+	signalRefresh();
 }
 
 void WalkWindow::setPos(int x, int y)
@@ -45,7 +45,7 @@ void WalkWindow::setPos(int x, int y)
 
 	updateWalkTex();
 	walkTexture.render(getRenderer(), 0, 0);
-	refresh();
+	signalRefresh();
 }
 
 void WalkWindow::setMap(Map *m)
@@ -126,7 +126,7 @@ bool WalkWindow::handleInternalSdlEvent(SDL_Event& e)
 		{
 			updateWalkTex();
 			walkTexture.render(getRenderer(), 0, 0);
-			refresh();
+			signalRefresh();
 		}
 	}
 
