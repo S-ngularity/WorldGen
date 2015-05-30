@@ -1,4 +1,4 @@
-#include "SdlClasses/UiCustomObjects/MapFrame.h"
+#include "Ui/UiCustomObjects/MapFrame.h"
 
 #include "Map.h"
 #include "Noises/MyNoise.h"
@@ -7,7 +7,9 @@
 
 #include "SdlClasses/SdlTextures/MapTexture.h"
 
-#include "SdlClasses/UiEventCodes.h"
+#include "Ui/UiEventAggregator.h"
+#include "Ui/UiEvents/UiEventCode.h"
+#include "Ui/UiEvents/WalkWindowOpened.h"
 
 #include <iostream>
 #include <iomanip>
@@ -37,7 +39,7 @@ MapFrame::MapFrame(SDL_Renderer *r, int x, int y, int w, int h, Map* mapArr[], i
 	mouseText = new MouseHeightText(getRenderer());
 	setPostRenderProcedure([&]() { mouseText->render(getAbsoluteX(), getAbsoluteY()); });
 	
-	publishUiEvent(UIEVT_CONTENTSCHANGED);
+	UiEventAggregator::Instance()->getEvent<UiEventCode>().publishUiEvent(UiEventCode(UIEVT_CONTENTSCHANGED));
 }
 
 MapFrame::~MapFrame()
@@ -93,7 +95,7 @@ void MapFrame::runNoise()
 		if(updateMapTexture)
 		{
 			mapTexture->update();
-			publishUiEvent(UIEVT_CONTENTSCHANGED);
+			UiEventAggregator::Instance()->getEvent<UiEventCode>().publishUiEvent(UiEventCode(UIEVT_CONTENTSCHANGED));
 			updateMapTexture = false;
 		}
 
@@ -239,17 +241,13 @@ bool MapFrame::handleInternalSdlEvent(SDL_Event &e)
 				int x, y;
 				
 				if(mapPosFromMouse(&x, &y))
-				{
-//walkWindow.setMap(mapArray[selectedMap]);
-//walkWindow.show(); // must happen before setPos
-//walkWindow.setPos(x, y);
-				}
+					UiEventAggregator::Instance()->getEvent<WalkWindowOpened>().publishUiEvent(WalkWindowOpened(mapArray[selectedMap], x, y));
 			}
 		break;
 
 		case SDL_MOUSEMOTION:
 			updateMouseText();
-			publishUiEvent(UIEVT_CONTENTSCHANGED);
+			UiEventAggregator::Instance()->getEvent<UiEventCode>().publishUiEvent(UiEventCode(UIEVT_CONTENTSCHANGED));
 		break;
 
 		// if event wasn't from keyboard, doesn't return to parent
@@ -269,7 +267,7 @@ void MapFrame::selectMap(int i)
 	cout << endl << endl << "Map " << selectedMap+1 << endl;
 	cout << "Sea Level : " << setw(3) << setfill('0') << mapArray[selectedMap]->getSeaLevel();
 
-	publishUiEvent(UIEVT_CONTENTSCHANGED);
+	UiEventAggregator::Instance()->getEvent<UiEventCode>().publishUiEvent(UiEventCode(UIEVT_CONTENTSCHANGED));
 }
 
 void MapFrame::selectNoise(int i)
@@ -292,7 +290,7 @@ void MapFrame::normalizeMap()
 	cout << "Sea Level : " << setw(3) << setfill('0') << mapArray[selectedMap]->getSeaLevel();
 	
 	mapTexture->update();
-	publishUiEvent(UIEVT_CONTENTSCHANGED);
+	UiEventAggregator::Instance()->getEvent<UiEventCode>().publishUiEvent(UiEventCode(UIEVT_CONTENTSCHANGED));
 }
 
 void MapFrame::increaseSeaLevel()
@@ -301,7 +299,7 @@ void MapFrame::increaseSeaLevel()
 	cout << "\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b" << "Sea Level : " << setw(3) << setfill('0') << mapArray[selectedMap]->getSeaLevel();
 
 	mapTexture->update();
-	publishUiEvent(UIEVT_CONTENTSCHANGED);
+	UiEventAggregator::Instance()->getEvent<UiEventCode>().publishUiEvent(UiEventCode(UIEVT_CONTENTSCHANGED));
 }
 
 void MapFrame::decreaseSeaLevel()
@@ -310,7 +308,7 @@ void MapFrame::decreaseSeaLevel()
 	cout << "\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b" << "Sea Level : " << setw(3) << setfill('0') << mapArray[selectedMap]->getSeaLevel();
 
 	mapTexture->update();
-	publishUiEvent(UIEVT_CONTENTSCHANGED);
+	UiEventAggregator::Instance()->getEvent<UiEventCode>().publishUiEvent(UiEventCode(UIEVT_CONTENTSCHANGED));
 }
 
 void MapFrame::setLandRenderMode(int mode)
@@ -318,7 +316,7 @@ void MapFrame::setLandRenderMode(int mode)
 	mapTexture->setLandRenderMode(mode);
 
 	mapTexture->update();
-	publishUiEvent(UIEVT_CONTENTSCHANGED);
+	UiEventAggregator::Instance()->getEvent<UiEventCode>().publishUiEvent(UiEventCode(UIEVT_CONTENTSCHANGED));
 }
 
 void MapFrame::setSeaRenderMode(int mode)
@@ -326,7 +324,7 @@ void MapFrame::setSeaRenderMode(int mode)
 	mapTexture->setSeaRenderMode(mode);
 
 	mapTexture->update();
-	publishUiEvent(UIEVT_CONTENTSCHANGED);
+	UiEventAggregator::Instance()->getEvent<UiEventCode>().publishUiEvent(UiEventCode(UIEVT_CONTENTSCHANGED));
 }
 
 void MapFrame::setLandAndSeaRenderModes(int modeLand, int modeSea)
@@ -335,5 +333,5 @@ void MapFrame::setLandAndSeaRenderModes(int modeLand, int modeSea)
 	mapTexture->setSeaRenderMode(modeSea);
 
 	mapTexture->update();
-	publishUiEvent(UIEVT_CONTENTSCHANGED);
+	UiEventAggregator::Instance()->getEvent<UiEventCode>().publishUiEvent(UiEventCode(UIEVT_CONTENTSCHANGED));
 }

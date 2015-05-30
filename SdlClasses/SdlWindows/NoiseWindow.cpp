@@ -2,12 +2,15 @@
 
 #include "Map.h"
 
-#include "SdlClasses/UiObject.h"
-#include "SdlClasses/UiCustomObjects/MapFrame.h"
-#include "SdlClasses/UiEventCodes.h"
 
 #include "SdlClasses/SdlTextures/MapTexture.h"
 
+#include "Ui/UiObject.h"
+#include "Ui/UiCustomObjects/MapFrame.h"
+
+#include "Ui/UiEventAggregator.h"
+#include "Ui/UiEvents/UiEventCode.h"
+#include "Ui/UiEvents/WalkWindowOpened.h"
 
 NoiseWindow::NoiseWindow(Map* mapArr[], int num) : 
 	SdlWindow(	"WorldGen", 20, 40, 
@@ -18,8 +21,10 @@ NoiseWindow::NoiseWindow(Map* mapArr[], int num) :
 {
 	addChildWindow(&walkWindow);
 
-	addUiEventObserver(this);
-	setWindowSdlEvtHandler([&](SDL_Event &e){return handleInternalSdlEvent(e);});
+	UiEventAggregator::Instance()->getEvent<UiEventCode>().subscribe(
+															[&](UiEventCode &c){ contentsChanged(c); });
+	UiEventAggregator::Instance()->getEvent<WalkWindowOpened>().subscribe(
+															[&](WalkWindowOpened &w){ openWalkWindow(w); });
 
 	mapArray = mapArr;
 	numMaps = num;
@@ -34,21 +39,23 @@ NoiseWindow::NoiseWindow(Map* mapArr[], int num) :
 
 NoiseWindow::~NoiseWindow()
 {
-	removeUiEventObserver(this);
+	UiEventAggregator::Instance()->getEvent<UiEventCode>().unsubscribe(
+															[&](UiEventCode &c){ contentsChanged(c); });
+	UiEventAggregator::Instance()->getEvent<WalkWindowOpened>().unsubscribe(
+															[&](WalkWindowOpened &w){ openWalkWindow(w); });
 }
 
-bool NoiseWindow::handleUiEvent(int evtId)
+void NoiseWindow::contentsChanged(UiEventCode &c)
 {
-	if(evtId == UIEVT_CONTENTSCHANGED)
+	if(c.code == UIEVT_CONTENTSCHANGED)
 		signalRefresh();
-
-	return true;
 }
 
-bool NoiseWindow::handleInternalSdlEvent(SDL_Event& e)
+void NoiseWindow::openWalkWindow(WalkWindowOpened &w)
 {
-	//return walkWindow.handleEvent(e);
-	return true;
+	walkWindow.setMap(w.map);
+	walkWindow.show(); // must happen before setPos
+	walkWindow.setPos(w.x, w.y);
 }
 
 // UI

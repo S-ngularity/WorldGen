@@ -1,9 +1,7 @@
-#include "SdlClasses/UiCustomObjects/MouseHeightText.h"
+#include "Ui/UiCustomObjects/MouseHeightText.h"
 
 #include <iostream>
 #include <string>
-
-#include "SdlClasses/UiEventCodes.h"
 
 MouseHeightText::MouseHeightText(SDL_Renderer *r) : 
 	UiObject(r, 0, 0, 0, 0)

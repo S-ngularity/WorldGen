@@ -3,11 +3,9 @@
 
 #include "SdlClasses/SdlTexture.h"
 
-#include "SdlClasses/UiObject.h"
-#include "SdlClasses/UiObserver.h"
-#include "SdlClasses/UiPublisher.h"
+#include "Ui/UiObject.h"
 
-#include "SdlClasses/UiCustomObjects/MouseHeightText.h"
+#include "Ui/UiCustomObjects/MouseHeightText.h"
 
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_ttf.h>
@@ -22,7 +20,7 @@ const int octaves = 10; const double freq = 0.003, persistence = 0.6, freqDiv = 
 // ask for noise screen update at every X percent completed
 #define UPDATE_AT_PERCENT 20
 
-class MapFrame : public UiObject, public UiPublisher
+class MapFrame : public UiObject
 {
 	private:
 		MapTexture *mapTexture;

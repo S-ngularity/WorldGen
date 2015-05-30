@@ -3,28 +3,27 @@
 
 #include <list>
 
-class UiObserver;
+#include "Ui/UiEvent.h"
 
 class UiEventAggregator
 {
 	private:
 		static UiEventAggregator *evtAggrInstance;
 
-		UiEventAggregator(){} // private so that it can't be called
+		UiEventAggregator(){evtAggrInstance = nullptr;} // private so that it can't be called
 		UiEventAggregator(UiEventAggregator const&) = delete;
 		UiEventAggregator& operator=(UiEventAggregator const&) = delete;
 
+	public:
 		static UiEventAggregator* Instance() { if (evtAggrInstance == nullptr) evtAggrInstance = new UiEventAggregator; return evtAggrInstance;}
 
-		std::list<UiObserver*> observerList;
+		template<typename EventType>
+		UiEvent<EventType>& getEvent()
+		{
+			static UiEvent<EventType> evt;
 
-		void addUiEventObserver(UiObserver* obsv);
-		void removeUiEventObserver(UiObserver* obsv);
-
-		void publishUiEvent(int evtId);
-
-		friend class UiPublisher;
-		friend class UiObserver;
+			return evt;
+		}
 };
 
 #endif

@@ -57,6 +57,11 @@ int main(int argc, char* args[])
 	// while window is open
 	while(noiseWindow->isShown())
 	{
+		while(SDL_PollEvent(&event))
+		{
+			noiseWindow->handleSdlEvent(event);
+		}
+
 		regulateFrameRate();
 	}
 
@@ -103,11 +108,6 @@ void SDLClose()
 */
 void doFrame(bool draw)
 {
-	while(SDL_PollEvent(&event))
-	{
-		noiseWindow->handleSdlEvent(event);
-	}
-
 	if(draw)
 		noiseWindow->doRefresh();
 }

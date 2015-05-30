@@ -186,6 +186,12 @@ bool SdlWindow::handleSdlEvent(SDL_Event& e)
 		return true;
 	} // event had this window's windowId
 
+	else
+	{
+		for(SdlWindow *childWindow : childList)
+			childWindow->handleSdlEvent(e);
+	}
+
 	return false;
 }
 
@@ -235,11 +241,12 @@ void SdlWindow::doRefresh()
 			SDL_RenderPresent(wndRenderer);
 		}
 
-		for(SdlWindow *childWindow : childList)
-			childWindow->doRefresh();
-
 		refreshSignaled = false;
 	}
+
+	// call refresh for child windows
+	for(SdlWindow *childWindow : childList)
+		childWindow->doRefresh();
 }
 
 int SdlWindow::getWindowWidth()

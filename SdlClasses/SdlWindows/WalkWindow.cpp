@@ -2,6 +2,8 @@
 
 #include "Map.h"
 
+#include "Ui/UiObject.h"
+
 #include <iostream>
 #include <iomanip>
 
@@ -24,17 +26,14 @@ WalkWindow::WalkWindow(Map *theMap) :
 	
 	setWindowSdlEvtHandler([&](SDL_Event &e){return handleInternalSdlEvent(e);});
 
-	walkX = 0; // the center tile position
+	// the center tile position
+	walkX = 0;
 	walkY = 0;
 
-	//SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "linear");  // make the scaled rendering look smoother.
-	SDL_RenderSetLogicalSize(getRenderer(), WALK_SCREEN_SIZE, WALK_SCREEN_SIZE);
-
-	//Initialize renderer color
-	SDL_SetRenderDrawColor(getRenderer(), 255, 255, 255, 255);
+	SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "nearest");
 
 	updateWalkTex();
-	walkTexture.render(getRenderer(), 0, 0);
+	gui->addChild(new UiObject(getRenderer(), 0, 0, &walkTexture, nullptr));
 	signalRefresh();
 }
 
@@ -44,7 +43,6 @@ void WalkWindow::setPos(int x, int y)
 	walkY = y;
 
 	updateWalkTex();
-	walkTexture.render(getRenderer(), 0, 0);
 	signalRefresh();
 }
 
@@ -125,7 +123,6 @@ bool WalkWindow::handleInternalSdlEvent(SDL_Event& e)
 		if(updateScreen)
 		{
 			updateWalkTex();
-			walkTexture.render(getRenderer(), 0, 0);
 			signalRefresh();
 		}
 	}

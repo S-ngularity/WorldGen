@@ -3,7 +3,7 @@
 
 #include "SdlClasses/SdlTexture.h"
 
-#include "SdlClasses/UiObject.h"
+#include "Ui/UiObject.h"
 
 #include <string>
 

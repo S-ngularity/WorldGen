@@ -1,25 +1,23 @@
 #ifndef NOISEWINDOW
 #define NOISEWINDOW
 
-
 #include "SdlClasses/SdlWindow.h"
 
 #include "SdlClasses/SdlWindows/WalkWindow.h"
-
-#include "SdlClasses/UiObserver.h"
-#include "SdlClasses/UiPublisher.h"
 
 #include <SDL2/SDL.h>
 
 class Map;
 class Noise;
 class UiObject;
+class UiEventCode;
+class WalkWindowOpened;
 
 const int SIDEBAR_WIDTH = 190;
 const int SCREEN_WIDTH = 800 + SIDEBAR_WIDTH;//map.getMapWidth();
 const int SCREEN_HEIGHT = 800;//map.getMapHeight();
 
-class NoiseWindow : public SdlWindow, public UiObserver, public UiPublisher
+class NoiseWindow : public SdlWindow
 {
 	private:
 		int numMaps;
@@ -27,13 +25,11 @@ class NoiseWindow : public SdlWindow, public UiObserver, public UiPublisher
 
 		WalkWindow walkWindow;
 
-		// this window's specific sdl event handler to be called in the superclass event handler
-		bool handleInternalSdlEvent(SDL_Event& e);
-		
-		bool handleUiEvent(int evtId) override;
+		// UiEvent handlers
+		void contentsChanged(UiEventCode &c);
+		void openWalkWindow(WalkWindowOpened &w);
 
-		// UI
-
+		// UI creation
 		void createGui();
 		SDL_Texture* createDrawnTexture(int width, int height, int r, int g, int b, int a);
 

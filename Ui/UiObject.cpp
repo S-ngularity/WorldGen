@@ -1,4 +1,4 @@
-#include "UiObject.h"
+#include "Ui/UiObject.h"
 
 #include "SdlClasses/SdlTexture.h"
 
