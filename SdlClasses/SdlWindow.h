@@ -13,9 +13,6 @@
 class SdlWindow
 {
 	private:
-		// Child windows
-		std::list<SdlWindow*> childList;
-
 		// Custom event handler
 		std::function<bool(SDL_Event& e)> evtHandler;
 
@@ -51,8 +48,6 @@ class SdlWindow
 
 		SDL_Window* window;
 		unsigned int windowID;
-
-		void addChildWindow(SdlWindow *c);
 
 		void setWindowSdlEvtHandler(std::function<bool(SDL_Event& e)> evth);
 

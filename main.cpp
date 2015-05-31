@@ -9,7 +9,10 @@
 #include "Map.h"
 
 #include "SdlClasses/SdlWindows/NoiseWindow.h"
-//#include "SdlClasses/SdlWindows/WalkWindow.h"
+#include "SdlClasses/SdlWindows/WalkWindow.h"
+
+#include "Ui/UiEventAggregator.h"
+#include "Ui/UiEvents/WalkWindowOpened.h"
 
 #include <SDL2/SDL.h>
 
@@ -18,6 +21,7 @@ using namespace std;
 SDL_Event event;
 
 NoiseWindow *noiseWindow;
+WalkWindow *walkWindow;
 
 const int mapNum = 3;
 
@@ -33,6 +37,8 @@ void SDLClose();
 void doFrame(bool draw);
 void resyncFrameTime();
 void regulateFrameRate();
+
+void openWalkWindow(WalkWindowOpened &w);
 
 int main(int argc, char* args[])
 {
@@ -53,6 +59,10 @@ int main(int argc, char* args[])
 	}
 
 	noiseWindow = new NoiseWindow(worldMapsVect, mapNum);
+	walkWindow = new WalkWindow(worldMapsVect[0]);
+
+	UiEventAggregator::Instance()->getEvent<WalkWindowOpened>().subscribe(
+															[&](WalkWindowOpened &w){ openWalkWindow(w); });
 
 	// while window is open
 	while(noiseWindow->isShown())
@@ -60,12 +70,17 @@ int main(int argc, char* args[])
 		while(SDL_PollEvent(&event))
 		{
 			noiseWindow->handleSdlEvent(event);
+			walkWindow->handleSdlEvent(event);
 		}
 
 		regulateFrameRate();
 	}
 
+	UiEventAggregator::Instance()->getEvent<WalkWindowOpened>().unsubscribe(
+															[&](WalkWindowOpened &w){ openWalkWindow(w); });
+
 	delete noiseWindow;
+	delete walkWindow;
 
 	SDLClose();
 
@@ -100,6 +115,14 @@ void SDLClose()
 }
 
 
+void openWalkWindow(WalkWindowOpened &w)
+{
+	walkWindow->setMap(w.map);
+	walkWindow->show(); // must happen before setPos
+	walkWindow->setPos(w.x, w.y);
+}
+
+
 // ----- Frame regulator: http://www.cplusplus.com/forum/beginner/94946/ -- by Disch ----- //
 
 /*
@@ -109,7 +132,10 @@ void SDLClose()
 void doFrame(bool draw)
 {
 	if(draw)
+	{
 		noiseWindow->doRefresh();
+		walkWindow->doRefresh();
+	}
 }
 
 /*

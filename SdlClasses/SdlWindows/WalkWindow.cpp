@@ -13,14 +13,17 @@
 using namespace std;
 
 WalkWindow::WalkWindow(Map *theMap) : 
-	SdlWindow(	"WorldGen Walker", 
-				SDL_WINDOWPOS_CENTERED, 
-				SDL_WINDOWPOS_CENTERED, 
+	SdlWindow(	"WorldGen Walker", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 
 				WALK_SCREEN_SIZE, WALK_SCREEN_SIZE, // window size
 				WALK_SCREEN_SIZE, WALK_SCREEN_SIZE, // window resolution
 				SDL_WINDOW_RESIZABLE | SDL_WINDOW_HIDDEN, 
 				SDL_RENDERER_ACCELERATED | SDL_RENDERER_TARGETTEXTURE), 
-	worldMap(theMap)
+	worldMap(theMap), 
+	walkTexture(SDL_CreateTexture(getRenderer(), 
+										SDL_PIXELFORMAT_RGBA8888, 
+										SDL_TEXTUREACCESS_TARGET, 
+										WALK_SCREEN_SIZE,
+										WALK_SCREEN_SIZE), WALK_SCREEN_SIZE, WALK_SCREEN_SIZE)
 {
 	hide(); // set superclass settings to hidden window state to sync with SDL_WINDOW_HIDDEN 
 	
@@ -34,6 +37,7 @@ WalkWindow::WalkWindow(Map *theMap) :
 
 	updateWalkTex();
 	gui->addChild(new UiObject(getRenderer(), 0, 0, &walkTexture, nullptr));
+	
 	signalRefresh();
 }
 
@@ -54,11 +58,12 @@ void WalkWindow::setMap(Map *m)
 
 bool WalkWindow::handleInternalSdlEvent(SDL_Event& e)
 {
-	bool updateScreen = false;
 	bool returnValue = false;
 
 	if(hasKeyboardFocus())
 	{
+		bool updateScreen = false;
+		
 		returnValue = true;
 
 		switch(e.type)
@@ -141,13 +146,7 @@ bool WalkWindow::handleInternalSdlEvent(SDL_Event& e)
 
 void WalkWindow::updateWalkTex()
 {
-	SDL_Texture *temp = SDL_CreateTexture(getRenderer(), 
-										SDL_PIXELFORMAT_RGBA8888, 
-										SDL_TEXTUREACCESS_TARGET, 
-										WALK_SCREEN_SIZE,
-										WALK_SCREEN_SIZE);
-
-	SDL_SetRenderTarget(getRenderer(), temp);
+	walkTexture.setAsRenderTarget(getRenderer());
 	SDL_SetRenderDrawColor(getRenderer(), 0, 0, 0, 255);
 	SDL_RenderClear(getRenderer());
 
@@ -198,6 +197,5 @@ void WalkWindow::updateWalkTex()
 			squarePosIt++;
 		}
 
-	SDL_SetRenderTarget(getRenderer(), NULL);
-	walkTexture.setTexture(temp, WALK_SCREEN_SIZE, WALK_SCREEN_SIZE);
+	walkTexture.releaseRenderTarget(getRenderer());
 }

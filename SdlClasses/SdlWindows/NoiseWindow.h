@@ -3,15 +3,12 @@
 
 #include "SdlClasses/SdlWindow.h"
 
-#include "SdlClasses/SdlWindows/WalkWindow.h"
-
 #include <SDL2/SDL.h>
 
 class Map;
 class Noise;
 class UiObject;
 class UiEventCode;
-class WalkWindowOpened;
 
 const int SIDEBAR_WIDTH = 190;
 const int SCREEN_WIDTH = 800 + SIDEBAR_WIDTH;//map.getMapWidth();
@@ -23,11 +20,8 @@ class NoiseWindow : public SdlWindow
 		int numMaps;
 		Map* *mapArray;
 
-		WalkWindow walkWindow;
-
 		// UiEvent handlers
 		void contentsChanged(UiEventCode &c);
-		void openWalkWindow(WalkWindowOpened &w);
 
 		// UI creation
 		void createGui();
