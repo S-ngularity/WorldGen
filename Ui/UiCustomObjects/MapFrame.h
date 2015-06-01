@@ -18,7 +18,7 @@ class MapTexture;
 const int octaves = 10; const double freq = 0.003, persistence = 0.6, freqDiv = 2.2;
 
 // ask for noise screen update at every X percent completed
-#define UPDATE_AT_PERCENT 20
+#define UPDATE_AT_PERCENT 25
 
 class MapFrame : public UiObject
 {

@@ -93,10 +93,10 @@ void OpenSimplexNoise::runOnce()
 					//value += open_simplex_noise2(context, (double) nowX * f, (double) nowY * f) * amp;
 
 					// círculo na diagonal
-					value += open_simplex_noise3(context, (double) nx * f, nowY * f, (double) nz * f) * amp;
+					//value += open_simplex_noise3(context, (double) nx * f, nowY * f, (double) nz * f) * amp;
 
 					// círculo na diagonal da 4a e linha na outra diagonal perpendicular da 4a
-					//value += open_simplex_noise4(context, (double) nx * f, nowY * f, (double) nz * f, nowY * f) * amp;
+					value += open_simplex_noise4(context, (double) nx * f, nowY * f, (double) nz * f, 0) * amp;
 					
 					// círculo nas duas diagonais perpendiculares da 4a
 					//value += open_simplex_noise4(context, (double) nx * f, (double) ny * f, (double) nz * f, (double) nw * f) * amp;//*/
@@ -120,15 +120,11 @@ void OpenSimplexNoise::runOnce()
 				nowX++;
 			}
 
-			//else
-			//{
-				nowX = 0;
-				nowY++;
+			nowX = 0;
+			nowY++;
 
-				doneIts++;
-				checkIfFinished();
-			//}
-
+			doneIts++;
+			checkIfFinished();
 		}
 	}
 }

@@ -23,7 +23,6 @@ NoiseWindow::NoiseWindow(Map* mapArr[], int num) :
 	numMaps = num;
 
 	SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "nearest");
-	//SDL_RenderSetLogicalSize(getRenderer(), mapArray[selectedMap]->getMapWidth(), mapArray[selectedMap]->getMapHeight());
 
 	createGui();
 
@@ -40,6 +39,12 @@ void NoiseWindow::contentsChanged(UiEventCode &c)
 {
 	if(c.code == UIEVT_CONTENTSCHANGED)
 		signalRefresh();
+
+	else if(c.code == UIEVT_RUNNOISEUPDATE)
+	{
+		signalRefresh();
+		doRefresh();
+	}
 }
 
 // UI

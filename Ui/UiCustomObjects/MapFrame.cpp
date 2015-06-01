@@ -68,12 +68,7 @@ void MapFrame::runNoise()
 
 			cout << "\b\b\b\b" << shownPercent << "%";
 
-			if(shownPercent == 100) // show highest at each phase (if appliable)
-				cout << endl 
-				<< endl << "Highest point: " << mapArray[selectedMap]->getHighestH()
-				<< endl << "Lowest point: " << mapArray[selectedMap]->getLowestH() << endl << endl;
-			
-			if(shownPercent % UPDATE_AT_PERCENT == 0)
+			if(shownPercent % UPDATE_AT_PERCENT == 0 || shownPercent == 100)
 			{
 				if(noiseArray[selectedNoise]->getPercentComplete() < 100) // no sea while not done
 				{
@@ -86,8 +81,14 @@ void MapFrame::runNoise()
 				{
 					mapTexture->setSeaRenderMode(WITH_SEA);
 					mapTexture->setLandRenderMode(VARYING_HIGHEST);
-					updateMapTexture = true; // last noise print
+
+					cout << endl 
+					<< endl << "Highest point: " << mapArray[selectedMap]->getHighestH()
+					<< endl << "Lowest point: " << mapArray[selectedMap]->getLowestH() << endl << endl;
+
 					cout << "Sea Level : " << setw(3) << setfill('0') << mapArray[selectedMap]->getSeaLevel();
+					
+					updateMapTexture = true; // last noise print
 				}
 			}
 		}
@@ -95,7 +96,7 @@ void MapFrame::runNoise()
 		if(updateMapTexture)
 		{
 			mapTexture->update();
-			UiEventAggregator::Instance()->getEvent<UiEventCode>().publishUiEvent(UiEventCode(UIEVT_CONTENTSCHANGED));
+			UiEventAggregator::Instance()->getEvent<UiEventCode>().publishUiEvent(UiEventCode(UIEVT_RUNNOISEUPDATE));
 			updateMapTexture = false;
 		}
 
