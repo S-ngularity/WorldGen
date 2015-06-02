@@ -111,14 +111,14 @@ void UiObject::setPostRenderProcedure(std::function<void()> procedure)
 
 void UiObject::render(int parentX, int parentY)
 {
-	if(preRenderProcedure)
-		preRenderProcedure();
-
 	absoluteX = parentX + xOffset;
 	absoluteY = parentY + yOffset;
 
 	scaleW = 1;
 	scaleH = 1;
+	
+	if(preRenderProcedure)
+		preRenderProcedure();
 
 	if(uiTexture != NULL)
 		uiTexture->renderFitToArea(renderer, absoluteX, absoluteY, width, height);

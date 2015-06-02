@@ -51,7 +51,7 @@ MapFrame::~MapFrame()
 void MapFrame::runNoise()
 {
 	bool updateMapTexture = false;
-	int shownPercent = -1;
+	int shownPercent = -1, updateAt = 0;
 
 	noiseArray[selectedNoise]->setMap(mapArray[selectedMap]);
 
@@ -68,8 +68,10 @@ void MapFrame::runNoise()
 
 			cout << "\b\b\b\b" << shownPercent << "%";
 
-			if(shownPercent % UPDATE_AT_PERCENT == 0 || shownPercent == 100)
+			if(shownPercent >= updateAt || shownPercent == 100)
 			{
+				updateAt += UPDATE_AT_PERCENT;
+
 				if(noiseArray[selectedNoise]->getPercentComplete() < 100) // no sea while not done
 				{
 					mapTexture->setSeaRenderMode(NO_SEA);

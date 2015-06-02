@@ -1,6 +1,8 @@
 #include <SDL2/SDL.h>
 #include "SdlClasses/SdlTexture.h"
 
+#include <cmath>
+
 SdlTexture::SdlTexture()
 {
 	texture = NULL;
@@ -63,7 +65,7 @@ void SdlTexture::renderFitToArea(SDL_Renderer *r, int x, int y, int areaW, int a
 		double scaleW = (double)areaW / (double)width;
 		double scaleH = (double)areaH / (double)height;
 
-		SDL_Rect renderRect = {x, y, (int)((double)width * scaleW), (int)((double)height * scaleH)};
+		SDL_Rect renderRect = {x, y, (int)round((double)width * scaleW), (int)round((double)height * scaleH)};
 		SDL_RenderCopy(r, texture, NULL, &renderRect);
 	}
 }
