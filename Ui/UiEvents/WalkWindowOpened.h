@@ -1,7 +1,7 @@
 #ifndef WALKWINDOWOPENED
 #define WALKWINDOWOPENED
 
-#include "map.h"
+#include "Map/Map.h"
 
 class WalkWindowOpened
 {

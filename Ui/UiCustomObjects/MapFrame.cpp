@@ -1,13 +1,13 @@
 #include "Ui/UiCustomObjects/MapFrame.h"
 
-#include "Map.h"
-#include "Noises/MyNoise.h"
-#include "Noises/DiamSqNoise.h"
-#include "Noises/OpenSimplexNoise.h"
+#include "Map/Map.h"
+//#include "Map/Noises/MyNoise.h"
+#include "Map/Noises/DiamSqNoise.h"
+#include "Map/Noises/OpenSimplexNoise.h"
 
 #include "SdlClasses/SdlTextures/MapTexture.h"
 
-#include "Ui/UiEventAggregator.h"
+#include "Ui/EventAggregator.h"
 #include "Ui/UiEvents/UiEventCode.h"
 #include "Ui/UiEvents/WalkWindowOpened.h"
 
@@ -16,8 +16,6 @@
 
 #include <string>
 #include <sstream>
-
-using namespace std;
 
 MapFrame::MapFrame(SDL_Renderer *r, int x, int y, int w, int h, Map* mapArr[], int num) : 
 	UiObject(r, x, y, w, h, NULL,
@@ -29,7 +27,6 @@ MapFrame::MapFrame(SDL_Renderer *r, int x, int y, int w, int h, Map* mapArr[], i
 
 	noiseArray[0] = new OpenSimplexNoise(mapArray[0], octaves, freq, persistence, freqDiv);
 	noiseArray[1] = new DiamSqNoise(mapArray[0]);
-	noiseArray[2] = new MyNoise(mapArray[0]);
 	selectedNoise = 0;
 
 	mapTexture = new MapTexture(getRenderer(), mapArray[selectedMap]);
@@ -39,7 +36,7 @@ MapFrame::MapFrame(SDL_Renderer *r, int x, int y, int w, int h, Map* mapArr[], i
 	mouseText = new MouseHeightText(getRenderer());
 	setPostRenderProcedure([&]() { mouseText->render(getAbsoluteX(), getAbsoluteY()); });
 	
-	UiEventAggregator::Instance()->getEvent<UiEventCode>().publishUiEvent(UiEventCode(UIEVT_CONTENTSCHANGED));
+	EventAggregator::Instance().getEvent<UiEventCode>().publishEvent(UiEventCode(UIEVT_CONTENTSCHANGED));
 }
 
 MapFrame::~MapFrame()
@@ -51,11 +48,11 @@ MapFrame::~MapFrame()
 void MapFrame::runNoise()
 {
 	bool updateMapTexture = false;
-	int shownPercent = -1, updateAt = 0;
+	int shownPercent = 0, updateAt = 0;
 
 	noiseArray[selectedNoise]->setMap(mapArray[selectedMap]);
 
-	cout << endl << endl;
+	std::cout << std::endl << std::endl << std::setw(2) << std::setfill('0') << shownPercent << "%" << std::flush;
 
 	while(noiseArray[selectedNoise]->getPercentComplete() < 100) // noise iterations
 	{
@@ -66,7 +63,7 @@ void MapFrame::runNoise()
 		{
 			shownPercent = noiseArray[selectedNoise]->getPercentComplete();
 
-			cout << "\b\b\b\b" << shownPercent << "%";
+			std::cout << "\b\b\b" << std::setw(2) << std::setfill('0') << shownPercent << "%" << std::flush;
 
 			if(shownPercent >= updateAt || shownPercent == 100)
 			{
@@ -84,11 +81,11 @@ void MapFrame::runNoise()
 					mapTexture->setSeaRenderMode(WITH_SEA);
 					mapTexture->setLandRenderMode(VARYING_HIGHEST);
 
-					cout << endl 
-					<< endl << "Highest point: " << mapArray[selectedMap]->getHighestH()
-					<< endl << "Lowest point: " << mapArray[selectedMap]->getLowestH() << endl << endl;
+					std::cout << std::endl 
+					<< std::endl << "Highest point: " << mapArray[selectedMap]->getHighestH()
+					<< std::endl << "Lowest point: " << mapArray[selectedMap]->getLowestH() << std::endl << std::endl;
 
-					cout << "Sea Level : " << setw(3) << setfill('0') << mapArray[selectedMap]->getSeaLevel();
+					std::cout << "Sea Level : " << std::setw(3) << std::setfill('0') << mapArray[selectedMap]->getSeaLevel() << std::flush;
 					
 					updateMapTexture = true; // last noise print
 				}
@@ -98,7 +95,7 @@ void MapFrame::runNoise()
 		if(updateMapTexture)
 		{
 			mapTexture->update();
-			UiEventAggregator::Instance()->getEvent<UiEventCode>().publishUiEvent(UiEventCode(UIEVT_RUNNOISEUPDATE));
+			EventAggregator::Instance().getEvent<UiEventCode>().publishEvent(UiEventCode(UIEVT_RUNNOISEUPDATE));
 			updateMapTexture = false;
 		}
 
@@ -119,15 +116,15 @@ void MapFrame::updateMouseText()
 	
 	if(mapPosFromMouse(&mapX, &mapY))
 	{
-		int h = mapArray[selectedMap]->Tile(mapX, mapY).getH();
-		string text;
+		int h = mapArray[selectedMap]->getH(mapX, mapY);
+		std::string text;
 
 		if(mapTexture->getSeaRenderMode() == WITH_SEA && h <= mapArray[selectedMap]->getSeaLevel())
 			text = "Sea";
 
 		else
 		{
-			stringstream ss;
+			std::stringstream ss;
 			ss << h;
 			text = ss.str();
 		}
@@ -244,13 +241,13 @@ bool MapFrame::handleInternalSdlEvent(SDL_Event &e)
 				int x, y;
 				
 				if(mapPosFromMouse(&x, &y))
-					UiEventAggregator::Instance()->getEvent<WalkWindowOpened>().publishUiEvent(WalkWindowOpened(mapArray[selectedMap], x, y));
+					EventAggregator::Instance().getEvent<WalkWindowOpened>().publishEvent(WalkWindowOpened(mapArray[selectedMap], x, y));
 			}
 		break;
 
 		case SDL_MOUSEMOTION:
 			updateMouseText();
-			UiEventAggregator::Instance()->getEvent<UiEventCode>().publishUiEvent(UiEventCode(UIEVT_CONTENTSCHANGED));
+			EventAggregator::Instance().getEvent<UiEventCode>().publishEvent(UiEventCode(UIEVT_CONTENTSCHANGED));
 		break;
 
 		// if event wasn't from keyboard, doesn't return to parent
@@ -267,10 +264,10 @@ void MapFrame::selectMap(int i)
 	selectedMap = i;
 
 	mapTexture->setMapAndUpdate(mapArray[selectedMap]);
-	cout << endl << endl << "Map " << selectedMap+1 << endl;
-	cout << "Sea Level : " << setw(3) << setfill('0') << mapArray[selectedMap]->getSeaLevel();
+	std::cout << std::endl << std::endl << "Map " << selectedMap+1 << std::endl;
+	std::cout << "Sea Level : " << std::setw(3) << std::setfill('0') << mapArray[selectedMap]->getSeaLevel() << std::flush;
 
-	UiEventAggregator::Instance()->getEvent<UiEventCode>().publishUiEvent(UiEventCode(UIEVT_CONTENTSCHANGED));
+	EventAggregator::Instance().getEvent<UiEventCode>().publishEvent(UiEventCode(UIEVT_CONTENTSCHANGED));
 }
 
 void MapFrame::selectNoise(int i)
@@ -282,36 +279,36 @@ void MapFrame::normalizeMap()
 {
 	int n;
 
-	cout << endl << "Normalize: ";
-	cin >> n;
+	std::cout << std::endl << "Normalize: " << std::flush;
+	std::cin >> n;
 
 	mapArray[selectedMap]->normalize(n);
 	
 	// reset sea level after normalization
 	mapArray[selectedMap]->setSeaLevel((mapArray[selectedMap]->getHighestH() / 2 ) - 1);
 	
-	cout << "Sea Level : " << setw(3) << setfill('0') << mapArray[selectedMap]->getSeaLevel();
+	std::cout << "Sea Level : " << std::setw(3) << std::setfill('0') << mapArray[selectedMap]->getSeaLevel() << std::flush;
 	
 	mapTexture->update();
-	UiEventAggregator::Instance()->getEvent<UiEventCode>().publishUiEvent(UiEventCode(UIEVT_CONTENTSCHANGED));
+	EventAggregator::Instance().getEvent<UiEventCode>().publishEvent(UiEventCode(UIEVT_CONTENTSCHANGED));
 }
 
 void MapFrame::increaseSeaLevel()
 {
 	mapArray[selectedMap]->increaseSeaLevel();
-	cout << "\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b" << "Sea Level : " << setw(3) << setfill('0') << mapArray[selectedMap]->getSeaLevel();
+	std::cout << "\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b" << "Sea Level : " << std::setw(3) << std::setfill('0') << mapArray[selectedMap]->getSeaLevel() << std::flush;
 
 	mapTexture->update();
-	UiEventAggregator::Instance()->getEvent<UiEventCode>().publishUiEvent(UiEventCode(UIEVT_CONTENTSCHANGED));
+	EventAggregator::Instance().getEvent<UiEventCode>().publishEvent(UiEventCode(UIEVT_CONTENTSCHANGED));
 }
 
 void MapFrame::decreaseSeaLevel()
 {
 	mapArray[selectedMap]->decreaseSeaLevel();
-	cout << "\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b" << "Sea Level : " << setw(3) << setfill('0') << mapArray[selectedMap]->getSeaLevel();
+	std::cout << "\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b" << "Sea Level : " << std::setw(3) << std::setfill('0') << mapArray[selectedMap]->getSeaLevel() << std::flush;
 
 	mapTexture->update();
-	UiEventAggregator::Instance()->getEvent<UiEventCode>().publishUiEvent(UiEventCode(UIEVT_CONTENTSCHANGED));
+	EventAggregator::Instance().getEvent<UiEventCode>().publishEvent(UiEventCode(UIEVT_CONTENTSCHANGED));
 }
 
 void MapFrame::setLandRenderMode(int mode)
@@ -319,7 +316,7 @@ void MapFrame::setLandRenderMode(int mode)
 	mapTexture->setLandRenderMode(mode);
 
 	mapTexture->update();
-	UiEventAggregator::Instance()->getEvent<UiEventCode>().publishUiEvent(UiEventCode(UIEVT_CONTENTSCHANGED));
+	EventAggregator::Instance().getEvent<UiEventCode>().publishEvent(UiEventCode(UIEVT_CONTENTSCHANGED));
 }
 
 void MapFrame::setSeaRenderMode(int mode)
@@ -327,7 +324,7 @@ void MapFrame::setSeaRenderMode(int mode)
 	mapTexture->setSeaRenderMode(mode);
 
 	mapTexture->update();
-	UiEventAggregator::Instance()->getEvent<UiEventCode>().publishUiEvent(UiEventCode(UIEVT_CONTENTSCHANGED));
+	EventAggregator::Instance().getEvent<UiEventCode>().publishEvent(UiEventCode(UIEVT_CONTENTSCHANGED));
 }
 
 void MapFrame::setLandAndSeaRenderModes(int modeLand, int modeSea)
@@ -336,5 +333,5 @@ void MapFrame::setLandAndSeaRenderModes(int modeLand, int modeSea)
 	mapTexture->setSeaRenderMode(modeSea);
 
 	mapTexture->update();
-	UiEventAggregator::Instance()->getEvent<UiEventCode>().publishUiEvent(UiEventCode(UIEVT_CONTENTSCHANGED));
+	EventAggregator::Instance().getEvent<UiEventCode>().publishEvent(UiEventCode(UIEVT_CONTENTSCHANGED));
 }

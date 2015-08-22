@@ -20,7 +20,7 @@ class NoiseWindow : public SdlWindow
 		int numMaps;
 		Map* *mapArray;
 
-		// UiEvent handlers
+		// Ui Event handlers
 		void contentsChanged(UiEventCode &c);
 
 		// UI creation

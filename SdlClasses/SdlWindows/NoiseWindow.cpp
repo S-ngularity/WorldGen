@@ -1,13 +1,13 @@
 #include "SdlClasses/SdlWindows/NoiseWindow.h"
 
-#include "Map.h"
+#include "Map/Map.h"
 
 #include "SdlClasses/SdlTextures/MapTexture.h"
 
 #include "Ui/UiObject.h"
 #include "Ui/UiCustomObjects/MapFrame.h"
 
-#include "Ui/UiEventAggregator.h"
+#include "Ui/EventAggregator.h"
 #include "Ui/UiEvents/UiEventCode.h"
 
 NoiseWindow::NoiseWindow(Map* mapArr[], int num) : 
@@ -16,7 +16,7 @@ NoiseWindow::NoiseWindow(Map* mapArr[], int num) :
 				SCREEN_WIDTH, SCREEN_HEIGHT, // window resolution
 				SDL_WINDOW_RESIZABLE, SDL_RENDERER_ACCELERATED | SDL_RENDERER_TARGETTEXTURE) // superclass window constructor
 {
-	UiEventAggregator::Instance()->getEvent<UiEventCode>().subscribe(
+	EventAggregator::Instance().getEvent<UiEventCode>().subscribe(
 															[&](UiEventCode &c){ contentsChanged(c); });
 
 	mapArray = mapArr;
@@ -31,7 +31,7 @@ NoiseWindow::NoiseWindow(Map* mapArr[], int num) :
 
 NoiseWindow::~NoiseWindow()
 {
-	UiEventAggregator::Instance()->getEvent<UiEventCode>().unsubscribe(
+	EventAggregator::Instance().getEvent<UiEventCode>().unsubscribe(
 															[&](UiEventCode &c){ contentsChanged(c); });
 }
 
@@ -84,16 +84,12 @@ void NoiseWindow::createGui()
 								[&](SDL_Event &e){ return btMapClicked(e, 2); }));
 
 	SdlTexture *btNoise1Tex = new SdlTexture(createDrawnTexture(30, 30, 0, 255, 0, 255), 30, 30);
-	bgUi->addChild(new UiObject(getRenderer(), 30, 80, btNoise1Tex, 
+	bgUi->addChild(new UiObject(getRenderer(), 55, 80, btNoise1Tex, 
 								[&](SDL_Event &e){ return btNoiseClicked(e, 0); }));
 
 	SdlTexture *btNoise2Tex = new SdlTexture(createDrawnTexture(30, 30, 0, 255, 0, 255), 30, 30);
-	bgUi->addChild(new UiObject(getRenderer(), 80, 80, btNoise2Tex, 
+	bgUi->addChild(new UiObject(getRenderer(), 105, 80, btNoise2Tex, 
 								[&](SDL_Event &e){ return btNoiseClicked(e, 1); }));
-
-	SdlTexture *btNoise3Tex = new SdlTexture(createDrawnTexture(30, 30, 0, 255, 0, 255), 30, 30);
-	bgUi->addChild(new UiObject(getRenderer(), 130, 80, btNoise3Tex, 
-								[&](SDL_Event &e){ return btNoiseClicked(e, 2); }));
 
 	gui->addChild(bgUi);
 }

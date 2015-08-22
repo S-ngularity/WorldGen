@@ -1,13 +1,14 @@
-#ifndef UIEVENT
-#define UIEVENT
+#ifndef EVENT
+#define EVENT
 
 #include <list>
 #include <functional>
 #include <iostream>
 template<typename EventType>
-class UiEvent
+class Event
 {
 	private:
+		// to do: substituir por map, gerar uma key e retornar a key ao fazer subscribe(), o subscriber guarda essa key e chama remove(key) quando precusar
 		std::list< std::function<void(EventType &evt)> > subscriberList;
 
 	public:
@@ -21,7 +22,7 @@ class UiEvent
 			//subscriberList.remove(action);
 		}
 
-		void publishUiEvent(EventType evt)
+		void publishEvent(EventType evt)
 		{
 			for(auto action : subscriberList)
 				action(evt);

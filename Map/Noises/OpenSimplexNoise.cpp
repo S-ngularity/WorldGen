@@ -1,5 +1,5 @@
 #include "OpenSimplexNoise.h"
-#include "../Map.h"
+#include "Map/Map.h"
 
 #include <iostream>
 #include <cmath>
@@ -109,7 +109,7 @@ void OpenSimplexNoise::runOnce()
 				value /= maxAmp;
 
 				value *= MAX_H;
-				map->Tile(nowX, nowY).setH(value);
+				map->setH(nowX, nowY, value);
 
 				if(value > map->getHighestH())
 					map->setHighestH(value);
@@ -143,11 +143,11 @@ void OpenSimplexNoise::checkIfFinished()
 			for(int y = 0; y < map->getMapHeight(); y++)
 				for(int x = 0; x < map->getMapWidth(); x++)
 				{
-					if(map->Tile(x, y).getH() <= map->getSeaLevel())
+					if(map->getH(x, y) <= map->getSeaLevel())
 						imageData[(map->getMapHeight() - 1 - y) * map->getMapWidth() + x] = 0;//(unsigned char)(((float)(map->getSeaLevel() - 1) / MAX_H) * 256.0);
 
 					else
-						imageData[(map->getMapHeight() - 1 - y) * map->getMapWidth() + x] = (unsigned char)((int)((map->Tile(x, y).getH() - map->getSeaLevel()) / (float)(MAX_H - map->getSeaLevel()) * 255.0)); //(unsigned char)((int)(((float)map->Tile(x, y).getH() / MAX_H) * 256.0));
+						imageData[(map->getMapHeight() - 1 - y) * map->getMapWidth() + x] = (unsigned char)((int)((map->getH(x, y) - map->getSeaLevel()) / (float)(MAX_H - map->getSeaLevel()) * 255.0)); //(unsigned char)((int)(((float)map->getH(x, y) / MAX_H) * 256.0));
 				}
 
 			tgaSave("t.tga", map->getMapWidth(), map->getMapHeight(), 8, imageData);

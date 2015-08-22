@@ -6,12 +6,12 @@
 #include <stdlib.h>
 #include <time.h>
 
-#include "Map.h"
+#include "Map/Map.h"
 
 #include "SdlClasses/SdlWindows/NoiseWindow.h"
 #include "SdlClasses/SdlWindows/WalkWindow.h"
 
-#include "Ui/UiEventAggregator.h"
+#include "Ui/EventAggregator.h"
 #include "Ui/UiEvents/WalkWindowOpened.h"
 
 #include <SDL2/SDL.h>
@@ -61,7 +61,7 @@ int main(int argc, char* args[])
 	noiseWindow = new NoiseWindow(worldMapsVect, mapNum);
 	walkWindow = new WalkWindow(worldMapsVect[0]);
 
-	UiEventAggregator::Instance()->getEvent<WalkWindowOpened>().subscribe(
+	EventAggregator::Instance().getEvent<WalkWindowOpened>().subscribe(
 															[&](WalkWindowOpened &w){ openWalkWindow(w); });
 
 	// while window is open
@@ -76,7 +76,7 @@ int main(int argc, char* args[])
 		regulateFrameRate();
 	}
 
-	UiEventAggregator::Instance()->getEvent<WalkWindowOpened>().unsubscribe(
+	EventAggregator::Instance().getEvent<WalkWindowOpened>().unsubscribe(
 															[&](WalkWindowOpened &w){ openWalkWindow(w); });
 
 	delete noiseWindow;

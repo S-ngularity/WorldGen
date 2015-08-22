@@ -1,4 +1,4 @@
-#include "Map.h"
+#include "Map/Map.h"
 #include "SdlClasses/SdlTextures/MapTexture.h"
 
 MapTexture::MapTexture(SDL_Renderer *r, Map *theMap)
@@ -44,18 +44,19 @@ void MapTexture::update()
 	for(int y = 0; y < worldMap->getMapHeight(); y++)
 		for(int x = 0; x < worldMap->getMapWidth(); x++)
 		{
+			/*
 			if(worldMap->Tile(x, y).getError() == true)
 			{
 				r = 100;
 				g = 0;
 				b = 0;
 			}
-			/*
 			else if(worldMap->Tile(x, y).getIsSeed() == true)// && worldMap->Tile(x, y).seedLow == true)
 				SDL_SetRenderDrawColor(noiseRenderer, 0, 255, 0, 255);
+			else 
 			//*/
 
-			else if(seaRenderMode == WITH_SEA && worldMap->Tile(x, y).getH() <= worldMap->getSeaLevel())
+			if(seaRenderMode == WITH_SEA && worldMap->getH(x, y) <= worldMap->getSeaLevel())
 			{
 				r = 25;
 				g = 45;
@@ -73,7 +74,7 @@ void MapTexture::update()
 					if(varBy == 0) varBy = 1;
 					float multiplierColor = (float)(255 - baseColor) / varBy;
 					
-					hColor = (worldMap->Tile(x, y).getH() - worldMap->getSeaLevel()) * multiplierColor;
+					hColor = (worldMap->getH(x, y) - worldMap->getSeaLevel()) * multiplierColor;
 				}//*/
 				//*
 				else if(landRenderMode == VARYING_MAX) // BRANCO VARIAVEL worldMap->getSeaLevel() até MAX_H
@@ -83,7 +84,7 @@ void MapTexture::update()
 					if(varBy == 0) varBy = 1;
 					float multiplierColor = (float)(255 - baseColor) / varBy;
 					
-					hColor = (worldMap->Tile(x, y).getH() - worldMap->getSeaLevel()) * multiplierColor;
+					hColor = (worldMap->getH(x, y) - worldMap->getSeaLevel()) * multiplierColor;
 				}//*/
 
 				else if(landRenderMode == FIXED) // BRANCO FIXO
@@ -93,7 +94,7 @@ void MapTexture::update()
 					if(varBy == 0) varBy = 1;
 					float multiplierColor = (float)(255 - baseColor) / varBy;
 
-					hColor = worldMap->Tile(x, y).getH() * multiplierColor;
+					hColor = worldMap->getH(x, y) * multiplierColor;
 				}
 
 				r = baseColor + hColor;
