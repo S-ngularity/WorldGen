@@ -8,8 +8,8 @@
 
 #include "Map/Map.h"
 
-#include "SdlClasses/SdlWindows/NoiseWindow.h"
-#include "SdlClasses/SdlWindows/WalkWindow.h"
+#include "CustomSdlWindows/NoiseWindow.h"
+#include "CustomSdlWindows/WalkWindow.h"
 
 #include "Ui/EventAggregator.h"
 #include "Ui/UiEvents/WalkWindowOpened.h"

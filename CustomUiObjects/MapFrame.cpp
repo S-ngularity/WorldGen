@@ -1,11 +1,11 @@
-#include "Ui/UiCustomObjects/MapFrame.h"
+#include "CustomUiObjects/MapFrame.h"
 
 #include "Map/Map.h"
 //#include "Map/Noises/MyNoise.h"
 #include "Map/Noises/DiamSqNoise.h"
 #include "Map/Noises/OpenSimplexNoise.h"
 
-#include "SdlClasses/SdlTextures/MapTexture.h"
+#include "CustomSdlTextures/MapTexture.h"
 
 #include "Ui/EventAggregator.h"
 #include "Ui/UiEvents/UiEventCode.h"
@@ -19,7 +19,7 @@
 
 MapFrame::MapFrame(SDL_Renderer *r, int x, int y, int w, int h, Map* mapArr[], int num) : 
 	UiObject(r, x, y, w, h, NULL,
-			[&](SDL_Event &e){return handleInternalSdlEvent(e);})
+			[&](SDL_Event &e){return customSdlEvtHandler(e);})
 {
 	mapArray = mapArr;
 	numMaps = num;
@@ -153,7 +153,7 @@ bool MapFrame::mapPosFromMouse(int *x, int *y)
 	return true;
 }
 
-bool MapFrame::handleInternalSdlEvent(SDL_Event &e)
+bool MapFrame::customSdlEvtHandler(SDL_Event &e)
 {
 	switch(e.type)
 	{

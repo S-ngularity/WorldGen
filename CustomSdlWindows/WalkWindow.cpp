@@ -1,4 +1,4 @@
-#include "SdlClasses/SdlWindows/WalkWindow.h"
+#include "CustomSdlWindows/WalkWindow.h"
 
 #include "Map/Map.h"
 
@@ -27,7 +27,7 @@ WalkWindow::WalkWindow(Map *theMap) :
 {
 	hide(); // set superclass settings to hidden window state to sync with SDL_WINDOW_HIDDEN 
 	
-	setWindowSdlEvtHandler([&](SDL_Event &e){return handleInternalSdlEvent(e);});
+	setWindowSdlEvtHandler([&](SDL_Event &e){return customSdlEvtHandler(e);});
 
 	// the center tile position
 	walkX = 0;
@@ -56,7 +56,7 @@ void WalkWindow::setMap(Map *m)
 	setPos(0, 0);
 }
 
-bool WalkWindow::handleInternalSdlEvent(SDL_Event& e)
+bool WalkWindow::customSdlEvtHandler(SDL_Event& e)
 {
 	bool returnValue = false;
 

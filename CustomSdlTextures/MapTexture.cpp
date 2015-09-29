@@ -1,5 +1,5 @@
 #include "Map/Map.h"
-#include "SdlClasses/SdlTextures/MapTexture.h"
+#include "CustomSdlTextures/MapTexture.h"
 
 MapTexture::MapTexture(SDL_Renderer *r, Map *theMap)
 {

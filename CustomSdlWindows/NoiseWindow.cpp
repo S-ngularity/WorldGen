@@ -1,11 +1,11 @@
-#include "SdlClasses/SdlWindows/NoiseWindow.h"
+#include "CustomSdlWindows/NoiseWindow.h"
 
 #include "Map/Map.h"
 
-#include "SdlClasses/SdlTextures/MapTexture.h"
+#include "CustomSdlTextures/MapTexture.h"
 
 #include "Ui/UiObject.h"
-#include "Ui/UiCustomObjects/MapFrame.h"
+#include "CustomUiObjects/MapFrame.h"
 
 #include "Ui/EventAggregator.h"
 #include "Ui/UiEvents/UiEventCode.h"

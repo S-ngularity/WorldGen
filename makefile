@@ -14,11 +14,11 @@ SRC =	main.cpp \
 		Map/Noises/DiamSqNoise.cpp Map/Noises/OpenSimplexNoise.cpp \
 		Map/Noises/OpenSimplexC/open-simplex-noise.cpp \
 		SdlClasses/SdlTexture.cpp \
-		SdlClasses/SdlTextures/MapTexture.cpp \
 		SdlClasses/SdlWindow.cpp \
-		SdlClasses/SdlWindows/NoiseWindow.cpp SdlClasses/SdlWindows/WalkWindow.cpp \
 		Ui/UiObject.cpp Ui/EventAggregator.cpp \
-		Ui/UiCustomObjects/MapFrame.cpp Ui/UiCustomObjects/MouseHeightText.cpp
+		CustomSdlTextures/MapTexture.cpp \
+		CustomSdlWindows/NoiseWindow.cpp CustomSdlWindows/WalkWindow.cpp \
+		CustomUiObjects/MapFrame.cpp CustomUiObjects/MouseHeightText.cpp
 
 OUT = Worldgen
 

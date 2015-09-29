@@ -5,7 +5,7 @@
 
 #include "Ui/UiObject.h"
 
-#include "Ui/UiCustomObjects/MouseHeightText.h"
+#include "CustomUiObjects/MouseHeightText.h"
 
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_ttf.h>
@@ -45,7 +45,7 @@ class MapFrame : public UiObject
 		
 		bool mapPosFromMouse(int *x, int *y);
 
-		bool handleInternalSdlEvent(SDL_Event &e);
+		bool customSdlEvtHandler(SDL_Event &e);
 
 	public:
 		MapFrame(SDL_Renderer *r, int x, int y, int w, int h, Map* mapArr[], int num);
