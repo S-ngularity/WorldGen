@@ -9,7 +9,6 @@ class UiEventCode
 };
 
 // handled by NoiseWindow
-#define UIEVT_CONTENTSCHANGED 1
-#define UIEVT_RUNNOISEUPDATE 2
+#define UIEVT_RUNNOISEUPDATE 1
 
 #endif

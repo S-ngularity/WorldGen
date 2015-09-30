@@ -64,7 +64,6 @@ class SdlWindow
 		void hide();
 
 		// Shows windows contents
-		void signalRefresh();
 		void doRefresh();
 
 		int getWindowWidth();

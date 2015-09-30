@@ -17,7 +17,7 @@ NoiseWindow::NoiseWindow(Map* mapArr[], int num) :
 				SDL_WINDOW_RESIZABLE, SDL_RENDERER_ACCELERATED | SDL_RENDERER_TARGETTEXTURE) // superclass window constructor
 {
 	EventAggregator::Instance().getEvent<UiEventCode>().subscribe(
-															[&](UiEventCode &c){ contentsChanged(c); });
+															[&](UiEventCode &c){ customUiEventHandler(c); });
 
 	mapArray = mapArr;
 	numMaps = num;
@@ -25,24 +25,18 @@ NoiseWindow::NoiseWindow(Map* mapArr[], int num) :
 	SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "nearest");
 
 	createGui();
-
-	signalRefresh();
 }
 
 NoiseWindow::~NoiseWindow()
 {
 	EventAggregator::Instance().getEvent<UiEventCode>().unsubscribe(
-															[&](UiEventCode &c){ contentsChanged(c); });
+															[&](UiEventCode &c){ customUiEventHandler(c); });
 }
 
-void NoiseWindow::contentsChanged(UiEventCode &c)
+void NoiseWindow::customUiEventHandler(UiEventCode &c)
 {
-	if(c.code == UIEVT_CONTENTSCHANGED)
-		signalRefresh();
-
-	else if(c.code == UIEVT_RUNNOISEUPDATE)
+	if(c.code == UIEVT_RUNNOISEUPDATE)
 	{
-		signalRefresh();
 		doRefresh();
 	}
 }

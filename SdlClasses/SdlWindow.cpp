@@ -118,12 +118,11 @@ bool SdlWindow::handleSdlEvent(SDL_Event& e)
 					windowWidth = e.window.data1;
 					windowHeight = e.window.data2;
 					gui->setWindowScale(getWindowWidthScale(), getWindowHeightScale());
-					signalRefresh();
 				break;
 
 				// Repaint on expose
 				case SDL_WINDOWEVENT_EXPOSED:
-					signalRefresh();
+					
 				break;
 
 				// Mouse enter
@@ -208,29 +207,19 @@ void SdlWindow::hide()
 	SDL_HideWindow(window);
 }
 
-void SdlWindow::signalRefresh()
-{
-	refreshSignaled = true;
-}
-
 void SdlWindow::doRefresh()
 {
-	if(refreshSignaled)
+	if(!minimized && shown)
 	{
-		if(!minimized && shown)
-		{
-			resolutionTexture.setAsRenderTarget(wndRenderer);
-			SDL_SetRenderDrawColor(wndRenderer, 255, 0, 255, 255);
-			SDL_RenderClear(wndRenderer);
-			gui->render(0, 0);
-			resolutionTexture.releaseRenderTarget(wndRenderer);
+		resolutionTexture.setAsRenderTarget(wndRenderer);
+		SDL_SetRenderDrawColor(wndRenderer, 255, 0, 255, 255);
+		SDL_RenderClear(wndRenderer);
+		gui->render(0, 0);
+		resolutionTexture.releaseRenderTarget(wndRenderer);
 
-			resolutionTexture.renderFitToArea(wndRenderer, 0, 0, windowWidth, windowHeight);
+		resolutionTexture.renderFitToArea(wndRenderer, 0, 0, windowWidth, windowHeight);
 
-			SDL_RenderPresent(wndRenderer);
-		}
-
-		refreshSignaled = false;
+		SDL_RenderPresent(wndRenderer);
 	}
 }
 

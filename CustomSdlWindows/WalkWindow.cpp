@@ -37,8 +37,6 @@ WalkWindow::WalkWindow(Map *theMap) :
 
 	updateWalkTex();
 	gui->addChild(new UiObject(getRenderer(), 0, 0, &walkTexture, nullptr));
-	
-	signalRefresh();
 }
 
 void WalkWindow::setPos(int x, int y)
@@ -47,7 +45,6 @@ void WalkWindow::setPos(int x, int y)
 	walkY = y;
 
 	updateWalkTex();
-	signalRefresh();
 }
 
 void WalkWindow::setMap(Map *m)
@@ -128,7 +125,6 @@ bool WalkWindow::customSdlEvtHandler(SDL_Event& e)
 		if(updateScreen)
 		{
 			updateWalkTex();
-			signalRefresh();
 		}
 	}
 

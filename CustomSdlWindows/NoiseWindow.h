@@ -21,7 +21,7 @@ class NoiseWindow : public SdlWindow
 		Map* *mapArray;
 
 		// Ui Event handlers
-		void contentsChanged(UiEventCode &c);
+		void customUiEventHandler(UiEventCode &c);
 
 		// UI creation
 		void createGui();

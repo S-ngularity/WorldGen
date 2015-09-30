@@ -144,7 +144,7 @@ void UiObject::renderScaled(int parentX, int parentY, double sW, double sH)
 	scaleH = sH;
 
 	if(uiTexture != NULL)
-		uiTexture->renderFitToArea(renderer, absoluteX * scaleW, absoluteY * scaleH, width * scaleW, height * scaleH);
+		uiTexture->renderFitToArea(renderer, absoluteX, absoluteY, width * scaleW, height * scaleH);
 
 	if(postRenderProcedure)
 		postRenderProcedure();
