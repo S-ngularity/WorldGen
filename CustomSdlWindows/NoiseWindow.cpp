@@ -12,6 +12,8 @@
 #include "Ui/EventAggregator.h"
 #include "Ui/UiEvents/UiEventCode.h"
 
+#include "MyUtils.h"
+
 NoiseWindow::NoiseWindow(Map* mapArr[], int num) : 
 	SdlWindow(	"WorldGen", 20, 40, 
 				SCREEN_WIDTH, SCREEN_HEIGHT, // window size 
@@ -70,6 +72,9 @@ void NoiseWindow::createGui()
 								new SdlTexture(createDrawnTexture(30, 30, 0, 255, 0, 255), 30, 30), 
 								new SdlTexture(createDrawnTexture(30, 30, 115, 255, 115, 255), 30, 30), 
 								new SdlTexture(createDrawnTexture(30, 30, 0, 205, 0, 255), 30, 30), 
+								//new SdlTexture(MyUtils::loadTexture(getRenderer(), "Resources\\btNormal.png"), 50, 30), 
+								//new SdlTexture(MyUtils::loadTexture(getRenderer(), "Resources\\btHover.png"), 50, 30), 
+								//new SdlTexture(MyUtils::loadTexture(getRenderer(), "Resources\\btPressed.png"), 50, 30), 
 								[&](){ mapFrame->selectMap(0); } ));
 
 	bgUi->addChild(new UiButton(80, 30, 

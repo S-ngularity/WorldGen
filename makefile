@@ -7,9 +7,10 @@ CXX = g++
 #flags Linux:
 #CXXFLAGS = -Wall -std=c++11 -lSDL2 -lSDL2_ttf -MMD -I .			
 #flags Windows:
-CXXFLAGS = -lmingw32 -lSDL2main -lSDL2 -lSDL2_ttf -Wall -std=c++11 -MMD -I .
+CXXFLAGS = -lmingw32 -lSDL2main -lSDL2 -lSDL2_ttf -lSDL2_image -Wall -std=c++11 -MMD -I .
 
 SRC =	main.cpp \
+		MyUtils.cpp \
 		Map/Map.cpp \
 		Map/Noises/DiamSqNoise.cpp Map/Noises/OpenSimplexNoise.cpp \
 		Map/Noises/OpenSimplexC/open-simplex-noise.cpp \
