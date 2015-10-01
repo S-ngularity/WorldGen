@@ -4,6 +4,7 @@
 #include "SdlClasses/SdlTexture.h"
 
 #include "Ui/UiObject.h"
+#include "Ui/UiManager.h"
 
 #include <string>
 
@@ -16,7 +17,7 @@ class MouseHeightText : public UiObject
 		TTF_Font *heightTextFont;
 
 	public:
-		MouseHeightText(SDL_Renderer *r);
+		MouseHeightText(UiManager *parentUiMngr);
 		~MouseHeightText();
 
 		void update(std::string text);

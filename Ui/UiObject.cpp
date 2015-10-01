@@ -2,22 +2,26 @@
 
 #include "SdlClasses/SdlTexture.h"
 
-UiObject::UiObject(SDL_Renderer *r, int xOff, int yOff, int w, int h) : 
-	UiObject(r, xOff, yOff, w, h, NULL, nullptr)
+#include <iostream>
+
+UiObject::UiObject(int xOff, int yOff, int w, int h) : 
+	UiObject(xOff, yOff, w, h, NULL, nullptr)
 {}
 
-UiObject::UiObject(SDL_Renderer *r, int xOff, int yOff, SdlTexture *t, std::function<bool(SDL_Event& e)> evth) : 
-	UiObject(r, xOff, yOff, 0, 0, t, evth)
+UiObject::UiObject(int xOff, int yOff, SdlTexture *t, std::function<bool(SDL_Event& e)> evth) : 
+	UiObject(xOff, yOff, 0, 0, t, evth)
 {
 	if(t != NULL)
 		setUiObjectSize(t->getW(), t->getH());
 }
 
-UiObject::UiObject(SDL_Renderer *r, int xOff, int yOff, int w, int h, SdlTexture *t, std::function<bool(SDL_Event& e)> evth) : 
+UiObject::UiObject(int xOff, int yOff, int w, int h, SdlTexture *t, std::function<bool(SDL_Event& e)> evth) : 
 	evtHandler(evth),
 	preRenderProcedure(nullptr),
 	postRenderProcedure(nullptr)
 {
+	parentUiManager = NULL;
+
 	absoluteX = 0;
 	absoluteY = 0;
 	xOffset = xOff;
@@ -27,12 +31,8 @@ UiObject::UiObject(SDL_Renderer *r, int xOff, int yOff, int w, int h, SdlTexture
 	height = h;
 	scaleW = 1;
 	scaleH = 1;
-	windowScaleW = 1;
-	windowScaleH = 1;
 	
-	renderer = r;
 	uiTexture = t;
-
 }
 
 UiObject::~UiObject()
@@ -47,6 +47,8 @@ UiObject::~UiObject()
 
 void UiObject::addChild(UiObject *c)
 {
+	c->setParentUiManager(parentUiManager);
+
 	childList.push_front(c);
 }
 
@@ -82,20 +84,14 @@ int UiObject::getHeight()
 	return height;
 }
 
-int UiObject::getAbsoluteX()
+void UiObject::setParentUiManager(UiManager *uiMngr)
 {
-	return absoluteX;
+	parentUiManager = uiMngr;
+
+	for(UiObject *childUiObj : childList)
+		childUiObj->setParentUiManager(uiMngr);
 }
 
-int UiObject::getAbsoluteY()
-{
-	return absoluteY;
-}
-
-SDL_Renderer* UiObject::getRenderer()
-{
-	return renderer;
-}
 
 // ----- Render ----- //
 
@@ -121,7 +117,12 @@ void UiObject::render(int parentX, int parentY)
 		preRenderProcedure();
 
 	if(uiTexture != NULL)
-		uiTexture->renderFitToArea(renderer, absoluteX, absoluteY, width, height);
+	{
+		if(parentUiManager == NULL)
+			std::cout << "UiObject without parentUiManager (is NULL)." << std::endl;
+
+		uiTexture->renderFitToArea(parentUiManager->getRenderer(), absoluteX, absoluteY, width, height);
+	}
 
 	if(postRenderProcedure)
 		postRenderProcedure();
@@ -134,17 +135,22 @@ void UiObject::render(int parentX, int parentY)
 
 void UiObject::renderScaled(int parentX, int parentY, double sW, double sH)
 {
-	if(preRenderProcedure)
-		preRenderProcedure();
-
 	absoluteX = parentX + xOffset;
 	absoluteY = parentY + yOffset;
 
 	scaleW = sW;
 	scaleH = sH;
 
+	if(preRenderProcedure)
+		preRenderProcedure();
+
 	if(uiTexture != NULL)
-		uiTexture->renderFitToArea(renderer, absoluteX, absoluteY, width * scaleW, height * scaleH);
+	{
+		if(parentUiManager == NULL)
+			std::cout << "UiObject without parentUiManager (is NULL)." << std::endl;
+
+		uiTexture->renderFitToArea(parentUiManager->getRenderer(), absoluteX, absoluteY, width * scaleW, height * scaleH);
+	}
 
 	if(postRenderProcedure)
 		postRenderProcedure();
@@ -239,10 +245,13 @@ bool UiObject::isMouseInside()
 
 	SDL_GetMouseState(&x, &y);
 
-	if(	x >= absoluteX * windowScaleW && 
-		x < (absoluteX + width) * windowScaleW &&
-		y >= absoluteY * windowScaleH && 
-		y < (absoluteY + height) * windowScaleH)
+	if(parentUiManager == NULL)
+			std::cout << "UiObject without parentUiManager (is NULL)." << std::endl;
+
+	if(	x >= absoluteX * parentUiManager->getWindowScaleW() && 
+		x < (absoluteX + width) * parentUiManager->getWindowScaleW() &&
+		y >= absoluteY * parentUiManager->getWindowScaleH() && 
+		y < (absoluteY + height) * parentUiManager->getWindowScaleH())
 	{
 		return true;
 	}
@@ -255,8 +264,11 @@ bool UiObject::getRelativeMousePos(UiObject *obj, int *x, int *y)
 {
 	SDL_GetMouseState(x, y);
 
-	*x = (*x - obj->absoluteX * obj->windowScaleW) / obj->windowScaleW;
-	*y = (*y - obj->absoluteY * obj->windowScaleH) / obj->windowScaleH;
+	if(obj->parentUiManager == NULL)
+			std::cout << "UiObject without parentUiManager (is NULL)." << std::endl;
+
+	*x = (*x - obj->absoluteX * obj->parentUiManager->getWindowScaleW()) / obj->parentUiManager->getWindowScaleW();
+	*y = (*y - obj->absoluteY * obj->parentUiManager->getWindowScaleH()) / obj->parentUiManager->getWindowScaleH();
 
 	if(	*x < 0 || *x > obj->width || 
 		*y < 0 || *y > obj->height)
@@ -269,25 +281,4 @@ bool UiObject::getRelativeMousePos(UiObject *obj, int *x, int *y)
 
 	else
 		return true;
-}
-
-// ----- Window ----- //
-
-void UiObject::setWindowScale(double sW, double sH)
-{
-	windowScaleW = sW;
-	windowScaleH = sH;
-
-	for(UiObject *childUiObj : childList)
-		childUiObj->setWindowScale(sW, sH);
-}
-
-double UiObject::getWindowScaleW()
-{
-	return windowScaleW;
-}
-
-double UiObject::getWindowScaleH()
-{
-	return windowScaleH;
 }

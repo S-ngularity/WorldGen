@@ -70,7 +70,7 @@ SdlWindow::SdlWindow(char const *title, int x, int y, int w, int h, int resW, in
 				SDL_RenderClear(wndRenderer);
 				resolutionTexture.releaseRenderTarget(wndRenderer);
 
-				gui = new UiObject(wndRenderer, 0, 0, resW, resH); // create base gui object
+				gui = new UiManager(wndRenderer, resW, resH, getWindowWidthScale(), getWindowHeightScale()); // create base gui object
 			}
 
 		}
@@ -214,7 +214,7 @@ void SdlWindow::doRefresh()
 		resolutionTexture.setAsRenderTarget(wndRenderer);
 		SDL_SetRenderDrawColor(wndRenderer, 255, 0, 255, 255);
 		SDL_RenderClear(wndRenderer);
-		gui->render(0, 0);
+		gui->render();
 		resolutionTexture.releaseRenderTarget(wndRenderer);
 
 		resolutionTexture.renderFitToArea(wndRenderer, 0, 0, windowWidth, windowHeight);

@@ -15,10 +15,11 @@ SRC =	main.cpp \
 		Map/Noises/OpenSimplexC/open-simplex-noise.cpp \
 		SdlClasses/SdlTexture.cpp \
 		SdlClasses/SdlWindow.cpp \
-		Ui/UiObject.cpp Ui/EventAggregator.cpp \
+		Ui/UiObject.cpp Ui/UiManager.cpp Ui/EventAggregator.cpp \
 		CustomSdlTextures/MapTexture.cpp \
 		CustomSdlWindows/NoiseWindow.cpp CustomSdlWindows/WalkWindow.cpp \
-		CustomUiObjects/MapFrame.cpp CustomUiObjects/MouseHeightText.cpp
+		CustomUiObjects/MapFrame.cpp CustomUiObjects/MouseHeightText.cpp \
+		DefaultUiObjects/UiButton.cpp DefaultUiObjects/UiPanel.cpp
 
 OUT = Worldgen
 

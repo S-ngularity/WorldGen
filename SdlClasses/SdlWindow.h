@@ -3,7 +3,7 @@
 
 #include "SdlClasses/SdlTexture.h"
 
-#include "Ui/UiObject.h"
+#include "Ui/UiManager.h"
 
 #include <list>
 #include <functional>
@@ -44,7 +44,7 @@ class SdlWindow
 		bool refreshSignaled;
 
 	protected:
-		UiObject *gui;
+		UiManager *gui;
 
 		SDL_Window* window;
 		unsigned int windowID;

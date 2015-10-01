@@ -6,6 +6,8 @@
 
 #include "Ui/UiObject.h"
 #include "CustomUiObjects/MapFrame.h"
+#include "DefaultUiObjects/UiButton.h"
+#include "DefaultUiObjects/UiPanel.h"
 
 #include "Ui/EventAggregator.h"
 #include "Ui/UiEvents/UiEventCode.h"
@@ -58,58 +60,31 @@ MapFrame *mapFrame = nullptr;
 
 void NoiseWindow::createGui()
 {
-	mapFrame = new MapFrame(getRenderer(), 0, 0, gui->getWidth() - SIDEBAR_WIDTH, gui->getHeight(), mapArray, numMaps);
+	mapFrame = new MapFrame(gui, 0, 0, gui->getWidth() - SIDEBAR_WIDTH, gui->getHeight(), mapArray, numMaps);
 	gui->addChild(mapFrame);
 
-	SdlTexture *bgTex = new SdlTexture(createDrawnTexture(SIDEBAR_WIDTH, gui->getHeight(), 0, 126, 126, 255), SIDEBAR_WIDTH, gui->getHeight());
-	auto bgUi = new UiObject(getRenderer(), gui->getWidth() - SIDEBAR_WIDTH, 0,  bgTex, 
-							 nullptr);
+	UiPanel *bgUi = new UiPanel(gui->getWidth() - SIDEBAR_WIDTH, 0, 
+							 new SdlTexture(createDrawnTexture(SIDEBAR_WIDTH, gui->getHeight(), 0, 126, 126, 255), SIDEBAR_WIDTH, gui->getHeight()));
 
-	SdlTexture *btMap1Tex = new SdlTexture(createDrawnTexture(30, 30, 0, 255, 0, 255), 30, 30);
-	bgUi->addChild(new UiObject(getRenderer(), 30, 30, btMap1Tex, 
-								[&](SDL_Event &e){ return btMapClicked(e, 0); }));
+	bgUi->addChild(new UiButton(30, 30, 
+								new SdlTexture(createDrawnTexture(30, 30, 0, 255, 0, 255), 30, 30), 
+								[&](){ mapFrame->selectMap(0); } ));
 
-	SdlTexture *btMap2Tex = new SdlTexture(createDrawnTexture(30, 30, 0, 255, 0, 255), 30, 30);
-	bgUi->addChild(new UiObject(getRenderer(), 80, 30, btMap2Tex, 
-								[&](SDL_Event &e){ return btMapClicked(e, 1); }));
+	bgUi->addChild(new UiButton(80, 30, 
+								new SdlTexture(createDrawnTexture(30, 30, 0, 255, 0, 255), 30, 30), 
+								[&](){ mapFrame->selectMap(1); } ));
 
-	SdlTexture *btMap3Tex = new SdlTexture(createDrawnTexture(30, 30, 0, 255, 0, 255), 30, 30);
-	bgUi->addChild(new UiObject(getRenderer(), 130, 30, btMap3Tex, 
-								[&](SDL_Event &e){ return btMapClicked(e, 2); }));
+	bgUi->addChild(new UiButton(130, 30, 
+								new SdlTexture(createDrawnTexture(30, 30, 0, 255, 0, 255), 30, 30), 
+								[&](){ mapFrame->selectMap(2); } ));
 
-	SdlTexture *btNoise1Tex = new SdlTexture(createDrawnTexture(30, 30, 0, 255, 0, 255), 30, 30);
-	bgUi->addChild(new UiObject(getRenderer(), 55, 80, btNoise1Tex, 
-								[&](SDL_Event &e){ return btNoiseClicked(e, 0); }));
+	bgUi->addChild(new UiButton(55, 80, 
+								new SdlTexture(createDrawnTexture(30, 30, 0, 255, 0, 255), 30, 30), 
+								[&](){ mapFrame->selectNoise(0); } ));
 
-	SdlTexture *btNoise2Tex = new SdlTexture(createDrawnTexture(30, 30, 0, 255, 0, 255), 30, 30);
-	bgUi->addChild(new UiObject(getRenderer(), 105, 80, btNoise2Tex, 
-								[&](SDL_Event &e){ return btNoiseClicked(e, 1); }));
+	bgUi->addChild(new UiButton(105, 80, 
+								new SdlTexture(createDrawnTexture(30, 30, 0, 255, 0, 255), 30, 30), 
+								[&](){ mapFrame->selectNoise(1); } ));
 
 	gui->addChild(bgUi);
-}
-
-bool NoiseWindow::btMapClicked(SDL_Event &e, int i)
-{
-	if(e.type == SDL_MOUSEBUTTONUP)
-	{
-		mapFrame->selectMap(i);
-
-		return true;
-	}
-
-	else
-		return false;
-}
-
-bool NoiseWindow::btNoiseClicked(SDL_Event &e, int i)
-{
-	if(e.type == SDL_MOUSEBUTTONUP)
-	{
-		mapFrame->selectNoise(i);
-
-		return true;
-	}
-
-	else
-		return false;
 }

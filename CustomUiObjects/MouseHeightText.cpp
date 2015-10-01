@@ -3,9 +3,11 @@
 #include <iostream>
 #include <string>
 
-MouseHeightText::MouseHeightText(SDL_Renderer *r) : 
-	UiObject(r, 0, 0, 0, 0)
+MouseHeightText::MouseHeightText(UiManager *parentUiMngr) : 
+	UiObject(0, 0, 0, 0)
 {
+	parentUiManager = parentUiMngr;
+	
 	heightTextFont = TTF_OpenFont("Resources/OpenSans-Regular.ttf", 20);
 	if(heightTextFont == NULL)
 		std::cout << "Failed to load heightTextFont in MouseHeightText! SDL_ttf Error: " << TTF_GetError() << std::endl;
@@ -30,8 +32,11 @@ void MouseHeightText::update(std::string text)
 
 	else
 	{
+		if(parentUiManager == NULL)
+			std::cout << "MouseHeightText without parentUiManager (is NULL)." << std::endl;
+
 		//Create texture from surface pixels
-		SDL_Texture *tempTex = SDL_CreateTextureFromSurface(getRenderer(), tempSurface); // SDL_TEXTUREACCESS_STATIC
+		SDL_Texture *tempTex = SDL_CreateTextureFromSurface(parentUiManager->getRenderer(), tempSurface); // SDL_TEXTUREACCESS_STATIC
 		if(tempTex == NULL)
 		{
 			std::cout << "Unable to create texture from rendered text in MouseHeightText! SDL Error: " << SDL_GetError() << std::endl;

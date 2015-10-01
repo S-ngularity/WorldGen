@@ -17,8 +17,8 @@
 #include <string>
 #include <sstream>
 
-MapFrame::MapFrame(SDL_Renderer *r, int x, int y, int w, int h, Map* mapArr[], int num) : 
-	UiObject(r, x, y, w, h, NULL,
+MapFrame::MapFrame(UiManager *parentUiMngr, int x, int y, int w, int h, Map* mapArr[], int num) : 
+	UiObject(x, y, w, h, NULL,
 			[&](SDL_Event &e){return customSdlEvtHandler(e);})
 {
 	mapArray = mapArr;
@@ -29,12 +29,17 @@ MapFrame::MapFrame(SDL_Renderer *r, int x, int y, int w, int h, Map* mapArr[], i
 	noiseArray[1] = new DiamSqNoise(mapArray[0]);
 	selectedNoise = 0;
 
-	mapTexture = new MapTexture(getRenderer(), mapArray[selectedMap]);
+	setParentUiManager(parentUiMngr);
+
+	if(parentUiManager == NULL)
+		std::cout << "MapFrame without parentUiManager (is NULL)." << std::endl;
+
+	mapTexture = new MapTexture(parentUiManager->getRenderer(), mapArray[selectedMap]);
 	mapTexture->update();
 	setUiObjectTexture(mapTexture);
 
-	mouseText = new MouseHeightText(getRenderer());
-	setPostRenderProcedure([&]() { mouseText->render(getAbsoluteX(), getAbsoluteY()); });
+	mouseText = new MouseHeightText(parentUiManager);
+	setPostRenderProcedure([&]() { mouseText->render(absoluteX, absoluteY); });
 }
 
 MapFrame::~MapFrame()

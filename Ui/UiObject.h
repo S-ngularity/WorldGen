@@ -1,6 +1,8 @@
 #ifndef UIOBJECT
 #define UIOBJECT
 
+#include "Ui/UiManager.h"
+
 #include <list>
 #include <functional>
 
@@ -11,14 +13,11 @@ class SdlTexture;
 class UiObject
 {
 	private:
-		int absoluteX, absoluteY;
 		int xOffset, yOffset; // offset from parent's 0, 0
 
 		int width, height;
 		double scaleW, scaleH;
-		double windowScaleW, windowScaleH;
 
-		SDL_Renderer *renderer;
 		SdlTexture *uiTexture;
 
 		std::function<bool(SDL_Event& e)> evtHandler;
@@ -28,13 +27,17 @@ class UiObject
 		std::list<UiObject*> childList;
 
 	protected:
-		SDL_Renderer* getRenderer();
+		UiManager *parentUiManager;
+
+		int absoluteX, absoluteY;
 
 	public:
-		UiObject(SDL_Renderer *r, int xOff, int yOff, int w, int h);
-		UiObject(SDL_Renderer *r, int xOff, int yOff, SdlTexture *t, std::function<bool(SDL_Event& e)> evth);
-		UiObject(SDL_Renderer *r, int xOff, int yOff, int w, int h, SdlTexture *t, std::function<bool(SDL_Event& e)> evth);
+		UiObject(int xOff, int yOff, int w, int h);
+		UiObject(int xOff, int yOff, SdlTexture *t, std::function<bool(SDL_Event& e)> evth);
+		UiObject(int xOff, int yOff, int w, int h, SdlTexture *t, std::function<bool(SDL_Event& e)> evth);
 		virtual ~UiObject();
+
+		void setParentUiManager(UiManager *uiMngr);
 
 		void addChild(UiObject *c);
 
@@ -45,9 +48,6 @@ class UiObject
 		
 		int getWidth();
 		int getHeight();
-
-		int getAbsoluteX();
-		int getAbsoluteY();
 
 		// Render
 		void setPreRenderProcedure(std::function<void()> procedure);
@@ -62,11 +62,6 @@ class UiObject
 		// Mouse
 		bool isMouseInside();
 		static bool getRelativeMousePos(UiObject *obj, int *x, int *y);
-
-		// Window
-		void setWindowScale(double sW, double sH);
-		double getWindowScaleW();
-		double getWindowScaleH();
 };
 
 # endif

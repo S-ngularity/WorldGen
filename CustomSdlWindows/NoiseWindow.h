@@ -27,10 +27,6 @@ class NoiseWindow : public SdlWindow
 		void createGui();
 		SDL_Texture* createDrawnTexture(int width, int height, int r, int g, int b, int a);
 
-		// UI actions
-		bool btMapClicked(SDL_Event &e, int i);
-		bool btNoiseClicked(SDL_Event &e, int i);
-
 	public:
 		NoiseWindow(Map* mapArr[], int num);
 		~NoiseWindow();

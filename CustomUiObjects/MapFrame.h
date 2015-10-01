@@ -4,6 +4,7 @@
 #include "SdlClasses/SdlTexture.h"
 
 #include "Ui/UiObject.h"
+#include "Ui/UiManager.h"
 
 #include "CustomUiObjects/MouseHeightText.h"
 
@@ -48,7 +49,7 @@ class MapFrame : public UiObject
 		bool customSdlEvtHandler(SDL_Event &e);
 
 	public:
-		MapFrame(SDL_Renderer *r, int x, int y, int w, int h, Map* mapArr[], int num);
+		MapFrame(UiManager *parentUiMngr, int x, int y, int w, int h, Map* mapArr[], int num);
 		~MapFrame();
 
 		void selectMap(int i);
