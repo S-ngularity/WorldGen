@@ -43,6 +43,7 @@ class UiObject
 
 		// Settings
 		void setUiObjectTexture(SdlTexture *t);
+		void setUiObjectTextureNoDelete(SdlTexture *t);
 		void setUiObjectOffset(int x, int y); // Offset from parent
 		void setUiObjectSize(int w, int h);
 		

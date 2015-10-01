@@ -62,6 +62,11 @@ void UiObject::setUiObjectTexture(SdlTexture *t)
 	uiTexture = t;
 }
 
+void UiObject::setUiObjectTextureNoDelete(SdlTexture *t)
+{
+	uiTexture = t;
+}
+
 void UiObject::setUiObjectOffset(int x, int y)
 {
 	xOffset = x;
