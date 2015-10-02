@@ -66,39 +66,39 @@ void NoiseWindow::createGui()
 	gui->addChild(mapFrame);
 
 	UiPanel *bgUi = new UiPanel(gui->getWidth() - SIDEBAR_WIDTH, 0, 
-							 new SdlTexture(createDrawnTexture(SIDEBAR_WIDTH, gui->getHeight(), 0, 126, 126, 255), SIDEBAR_WIDTH, gui->getHeight()));
+							 new SdlTexture(createDrawnTexture(SIDEBAR_WIDTH, gui->getHeight(), 0, 126, 126, 255)));
 
 	bgUi->addChild(new UiButton(30, 30, 
-								new SdlTexture(createDrawnTexture(30, 30, 0, 255, 0, 255), 30, 30), 
-								new SdlTexture(createDrawnTexture(30, 30, 115, 255, 115, 255), 30, 30), 
-								new SdlTexture(createDrawnTexture(30, 30, 0, 205, 0, 255), 30, 30), 
+								new SdlTexture(createDrawnTexture(30, 30, 0, 255, 0, 255)), 
+								new SdlTexture(createDrawnTexture(30, 30, 115, 255, 115, 255)), 
+								new SdlTexture(createDrawnTexture(30, 30, 0, 205, 0, 255)), 
 								//new SdlTexture(MyUtils::loadTexture(getRenderer(), "Resources\\btNormal.png"), 50, 30), 
 								//new SdlTexture(MyUtils::loadTexture(getRenderer(), "Resources\\btHover.png"), 50, 30), 
 								//new SdlTexture(MyUtils::loadTexture(getRenderer(), "Resources\\btPressed.png"), 50, 30), 
 								[&](){ mapFrame->selectMap(0); } ));
 
 	bgUi->addChild(new UiButton(80, 30, 
-								new SdlTexture(createDrawnTexture(30, 30, 0, 255, 0, 255), 30, 30), 
-								new SdlTexture(createDrawnTexture(30, 30, 115, 255, 115, 255), 30, 30), 
-								new SdlTexture(createDrawnTexture(30, 30, 0, 205, 0, 255), 30, 30), 
+								new SdlTexture(createDrawnTexture(30, 30, 0, 255, 0, 255)), 
+								new SdlTexture(createDrawnTexture(30, 30, 115, 255, 115, 255)), 
+								new SdlTexture(createDrawnTexture(30, 30, 0, 205, 0, 255)), 
 								[&](){ mapFrame->selectMap(1); } ));
 
 	bgUi->addChild(new UiButton(130, 30, 
-								new SdlTexture(createDrawnTexture(30, 30, 0, 255, 0, 255), 30, 30), 
-								new SdlTexture(createDrawnTexture(30, 30, 115, 255, 115, 255), 30, 30), 
-								new SdlTexture(createDrawnTexture(30, 30, 0, 205, 0, 255), 30, 30), 
+								new SdlTexture(createDrawnTexture(30, 30, 0, 255, 0, 255)), 
+								new SdlTexture(createDrawnTexture(30, 30, 115, 255, 115, 255)), 
+								new SdlTexture(createDrawnTexture(30, 30, 0, 205, 0, 255)), 
 								[&](){ mapFrame->selectMap(2); } ));
 
 	bgUi->addChild(new UiButton(55, 80, 
-								new SdlTexture(createDrawnTexture(30, 30, 0, 255, 0, 255), 30, 30), 
-								new SdlTexture(createDrawnTexture(30, 30, 115, 255, 115, 255), 30, 30), 
-								new SdlTexture(createDrawnTexture(30, 30, 0, 205, 0, 255), 30, 30), 
+								new SdlTexture(createDrawnTexture(30, 30, 0, 255, 0, 255)), 
+								new SdlTexture(createDrawnTexture(30, 30, 115, 255, 115, 255)), 
+								new SdlTexture(createDrawnTexture(30, 30, 0, 205, 0, 255)), 
 								[&](){ mapFrame->selectNoise(0); } ));
 
 	bgUi->addChild(new UiButton(105, 80, 
-								new SdlTexture(createDrawnTexture(30, 30, 0, 255, 0, 255), 30, 30), 
-								new SdlTexture(createDrawnTexture(30, 30, 115, 255, 115, 255), 30, 30), 
-								new SdlTexture(createDrawnTexture(30, 30, 0, 205, 0, 255), 30, 30), 
+								new SdlTexture(createDrawnTexture(30, 30, 0, 255, 0, 255)), 
+								new SdlTexture(createDrawnTexture(30, 30, 115, 255, 115, 255)), 
+								new SdlTexture(createDrawnTexture(30, 30, 0, 205, 0, 255)), 
 								[&](){ mapFrame->selectNoise(1); } ));
 
 	gui->addChild(bgUi);

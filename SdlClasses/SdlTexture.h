@@ -1,11 +1,15 @@
 #ifndef SDLTEXTURE
 #define SDLTEXTURE
 
+#include <stack>
+
 #include <SDL2/SDL.h>
 
 class SdlTexture
 {
 	private:
+		static std::stack<SdlTexture*> renderTargetStack;
+
 		SDL_Texture *texture;
 
 		int width;
@@ -13,6 +17,7 @@ class SdlTexture
 
 	public:
 		SdlTexture();
+		SdlTexture(SDL_Texture *t);
 		SdlTexture(SDL_Texture *t, int w, int h);
 		virtual ~SdlTexture();
 		
@@ -23,6 +28,7 @@ class SdlTexture
 		void setAsRenderTarget(SDL_Renderer *r);
 		void releaseRenderTarget(SDL_Renderer *r);
 
+		void setTexture(SDL_Texture *t);
 		void setTexture(SDL_Texture *t, int width, int height);
 		void clearTexture();
 		

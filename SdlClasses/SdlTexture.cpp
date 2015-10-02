@@ -2,12 +2,21 @@
 #include "SdlClasses/SdlTexture.h"
 
 #include <cmath>
+#include <iostream>
+
+std::stack<SdlTexture*> SdlTexture::renderTargetStack;
 
 SdlTexture::SdlTexture()
 {
 	texture = NULL;
 	width = 0;
 	height = 0;
+}
+
+SdlTexture::SdlTexture(SDL_Texture *t)
+{
+	texture = t;
+	SDL_QueryTexture(texture, NULL, NULL, &width, &height);
 }
 
 SdlTexture::SdlTexture(SDL_Texture *t, int w, int h)
@@ -21,6 +30,15 @@ SdlTexture::~SdlTexture()
 {
 	clearTexture();
 }
+
+void SdlTexture::setTexture(SDL_Texture *t)
+{
+	clearTexture();
+
+	texture = t;
+	SDL_QueryTexture(texture, NULL, NULL, &width, &height);
+}
+
 
 void SdlTexture::setTexture(SDL_Texture *t, int w, int h)
 {
@@ -72,12 +90,28 @@ void SdlTexture::renderFitToArea(SDL_Renderer *r, int x, int y, int areaW, int a
 
 void SdlTexture::setAsRenderTarget(SDL_Renderer *r)
 {
+	renderTargetStack.push(this);
+
 	SDL_SetRenderTarget(r, texture);
 }
 
 void SdlTexture::releaseRenderTarget(SDL_Renderer *r)
 {
-	SDL_SetRenderTarget(r, NULL);
+	if(renderTargetStack.empty())
+		std::cout << "Error on releasing Render Target from SdlTexture: no current SdlTexture as render target." << std::endl;
+
+	else if(renderTargetStack.top() != this)
+		std::cout << "Error on releasing Render Target from SdlTexture: current render target is not this SdlTexture." << std::endl;
+
+	else
+	{
+		renderTargetStack.pop();
+
+		if(!renderTargetStack.empty())
+			SDL_SetRenderTarget(r, renderTargetStack.top()->texture);
+		else
+			SDL_SetRenderTarget(r, NULL);
+	}
 }
 
 int SdlTexture::getW()
