@@ -10,6 +10,7 @@ UiButton::UiButton(int xOff, int yOff, SdlTexture *t, std::function<void()> btEv
 	btTextureHover = NULL;
 	btTexturePressed = NULL;
 
+	clickHappenedHere = false;
 	isPressed = false;
 
 	setPreRenderProcedure([&](){ buttonPreRender(); });
@@ -23,6 +24,7 @@ UiButton::UiButton(int xOff, int yOff, int w, int h, SdlTexture *t, std::functio
 	btTextureHover = NULL;
 	btTexturePressed = NULL;
 
+	clickHappenedHere = false;
 	isPressed = false;
 
 	setPreRenderProcedure([&](){ buttonPreRender(); });
@@ -36,6 +38,7 @@ UiButton::UiButton(int xOff, int yOff, SdlTexture *t, SdlTexture *tHover, SdlTex
 	btTextureHover = tHover;
 	btTexturePressed = tPressed;
 
+	clickHappenedHere = false;
 	isPressed = false;
 
 	setPreRenderProcedure([&](){ buttonPreRender(); });
@@ -49,6 +52,7 @@ UiButton::UiButton(int xOff, int yOff, int w, int h, SdlTexture *t, SdlTexture *
 	btTextureHover = tHover;
 	btTexturePressed = tPressed;
 
+	clickHappenedHere = false;
 	isPressed = false;
 
 	setPreRenderProcedure([&](){ buttonPreRender(); });
@@ -63,7 +67,9 @@ bool UiButton::buttonEvtHandler(SDL_Event &e)
 			{
 				case SDLK_RETURN:
 				case SDLK_KP_ENTER:
-					if(customButtonAction)
+					bool mouseIsPressed = SDL_GetMouseState(NULL, NULL) & SDL_BUTTON(SDL_BUTTON_LEFT);
+
+					if(customButtonAction && !mouseIsPressed)
 						customButtonAction();
 				break;
 			}
@@ -74,16 +80,16 @@ bool UiButton::buttonEvtHandler(SDL_Event &e)
 		break;
 
 		case SDL_MOUSEBUTTONDOWN:
-			isPressed = true;
+			clickHappenedHere = true;
 
 			return true;
 		break;
 
 		case SDL_MOUSEBUTTONUP:
-			if(isPressed && customButtonAction)
+			if(clickHappenedHere && customButtonAction)
 				customButtonAction();
-			
-			isPressed = false;
+
+			clickHappenedHere = false;
 
 			return true;
 		break;
@@ -97,24 +103,41 @@ bool UiButton::buttonEvtHandler(SDL_Event &e)
 
 void UiButton::buttonPreRender()
 {
-	if(!(SDL_GetMouseState(NULL, NULL) & SDL_BUTTON(SDL_BUTTON_LEFT)))
-		isPressed = false;
+	const Uint8 *state = SDL_GetKeyboardState(NULL);
 
-	if(UiObject::mouseOnTop == this)
+	bool enterIsPressed = state[SDL_SCANCODE_KP_ENTER] || state[SDL_SCANCODE_RETURN];
+	bool mouseIsPressed = SDL_GetMouseState(NULL, NULL) & SDL_BUTTON(SDL_BUTTON_LEFT);
+	bool buttonIsFocused = parentUiManager->getFocusedUiObject() == this;
+
+	if(!mouseIsPressed)
+		clickHappenedHere = false;
+
+
+	if((clickHappenedHere && mouseIsPressed && UiObject::mouseOnTop == this) || 
+		(buttonIsFocused && enterIsPressed && !mouseIsPressed))
 	{
-		if(isPressed)
-		{
-			if(btTexturePressed != NULL)
-				setUiObjectTextureNoDelete(btTexturePressed);
-		}
-
-		else
-		{
-			if(btTextureHover != NULL)
-				setUiObjectTextureNoDelete(btTextureHover);
-		}
+		isPressed = true;
 	}
 
 	else
-		setUiObjectTextureNoDelete(btTexture);
+		isPressed = false;
+
+
+	if(isPressed)
+	{
+		if(btTexturePressed != NULL)
+			setUiObjectTextureNoDelete(btTexturePressed);
+	}
+
+	else if(UiObject::mouseOnTop == this && !mouseIsPressed)
+	{
+		if(btTextureHover != NULL)
+			setUiObjectTextureNoDelete(btTextureHover);
+	}
+
+	else
+	{
+		if(btTexture != NULL)
+			setUiObjectTextureNoDelete(btTexture);
+	}
 }

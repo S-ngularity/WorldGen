@@ -15,6 +15,7 @@ class UiButton : public UiObject
 		std::function<void()> customButtonAction;
 		SdlTexture *btTexture, *btTextureHover, *btTexturePressed;
 		
+		bool clickHappenedHere;
 		bool isPressed;
 
 		bool buttonEvtHandler(SDL_Event &e);
