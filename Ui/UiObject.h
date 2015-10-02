@@ -18,15 +18,23 @@ class UiObject
 		int width, height;
 		double scaleW, scaleH;
 
+		int logicalWidth, logicalHeight;
+
 		SdlTexture *uiTexture;
 
 		std::function<bool(SDL_Event& e)> evtHandler;
 		std::function<void()> preRenderProcedure;
 		std::function<void()> postRenderProcedure;
 
+		UiObject* parent;
 		std::list<UiObject*> childList;
 
+		void bringToFront();
+
+
 	protected:
+		static UiObject *mouseOnTop;
+
 		UiManager *parentUiManager;
 
 		int absoluteX, absoluteY;
@@ -44,8 +52,11 @@ class UiObject
 		// Settings
 		void setUiObjectTexture(SdlTexture *t);
 		void setUiObjectTextureNoDelete(SdlTexture *t);
+		
 		void setUiObjectOffset(int x, int y); // Offset from parent
 		void setUiObjectSize(int w, int h);
+
+		void setUiObjectLogicalSize(int logicalW, int logicalH);
 		
 		int getWidth();
 		int getHeight();
@@ -53,12 +64,15 @@ class UiObject
 		// Render
 		void setPreRenderProcedure(std::function<void()> procedure);
 		void setPostRenderProcedure(std::function<void()> procedure);
+		
 		void render(int parentX, int parentY);
 		void renderScaled(int parentX, int parentY, double sW, double sH);
 
 		// Events
 		void setSdlEventHandler(std::function<bool(SDL_Event& e)> evth);
-		bool handleSdlEvent(SDL_Event& e);
+
+		bool handleSdlEventMouse(SDL_Event& e);
+		bool handleSdlEventKeyboard(SDL_Event& e);
 
 		// Mouse
 		bool isMouseInside();

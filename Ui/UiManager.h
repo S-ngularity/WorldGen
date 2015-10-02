@@ -7,8 +7,11 @@
 
 class UiObject;
 
+
 class UiManager
 {
+	friend class UiObject;
+	
 	private:
 		SDL_Renderer *renderer;
 		
@@ -16,6 +19,8 @@ class UiManager
 		double windowScaleW, windowScaleH;
 
 		std::list<UiObject*> childList;
+
+		UiObject* focusedUiObject;
 
 	public:
 		UiManager(SDL_Renderer *r, int w, int h, double wScaleW, double wScaleH);
@@ -26,6 +31,9 @@ class UiManager
 		int getWidth();
 		int getHeight();
 
+		void setFocusedUiObject(UiObject* obj);
+		UiObject* getFocusedUiObject();
+		
 		SDL_Renderer* getRenderer();
 
 		// Render

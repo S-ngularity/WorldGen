@@ -4,6 +4,8 @@
 
 #include <iostream>
 
+UiObject *UiObject::mouseOnTop = NULL;
+
 UiObject::UiObject(int xOff, int yOff, int w, int h) : 
 	UiObject(xOff, yOff, w, h, NULL, nullptr)
 {}
@@ -12,7 +14,10 @@ UiObject::UiObject(int xOff, int yOff, SdlTexture *t, std::function<bool(SDL_Eve
 	UiObject(xOff, yOff, 0, 0, t, evth)
 {
 	if(t != NULL)
+	{
 		setUiObjectSize(t->getW(), t->getH());
+		setUiObjectLogicalSize(t->getW(), t->getH());
+	}
 }
 
 UiObject::UiObject(int xOff, int yOff, int w, int h, SdlTexture *t, std::function<bool(SDL_Event& e)> evth) : 
@@ -21,6 +26,7 @@ UiObject::UiObject(int xOff, int yOff, int w, int h, SdlTexture *t, std::functio
 	postRenderProcedure(nullptr)
 {
 	parentUiManager = NULL;
+	parent = NULL;
 
 	absoluteX = 0;
 	absoluteY = 0;
@@ -31,6 +37,9 @@ UiObject::UiObject(int xOff, int yOff, int w, int h, SdlTexture *t, std::functio
 	height = h;
 	scaleW = 1;
 	scaleH = 1;
+
+	logicalWidth = width;
+	logicalHeight = height;
 	
 	uiTexture = t;
 }
@@ -48,8 +57,32 @@ UiObject::~UiObject()
 void UiObject::addChild(UiObject *c)
 {
 	c->setParentUiManager(parentUiManager);
+	c->parent = this;
 
 	childList.push_front(c);
+}
+
+void UiObject::bringToFront()
+{
+	if(parent != NULL)
+	{
+		if(parent->childList.front() != this)
+		{
+			parent->childList.remove(this);
+			parent->childList.push_front(this);
+		}
+
+		parent->bringToFront();
+	}
+
+	else
+	{
+		if(parentUiManager->childList.front() != this)
+		{
+			parentUiManager->childList.remove(this);
+			parentUiManager->childList.push_front(this);
+		}
+	}
 }
 
 // ----- Settings ----- //
@@ -77,6 +110,12 @@ void UiObject::setUiObjectSize(int w, int h)
 {
 	width = w;
 	height = h;
+}
+
+void UiObject::setUiObjectLogicalSize(int logicalW, int logicalH)
+{
+	logicalWidth = logicalW;
+	logicalHeight = logicalH;
 }
 
 int UiObject::getWidth()
@@ -173,73 +212,77 @@ void UiObject::setSdlEventHandler(std::function<bool(SDL_Event& e)> evth)
 	evtHandler = evth;
 }
 
-bool UiObject::handleSdlEvent(SDL_Event& e)
+bool UiObject::handleSdlEventMouse(SDL_Event& e)
 {
 	bool isMouseEvt = 	e.type == SDL_MOUSEMOTION || 
 						e.type == SDL_MOUSEBUTTONDOWN || 
 						e.type == SDL_MOUSEBUTTONUP || 
 						e.type == SDL_MOUSEWHEEL;
 
-	for(UiObject *childUiObj : childList)
+	if(isMouseEvt)
 	{
-		if(isMouseEvt)
+		// a mouse evt is always returned as treated by the deepest child
+		// if the event happened inside it, because the mouse should never 
+		// be treated outside the UiObject where the pointer is, 
+		// or else it would be as if the click "passed
+		// through" the object and had an effect on the object behind
+		
+		for(UiObject *childUiObj : childList)
 		{
-			// a mouse evt is always returned as treated by the deepest child
-			// if the event happened inside it, because the mouse should never 
-			// be treated outside the UiObject where the pointer is, 
-			// or else it would be as if the click "passed
-			// through" the object and had an effect on the object behind
-			
 			if(childUiObj->isMouseInside())
 			{
-				childUiObj->handleSdlEvent(e);
+				childUiObj->handleSdlEventMouse(e);
 
 				return true;
 			}
 		}
 
-		else
-		{
-			// should be "isChildSelected/Focused"
-			if(childUiObj->isMouseInside())
-			{
-				// handle keyboard with child's handler or else
-				// redirect the keyboard event to parent object's handler
-				// because keyboard events are "global" and not specific
-				// to where the mouse pointer is
-				
-				if(childUiObj->handleSdlEvent(e) == true)
-						return true;
-				else
-					// if the execution is here, it won't happen again for 
-					// any other child
-					break;
-			}
-		}
-	}
+		// if mouse wasn't inside any of my child's areas, it's on me
+		mouseOnTop = this;
 
-	// if child didn't handle the evt or there wasn't a child to handle it,
-	// then try to handle it with my handler
-	if(isMouseEvt)
-	{
-		// if mouse wasn't inside any of my child's areas handle the
-		// mouse with my handler. always return mouse event as handled
+		// therefore handle with my handler. always return mouse event as handled
 		if(evtHandler)
 			evtHandler(e);
+
+		if(e.type == SDL_MOUSEBUTTONUP)
+		{
+			parentUiManager->setFocusedUiObject(this);
+
+			bringToFront();
+		}
 
 		return true;
 	}
 
-	else
+	return false;
+}
+
+bool UiObject::handleSdlEventKeyboard(SDL_Event& e)
+{
+	bool isMouseEvt = 	e.type == SDL_MOUSEMOTION || 
+						e.type == SDL_MOUSEBUTTONDOWN || 
+						e.type == SDL_MOUSEBUTTONUP || 
+						e.type == SDL_MOUSEWHEEL;
+
+	if(!isMouseEvt)
 	{
-		// if there was a keyboard event for me, try to handle with my 
-		// handler. if it was still not handled, my parent should try
-		// to handle it
+		// handle keyboard with child's handler or else
+		// redirect the keyboard event to parent object's handler
+		// because keyboard events are "global" and not specific
+		// to where the mouse pointer is
+
+		bool handled = false;
+
 		if(evtHandler)
-			return evtHandler(e);
-		else
-			return false;
+			handled = evtHandler(e);
+
+		if(parent != NULL && !handled)
+			handled = parent->handleSdlEventKeyboard(e);
+
+		return handled;
 	}
+
+	return false;
 }
 
 // ----- Mouse ----- //
@@ -254,9 +297,9 @@ bool UiObject::isMouseInside()
 			std::cout << "UiObject without parentUiManager (is NULL)." << std::endl;
 
 	if(	x >= absoluteX * parentUiManager->getWindowScaleW() && 
-		x < (absoluteX + width) * parentUiManager->getWindowScaleW() &&
+		x < (absoluteX + logicalWidth) * parentUiManager->getWindowScaleW() &&
 		y >= absoluteY * parentUiManager->getWindowScaleH() && 
-		y < (absoluteY + height) * parentUiManager->getWindowScaleH())
+		y < (absoluteY + logicalHeight) * parentUiManager->getWindowScaleH())
 	{
 		return true;
 	}

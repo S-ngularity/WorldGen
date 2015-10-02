@@ -58,6 +58,17 @@ bool UiButton::buttonEvtHandler(SDL_Event &e)
 {
 	switch(e.type)
 	{
+		case SDL_KEYDOWN:
+			switch(e.key.keysym.sym)
+			{
+				case SDLK_RETURN:
+				case SDLK_KP_ENTER:
+					if(customButtonAction)
+						customButtonAction();
+				break;
+			}
+		break;
+
 		case SDL_MOUSEMOTION:
 			return true;
 		break;
@@ -89,7 +100,7 @@ void UiButton::buttonPreRender()
 	if(!(SDL_GetMouseState(NULL, NULL) & SDL_BUTTON(SDL_BUTTON_LEFT)))
 		isPressed = false;
 
-	if(isMouseInside())
+	if(UiObject::mouseOnTop == this)
 	{
 		if(isPressed)
 		{
