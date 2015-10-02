@@ -8,6 +8,15 @@ MapTexture::MapTexture(SDL_Renderer *r, Map *theMap)
 	mapPixels = new Uint32[worldMap->getMapWidth() * worldMap->getMapHeight()];
 	seaRenderMode = NO_SEA;
 	landRenderMode = FIXED;
+
+	SDL_Texture *temp = SDL_CreateTexture(context, 
+											SDL_PIXELFORMAT_RGBA8888, 
+											SDL_TEXTUREACCESS_STREAMING, 
+											worldMap->getMapWidth(), worldMap->getMapHeight());
+
+	setTexture(temp, worldMap->getMapWidth(), worldMap->getMapHeight());
+
+	update();
 }
 
 MapTexture::~MapTexture()
@@ -26,6 +35,13 @@ void MapTexture::setMapAndUpdate(Map *theMap)
 	{
 		delete mapPixels;
 		mapPixels = new Uint32[worldMap->getMapWidth() * worldMap->getMapHeight()];
+
+		SDL_Texture *temp = SDL_CreateTexture(context, 
+											SDL_PIXELFORMAT_RGBA8888, 
+											SDL_TEXTUREACCESS_STREAMING, 
+											worldMap->getMapWidth(), worldMap->getMapHeight());
+
+		setTexture(temp, worldMap->getMapWidth(), worldMap->getMapHeight());
 	}
 
 	update();
@@ -33,29 +49,12 @@ void MapTexture::setMapAndUpdate(Map *theMap)
 
 void MapTexture::update()
 {
-	SDL_Texture *temp = SDL_CreateTexture(context, 
-										SDL_PIXELFORMAT_RGBA8888, 
-										SDL_TEXTUREACCESS_STREAMING, 
-										worldMap->getMapWidth(), worldMap->getMapHeight());
-
 	Uint32 *pixelIt = mapPixels;
 	Uint8 r, g, b, a = 255;
 
 	for(int y = 0; y < worldMap->getMapHeight(); y++)
 		for(int x = 0; x < worldMap->getMapWidth(); x++)
 		{
-			/*
-			if(worldMap->Tile(x, y).getError() == true)
-			{
-				r = 100;
-				g = 0;
-				b = 0;
-			}
-			else if(worldMap->Tile(x, y).getIsSeed() == true)// && worldMap->Tile(x, y).seedLow == true)
-				SDL_SetRenderDrawColor(noiseRenderer, 0, 255, 0, 255);
-			else 
-			//*/
-
 			if(seaRenderMode == WITH_SEA && worldMap->getH(x, y) <= worldMap->getSeaLevel())
 			{
 				r = 25;
@@ -70,28 +69,34 @@ void MapTexture::update()
 				if(landRenderMode == VARYING_HIGHEST) // BRANCO VARIAVEL worldMap->getSeaLevel() até HighestH
 				{
 					baseColor = 100;
+					
 					int varBy = (worldMap->getHighestH() - worldMap->getSeaLevel());
 					if(varBy == 0) varBy = 1;
+					
 					float multiplierColor = (float)(255 - baseColor) / varBy;
 					
 					hColor = (worldMap->getH(x, y) - worldMap->getSeaLevel()) * multiplierColor;
-				}//*/
-				//*
+				}
+
 				else if(landRenderMode == VARYING_MAX) // BRANCO VARIAVEL worldMap->getSeaLevel() até MAX_H
 				{
 					baseColor = 100;
+					
 					int varBy = (MAX_H - worldMap->getSeaLevel());
 					if(varBy == 0) varBy = 1;
+					
 					float multiplierColor = (float)(255 - baseColor) / varBy;
 					
 					hColor = (worldMap->getH(x, y) - worldMap->getSeaLevel()) * multiplierColor;
-				}//*/
+				}
 
 				else if(landRenderMode == FIXED) // BRANCO FIXO
 				{
 					baseColor = 0;
+					
 					int varBy = MAX_H; //worldMap->getHighestH();
-					if(varBy == 0) varBy = 1;
+					if(varBy == 0) varBy = 1;;
+					
 					float multiplierColor = (float)(255 - baseColor) / varBy;
 
 					hColor = worldMap->getH(x, y) * multiplierColor;
@@ -107,8 +112,13 @@ void MapTexture::update()
 			pixelIt++;
 		}
 
-	SDL_UpdateTexture(temp, NULL, mapPixels, worldMap->getMapWidth() * sizeof (Uint32));
-	setTexture(temp, worldMap->getMapWidth(), worldMap->getMapHeight());
+
+	void *texturePixels;
+	int texturePitch;
+
+	SDL_LockTexture(getTexture(), NULL, &texturePixels, &texturePitch);
+	memcpy(texturePixels, mapPixels, worldMap->getMapWidth() * sizeof (Uint32) * worldMap->getMapHeight());
+	SDL_UnlockTexture(getTexture());
 }
 
 

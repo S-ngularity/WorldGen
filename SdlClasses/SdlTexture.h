@@ -15,6 +15,9 @@ class SdlTexture
 		int width;
 		int height;
 
+	protected:
+		SDL_Texture* getTexture();
+
 	public:
 		SdlTexture();
 		SdlTexture(SDL_Texture *t);
@@ -31,6 +34,10 @@ class SdlTexture
 		void setTexture(SDL_Texture *t);
 		void setTexture(SDL_Texture *t, int width, int height);
 		void clearTexture();
+
+		void setColorModulation(Uint8 red, Uint8 green, Uint8 blue);
+		void setBlendMode(SDL_BlendMode blending);
+		void setAlpha(Uint8 alpha);
 		
 		int getW();
 		int getH();

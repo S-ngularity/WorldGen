@@ -35,7 +35,6 @@ MapFrame::MapFrame(UiManager *parentUiMngr, int x, int y, int w, int h, Map* map
 		std::cout << "MapFrame without parentUiManager (is NULL)." << std::endl;
 
 	mapTexture = new MapTexture(parentUiManager->getRenderer(), mapArray[selectedMap]);
-	mapTexture->update();
 	setUiObjectTexture(mapTexture);
 
 	mouseText = new MouseHeightText(parentUiManager);

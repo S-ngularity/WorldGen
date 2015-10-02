@@ -31,6 +31,11 @@ SdlTexture::~SdlTexture()
 	clearTexture();
 }
 
+SDL_Texture* SdlTexture::getTexture()
+{
+	return texture;
+}
+
 void SdlTexture::setTexture(SDL_Texture *t)
 {
 	clearTexture();
@@ -112,6 +117,21 @@ void SdlTexture::releaseRenderTarget(SDL_Renderer *r)
 		else
 			SDL_SetRenderTarget(r, NULL);
 	}
+}
+
+void SdlTexture::setColorModulation(Uint8 red, Uint8 green, Uint8 blue)
+{
+	SDL_SetTextureColorMod(texture, red, green, blue);
+}
+
+void SdlTexture::setBlendMode(SDL_BlendMode blending)
+{
+	SDL_SetTextureBlendMode(texture, blending);
+}
+
+void SdlTexture::setAlpha(Uint8 alpha)
+{
+	SDL_SetTextureAlphaMod(texture, alpha);
 }
 
 int SdlTexture::getW()
