@@ -36,7 +36,7 @@ WalkWindow::WalkWindow(Map *theMap) :
 	SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "nearest");
 
 	updateWalkTex();
-	gui->addChild(new UiObject(0, 0, &walkTexture, nullptr));
+	windowUi->addChild(new UiObject(0, 0, &walkTexture, nullptr));
 }
 
 void WalkWindow::setPos(int x, int y)

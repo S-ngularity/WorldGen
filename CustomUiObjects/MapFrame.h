@@ -39,18 +39,19 @@ class MapFrame : public UiObject
 
 		MouseHeightText *mouseText;
 
-		void runNoise();
-		void resetNoise();
-
 		void updateMouseText();
 		
 		bool mapPosFromMouse(int *x, int *y);
+		
+		void resetNoise();
 
 		bool customSdlEvtHandler(SDL_Event &e);
 
 	public:
 		MapFrame(UiManager *parentUiMngr, int x, int y, int w, int h, Map* mapArr[], int num);
 		~MapFrame();
+
+		void runNoise();
 
 		void selectMap(int i);
 		void selectNoise(int i);

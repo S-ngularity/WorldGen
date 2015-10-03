@@ -17,6 +17,7 @@ class SdlWindow
 		std::function<bool(SDL_Event& e)> evtHandler;
 
 		// Window data
+		SDL_Window* window;
 		SDL_Renderer *wndRenderer;
 
 		SdlTexture resolutionTexture;
@@ -40,18 +41,14 @@ class SdlWindow
 		bool minimized;
 		bool shown;
 
-		// Refreshing flag
-		bool refreshSignaled;
-
 	protected:
-		UiManager *gui;
+		UiManager *windowUi;
 
-		SDL_Window* window;
 		unsigned int windowID;
 
 		void setWindowSdlEvtHandler(std::function<bool(SDL_Event& e)> evth);
 
-		// returns window's renderer so others can render onto it
+		// returns window's renderer so others can render with it
 		SDL_Renderer* getRenderer();
 
 	public:
@@ -60,11 +57,11 @@ class SdlWindow
 
 		bool handleSdlEvent(SDL_Event& e);
 
-		void show();
-		void hide();
-
 		// Shows windows contents
 		void doRefresh();
+
+		void show();
+		void hide();
 
 		int getWindowWidth();
 		int getWindowHeight();

@@ -60,11 +60,11 @@ MapFrame *mapFrame = nullptr;
 
 void NoiseWindow::createGui()
 {
-	mapFrame = new MapFrame(gui, 0, 0, gui->getWidth() - SIDEBAR_WIDTH, gui->getHeight(), mapArray, numMaps);
-	mapFrame->setUiObjectLogicalSize(gui->getWidth(), gui->getHeight());
+	mapFrame = new MapFrame(windowUi, 0, 0, windowUi->getWidth() - SIDEBAR_WIDTH, windowUi->getHeight(), mapArray, numMaps);
+	mapFrame->setUiObjectLogicalSize(windowUi->getWidth(), windowUi->getHeight());
 
-	UiPanel *sidebar = new UiPanel(gui->getWidth() - SIDEBAR_WIDTH, 0, 
-									new SdlTexture(createDrawnTexture(SIDEBAR_WIDTH, gui->getHeight(), 0, 126, 126, 255)));
+	UiPanel *sidebar = new UiPanel(windowUi->getWidth() - SIDEBAR_WIDTH, 0, 
+									new SdlTexture(createDrawnTexture(SIDEBAR_WIDTH, windowUi->getHeight(), 0, 126, 126, 255)));
 
 	sidebar->addChild(new UiButton(30, 30, 
 									new SdlTexture(createDrawnTexture(30, 30, 0, 255, 0, 255)), 
@@ -99,6 +99,12 @@ void NoiseWindow::createGui()
 									new SdlTexture(createDrawnTexture(30, 30, 0, 205, 0, 255)), 
 									[&](){ mapFrame->selectNoise(1); } ));
 
+	sidebar->addChild(new UiButton(30, windowUi->getHeight() - 60, 
+									new SdlTexture(createDrawnTexture(130, 30, 0, 255, 0, 255)), 
+									new SdlTexture(createDrawnTexture(130, 30, 115, 255, 115, 255)), 
+									new SdlTexture(createDrawnTexture(130, 30, 0, 205, 0, 255)), 
+									[&](){ mapFrame->runNoise(); } ));
+
 	mapFrame->addChild(sidebar);
-	gui->addChild(mapFrame);
+	windowUi->addChild(mapFrame);
 }
