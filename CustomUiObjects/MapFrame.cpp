@@ -206,7 +206,7 @@ bool MapFrame::customSdlEvtHandler(SDL_Event &e)
 				break;
 
 				case SDLK_n:
-					normalizeMap();
+					normalizeMap(25);
 				break;
 
 				case SDLK_1:
@@ -275,15 +275,12 @@ void MapFrame::selectMap(int i)
 void MapFrame::selectNoise(int i)
 {
 	selectedNoise = i;
+
+	publishMapInfo();
 }
 
-void MapFrame::normalizeMap()
+void MapFrame::normalizeMap(int n)
 {
-	int n;
-
-	std::cout << std::endl << "Normalize: " << std::flush;
-	std::cin >> n;
-
 	mapArray[selectedMap]->normalize(n);
 	
 	// reset sea level after normalization
@@ -336,7 +333,8 @@ void MapFrame::setLandAndSeaRenderModes(int modeLand, int modeSea)
 
 void MapFrame::publishMapInfo()
 {
-	EventAggregator::Instance().getEvent<MapInfoUpdate>().publishEvent(MapInfoUpdate(selectedMap + 1, 
+	EventAggregator::Instance().getEvent<MapInfoUpdate>().publishEvent(MapInfoUpdate(	noiseArray[selectedNoise]->name, 
+																						selectedMap + 1, 
 																						mapArray[selectedMap]->getSeaLevel(), 
 																						mapArray[selectedMap]->getHighestH(), 
 																						mapArray[selectedMap]->getLowestH(), 

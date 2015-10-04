@@ -60,10 +60,20 @@ void NoiseWindow::updateMapInfo(MapInfoUpdate &info)
 	{
 		std::stringstream ss;
 		
-		if(info.percentComplete != 100)
-			ss << "Map " << info.mapNum << " - " << info.percentComplete << "%\nSea Level: " << info.seaLevel << "\n\nHighest: " << info.highestH << "\nLowest: " << info.lowestH;
+		if(info.percentComplete != 0 && info.percentComplete != 100)
+			ss << "Noise: \n" 
+			<< info.noiseName
+			<< "\n\nMap " << info.mapNum << " - " << info.percentComplete 
+			<< "%\nSea Level: " << info.seaLevel 
+			<< "\n\nHighest: " << info.highestH 
+			<< "\nLowest: " << info.lowestH;
 		else
-			ss << "Map " << info.mapNum << "\nSea Level: " << info.seaLevel << "\n\nHighest: " << info.highestH << "\nLowest: " << info.lowestH;
+			ss << "Noise: \n" 
+			<< info.noiseName
+			<< "\n\nMap " << info.mapNum
+			<< "\nSea Level: " << info.seaLevel 
+			<< "\n\nHighest: " << info.highestH 
+			<< "\nLowest: " << info.lowestH;
 		
 		mapInfoText->setText(ss.str());
 	}
@@ -87,49 +97,81 @@ void NoiseWindow::createGui()
 	sidebar->addChild(mapInfoText);
 
 	sidebar->addChild(new UiButton(30, 30, 
-									NULL, 
+									new UiLabel(0, 0, "1", 16, 255, 0, 0), 
 									createDrawnTexture(30, 30, 0, 255, 0, 255), 
 									createDrawnTexture(30, 30, 115, 255, 115, 255), 
 									createDrawnTexture(30, 30, 0, 205, 0, 255), 
 									[&](){ mapFrame->selectMap(0); } ));
 
-	sidebar->addChild(new UiButton(80, 30, 
-									NULL, 
+	sidebar->addChild(new UiButton(90, 30, 
+									new UiLabel(0, 0, "2", 16, 255, 0, 0), 
 									createDrawnTexture(30, 30, 0, 255, 0, 255), 
 									createDrawnTexture(30, 30, 115, 255, 115, 255), 
 									createDrawnTexture(30, 30, 0, 205, 0, 255), 
 									[&](){ mapFrame->selectMap(1); } ));
 
-	sidebar->addChild(new UiButton(130, 30, 
-									NULL, 
+	sidebar->addChild(new UiButton(150, 30, 
+									new UiLabel(0, 0, "3", 16, 255, 0, 0), 
 									createDrawnTexture(30, 30, 0, 255, 0, 255), 
 									createDrawnTexture(30, 30, 115, 255, 115, 255), 
 									createDrawnTexture(30, 30, 0, 205, 0, 255), 
 									[&](){ mapFrame->selectMap(2); } ));
 
-	sidebar->addChild(new UiButton(55, 80, 
-									NULL, 
-									createDrawnTexture(30, 30, 0, 255, 0, 255), 
-									createDrawnTexture(30, 30, 115, 255, 115, 255), 
-									createDrawnTexture(30, 30, 0, 205, 0, 255), 
+	sidebar->addChild(new UiButton(30, 80, 
+									new UiLabel(0, 0, "OpSim", 14, 255, 0, 0), 
+									createDrawnTexture(70, 30, 0, 255, 0, 255), 
+									createDrawnTexture(70, 30, 115, 255, 115, 255), 
+									createDrawnTexture(70, 30, 0, 205, 0, 255), 
 									[&](){ mapFrame->selectNoise(0); } ));
 
-	sidebar->addChild(new UiButton(105, 80, 
-									NULL, 
-									createDrawnTexture(30, 30, 0, 255, 0, 255), 
-									createDrawnTexture(30, 30, 115, 255, 115, 255), 
-									createDrawnTexture(30, 30, 0, 205, 0, 255), 
+	sidebar->addChild(new UiButton(110, 80, 
+									new UiLabel(0, 0, "DiamSq", 14, 255, 0, 0), 
+									createDrawnTexture(70, 30, 0, 255, 0, 255), 
+									createDrawnTexture(70, 30, 115, 255, 115, 255), 
+									createDrawnTexture(70, 30, 0, 205, 0, 255), 
 									[&](){ mapFrame->selectNoise(1); } ));
 
 	sidebar->addChild(new UiButton(30, windowUi->getHeight() - 60, 
 									new UiLabel(0, 0, "RUN", 22, 255, 0, 0), 
-									createDrawnTexture(130, 30, 0, 255, 0, 255), 
-									createDrawnTexture(130, 30, 115, 255, 115, 255), 
-									createDrawnTexture(130, 30, 0, 205, 0, 255), 
+									createDrawnTexture(150, 30, 0, 255, 0, 255), 
+									createDrawnTexture(150, 30, 115, 255, 115, 255), 
+									createDrawnTexture(150, 30, 0, 205, 0, 255), 
 									//std::make_shared<SdlTexture>(MyUtils::loadTexture(getRenderer(), "Resources\\btNormal.png"), 130, 30), 
 									//std::make_shared<SdlTexture>(MyUtils::loadTexture(getRenderer(), "Resources\\btHover.png"), 130, 30), 
 									//std::make_shared<SdlTexture>(MyUtils::loadTexture(getRenderer(), "Resources\\btPressed.png"), 130, 30), 
 									[&](){ mapFrame->runNoise(); } ));
+
+	static int normalizedLevel = 20;
+	static UiLabel *nLevel = new UiLabel(48, windowUi->getHeight() - 100, ALIGN_BOTTOM_CENTER, "20", 18, 255, 0, 0);
+
+	sidebar->addChild(nLevel);
+
+	sidebar->addChild(new UiButton(50, windowUi->getHeight() - 95, 
+									new UiLabel(0, 0, "+", 12, 255, 0, 0), 
+									createDrawnTexture(15, 15, 0, 255, 0, 255), 
+									createDrawnTexture(15, 15, 115, 255, 115, 255), 
+									createDrawnTexture(15, 15, 0, 205, 0, 255), 
+									[&](){	normalizedLevel++;
+											std::stringstream ss;
+											ss << normalizedLevel;
+											nLevel->setText(ss.str()); } ));
+
+	sidebar->addChild(new UiButton(30, windowUi->getHeight() - 95, 
+									new UiLabel(0, 0, "-", 12, 255, 0, 0), 
+									createDrawnTexture(15, 15, 0, 255, 0, 255), 
+									createDrawnTexture(15, 15, 115, 255, 115, 255), 
+									createDrawnTexture(15, 15, 0, 205, 0, 255), 
+									[&](){ normalizedLevel--;
+											std::stringstream ss;
+											ss << normalizedLevel;
+											nLevel->setText(ss.str()); } ));
+
+	sidebar->addChild(new UiButton(80, windowUi->getHeight() - 115, 
+									new UiLabel(0, 0, "Normalize", 14, 255, 0, 0), 
+									createDrawnTexture(100, 30, 0, 255, 0, 255), 
+									createDrawnTexture(100, 30, 115, 255, 115, 255), 
+									createDrawnTexture(100, 30, 0, 205, 0, 255), 
+									[&](){ mapFrame->normalizeMap(normalizedLevel); } ));
 
 	mapFrame->addChild(sidebar);
 	windowUi->addChild(mapFrame);

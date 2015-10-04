@@ -57,7 +57,7 @@ class MapFrame : public UiObject
 		void selectMap(int i);
 		void selectNoise(int i);
 
-		void normalizeMap();
+		void normalizeMap(int n);
 
 		void increaseSeaLevel();
 		void decreaseSeaLevel();

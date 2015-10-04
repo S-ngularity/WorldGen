@@ -3,6 +3,8 @@
 
 #include "Map/Noises/Noise.h"
 
+#include <string>
+
 class DiamSqNoise : public Noise
 {
 	private:

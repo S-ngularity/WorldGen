@@ -14,7 +14,8 @@ using namespace std;
 #define TEMP_MAX_H 5000
 #define RAND_RANGE_MULTPLIER 0.65
 
-DiamSqNoise::DiamSqNoise(Map *theMap)
+DiamSqNoise::DiamSqNoise(Map *theMap) : 
+	Noise("Diamond Square")
 {
 	srand(time(NULL));
 

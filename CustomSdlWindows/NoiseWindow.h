@@ -14,7 +14,7 @@ class UiLabel;
 class UiEventCode;
 class MapInfoUpdate;
 
-const int SIDEBAR_WIDTH = 190;
+const int SIDEBAR_WIDTH = 210;
 const int SCREEN_WIDTH = 800 + SIDEBAR_WIDTH;//map.getMapWidth();
 const int SCREEN_HEIGHT = 800;//map.getMapHeight();
 

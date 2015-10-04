@@ -3,6 +3,8 @@
 
 #include "Map/Map.h"
 
+#include <string>
+
 #ifndef NOISESTATES
 #define NOISESTATES
 typedef enum {running = 0, done} State;
@@ -11,6 +13,9 @@ typedef enum {running = 0, done} State;
 class Noise
 {
 	public:
+		const std::string name;
+
+		Noise(std::string n) : name(n) {};
 		virtual ~Noise() {};
 		
 		virtual void setMap(Map *m) = 0;
