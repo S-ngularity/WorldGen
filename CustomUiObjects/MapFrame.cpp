@@ -60,7 +60,8 @@ void MapFrame::runNoise()
 
 	noiseArray[selectedNoise]->setMap(mapArray[selectedMap]);
 
-	//std::cout << std::endl << std::endl << std::setw(2) << std::setfill('0') << shownPercent << "%" << std::flush;
+	mapTexture->setSeaRenderMode(NO_SEA);  // no sea while not done
+	mapTexture->setLandRenderMode(FIXED);
 
 	while(noiseArray[selectedNoise]->getPercentComplete() < 100) // noise iterations
 	{
@@ -71,25 +72,17 @@ void MapFrame::runNoise()
 		{
 			shownPercent = noiseArray[selectedNoise]->getPercentComplete();
 
-			//std::cout << "\b\b\b" << std::setw(2) << std::setfill('0') << shownPercent << "%" << std::flush;
-
-			if(shownPercent >= updateAt || shownPercent == 100)
+			if(shownPercent >= updateAt || shownPercent >= 100)
 			{
 				updateAt += UPDATE_AT_PERCENT;
+				updateMapTexture = true;
 
-				if(noiseArray[selectedNoise]->getPercentComplete() < 100) // no sea while not done
-				{
-					mapTexture->setSeaRenderMode(NO_SEA);
-					mapTexture->setLandRenderMode(FIXED);
-					updateMapTexture = true;
-				}
-
-				else
+				if(shownPercent >= 100)
 				{
 					mapTexture->setSeaRenderMode(WITH_SEA);
 					mapTexture->setLandRenderMode(VARYING_HIGHEST);
 
-					updateMapTexture = true; // last noise print
+					mapArray[selectedMap]->setSeaLevel(SEA_LEVEL);
 				}
 			}
 		}
@@ -104,8 +97,6 @@ void MapFrame::runNoise()
 
 		SDL_PumpEvents();
 	}
-
-	mapArray[selectedMap]->setSeaLevel(SEA_LEVEL);
 
 	publishMapInfo();
 }
