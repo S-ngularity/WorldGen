@@ -86,7 +86,8 @@ void UiLabel::labelPreRender()
 				return;
 			}
 
-			SDL_Surface* tempSurface = TTF_RenderText_Solid(labelFont, labelText.c_str(), {(Uint8) colorR, (Uint8) colorG, (Uint8) colorB});
+			SDL_Surface* tempSurface = TTF_RenderText_Blended_Wrapped(labelFont, labelText.c_str(), {(Uint8) colorR, (Uint8) colorG, (Uint8) colorB}, 1920);
+										//TTF_RenderText_Blended(labelFont, labelText.c_str(), {(Uint8) colorR, (Uint8) colorG, (Uint8) colorB});
 			if(tempSurface == NULL)
 			{
 				std::cout << "Unable to render text surface in UiLabel! SDL_ttf Error: " << TTF_GetError() << std::endl;

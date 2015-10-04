@@ -13,6 +13,7 @@
 #include "Ui/EventAggregator.h"
 #include "Ui/UiEvents/UiEventCode.h"
 #include "Ui/UiEvents/WalkWindowOpened.h"
+#include "Ui/UiEvents/MapInfoUpdate.h"
 
 #include <iostream>
 #include <iomanip>
@@ -42,6 +43,8 @@ MapFrame::MapFrame(UiManager *parentUiMngr, int x, int y, int w, int h, Map* map
 
 	mouseTooltip = new UiLabel(0, 0, ALIGN_BOTTOM_LEFT, "", 20, 220, 20, 60);
 	addChild(mouseTooltip);
+
+	publishMapInfo();
 }
 
 MapFrame::~MapFrame()
@@ -57,7 +60,7 @@ void MapFrame::runNoise()
 
 	noiseArray[selectedNoise]->setMap(mapArray[selectedMap]);
 
-	std::cout << std::endl << std::endl << std::setw(2) << std::setfill('0') << shownPercent << "%" << std::flush;
+	//std::cout << std::endl << std::endl << std::setw(2) << std::setfill('0') << shownPercent << "%" << std::flush;
 
 	while(noiseArray[selectedNoise]->getPercentComplete() < 100) // noise iterations
 	{
@@ -68,7 +71,7 @@ void MapFrame::runNoise()
 		{
 			shownPercent = noiseArray[selectedNoise]->getPercentComplete();
 
-			std::cout << "\b\b\b" << std::setw(2) << std::setfill('0') << shownPercent << "%" << std::flush;
+			//std::cout << "\b\b\b" << std::setw(2) << std::setfill('0') << shownPercent << "%" << std::flush;
 
 			if(shownPercent >= updateAt || shownPercent == 100)
 			{
@@ -86,12 +89,6 @@ void MapFrame::runNoise()
 					mapTexture->setSeaRenderMode(WITH_SEA);
 					mapTexture->setLandRenderMode(VARYING_HIGHEST);
 
-					std::cout << std::endl 
-					<< std::endl << "Highest point: " << mapArray[selectedMap]->getHighestH()
-					<< std::endl << "Lowest point: " << mapArray[selectedMap]->getLowestH() << std::endl << std::endl;
-
-					std::cout << "Sea Level : " << std::setw(3) << std::setfill('0') << mapArray[selectedMap]->getSeaLevel() << std::flush;
-					
 					updateMapTexture = true; // last noise print
 				}
 			}
@@ -100,6 +97,7 @@ void MapFrame::runNoise()
 		if(updateMapTexture)
 		{
 			mapTexture->update();
+			publishMapInfo();
 			EventAggregator::Instance().getEvent<UiEventCode>().publishEvent(UiEventCode(UIEVT_RUNNOISEUPDATE));
 			updateMapTexture = false;
 		}
@@ -108,6 +106,8 @@ void MapFrame::runNoise()
 	}
 
 	mapArray[selectedMap]->setSeaLevel(SEA_LEVEL);
+
+	publishMapInfo();
 }
 
 void MapFrame::resetNoise()
@@ -152,8 +152,8 @@ bool MapFrame::mapPosFromMouse(int *x, int *y)
 
 	// mousePos / frameSize = mapPos / mapSize --> 
 	// mapPos = (mousePos / frameSize) * mapSize
-	*x = (*x / (double)mapFrameWidth) * mapArray[selectedMap]->getMapWidth();
-	*y = (*y / (double)mapFrameHeight) * mapArray[selectedMap]->getMapHeight();
+	*x = (*x / (double)mapFrameWidth) * mapArray[selectedMap]->getMapWidth() + 0.5; // +0.5 to round to the nearest int
+	*y = (*y / (double)mapFrameHeight) * mapArray[selectedMap]->getMapHeight() + 0.5;
 
 	return true;
 }
@@ -268,8 +268,8 @@ void MapFrame::selectMap(int i)
 	selectedMap = i;
 
 	mapTexture->setMapAndUpdate(mapArray[selectedMap]);
-	std::cout << std::endl << std::endl << "Map " << selectedMap+1 << std::endl;
-	std::cout << "Sea Level : " << std::setw(3) << std::setfill('0') << mapArray[selectedMap]->getSeaLevel() << std::flush;
+
+	publishMapInfo();
 }
 
 void MapFrame::selectNoise(int i)
@@ -289,25 +289,27 @@ void MapFrame::normalizeMap()
 	// reset sea level after normalization
 	mapArray[selectedMap]->setSeaLevel((mapArray[selectedMap]->getHighestH() / 2 ) - 1);
 	
-	std::cout << "Sea Level : " << std::setw(3) << std::setfill('0') << mapArray[selectedMap]->getSeaLevel() << std::flush;
-	
 	mapTexture->update();
+
+	publishMapInfo();
 }
 
 void MapFrame::increaseSeaLevel()
 {
 	mapArray[selectedMap]->increaseSeaLevel();
-	std::cout << "\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b" << "Sea Level : " << std::setw(3) << std::setfill('0') << mapArray[selectedMap]->getSeaLevel() << std::flush;
 
 	mapTexture->update();
+
+	publishMapInfo();
 }
 
 void MapFrame::decreaseSeaLevel()
 {
 	mapArray[selectedMap]->decreaseSeaLevel();
-	std::cout << "\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b" << "Sea Level : " << std::setw(3) << std::setfill('0') << mapArray[selectedMap]->getSeaLevel() << std::flush;
 
 	mapTexture->update();
+
+	publishMapInfo();
 }
 
 void MapFrame::setLandRenderMode(int mode)
@@ -330,4 +332,13 @@ void MapFrame::setLandAndSeaRenderModes(int modeLand, int modeSea)
 	mapTexture->setSeaRenderMode(modeSea);
 
 	mapTexture->update();
+}
+
+void MapFrame::publishMapInfo()
+{
+	EventAggregator::Instance().getEvent<MapInfoUpdate>().publishEvent(MapInfoUpdate(selectedMap + 1, 
+																						mapArray[selectedMap]->getSeaLevel(), 
+																						mapArray[selectedMap]->getHighestH(), 
+																						mapArray[selectedMap]->getLowestH(), 
+																						noiseArray[selectedNoise]->getPercentComplete()));
 }

@@ -46,6 +46,8 @@ class MapFrame : public UiObject
 
 		bool customSdlEvtHandler(SDL_Event &e);
 
+		void publishMapInfo();
+
 	public:
 		MapFrame(UiManager *parentUiMngr, int x, int y, int w, int h, Map* mapArr[], int num);
 		~MapFrame();

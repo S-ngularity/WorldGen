@@ -10,7 +10,9 @@
 class Map;
 class Noise;
 class UiObject;
+class UiLabel;
 class UiEventCode;
+class MapInfoUpdate;
 
 const int SIDEBAR_WIDTH = 190;
 const int SCREEN_WIDTH = 800 + SIDEBAR_WIDTH;//map.getMapWidth();
@@ -22,8 +24,11 @@ class NoiseWindow : public SdlWindow
 		int numMaps;
 		Map* *mapArray;
 
+		UiLabel *mapInfoText;
+
 		// Ui Event handlers
 		void customUiEventHandler(UiEventCode &c);
+		void updateMapInfo(MapInfoUpdate &info);
 
 		// UI creation
 		void createGui();
