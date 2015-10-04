@@ -1,12 +1,9 @@
 #ifndef MAPFRAME
 #define MAPFRAME
 
-#include "SdlClasses/SdlTexture.h"
-
 #include "Ui/UiObject.h"
-#include "Ui/UiManager.h"
 
-#include "CustomUiObjects/MouseHeightText.h"
+#include <memory>
 
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_ttf.h>
@@ -14,6 +11,8 @@
 class Map;
 class Noise;
 class MapTexture;
+class UiManager;
+class UiLabel;
 
 // Simplex noise settings
 const int octaves = 10; const double freq = 0.003, persistence = 0.6, freqDiv = 2.2;
@@ -24,7 +23,7 @@ const int octaves = 10; const double freq = 0.003, persistence = 0.6, freqDiv = 
 class MapFrame : public UiObject
 {
 	private:
-		MapTexture *mapTexture;
+		std::shared_ptr<MapTexture> mapTexture;
 
 		int numMaps;
 		Map* *mapArray;
@@ -37,7 +36,7 @@ class MapFrame : public UiObject
 		//DiamSqNoise noiseDiam;
 		//MyNoise noiseMy;
 
-		MouseHeightText *mouseText;
+		UiLabel *mouseTooltip;
 
 		void updateMouseText();
 		

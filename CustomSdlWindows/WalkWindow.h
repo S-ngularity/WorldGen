@@ -4,6 +4,8 @@
 #include "SdlClasses/SdlWindow.h"
 #include "SdlClasses/SdlTexture.h"
 
+#include <memory>
+
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_ttf.h>
 
@@ -17,7 +19,7 @@ class WalkWindow : public SdlWindow
 {
 	private:
 		Map *worldMap;
-		SdlTexture walkTexture;
+		std::shared_ptr<SdlTexture> walkTexture;
 		
 		int walkX, walkY;
 

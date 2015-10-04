@@ -10,7 +10,7 @@ UiObject::UiObject(int xOff, int yOff, int w, int h) :
 	UiObject(xOff, yOff, w, h, NULL, nullptr)
 {}
 
-UiObject::UiObject(int xOff, int yOff, SdlTexture *t, std::function<bool(SDL_Event& e)> evth) : 
+UiObject::UiObject(int xOff, int yOff, std::shared_ptr<SdlTexture> t, std::function<bool(SDL_Event& e)> evth) : 
 	UiObject(xOff, yOff, 0, 0, t, evth)
 {
 	if(t != NULL)
@@ -20,7 +20,8 @@ UiObject::UiObject(int xOff, int yOff, SdlTexture *t, std::function<bool(SDL_Eve
 	}
 }
 
-UiObject::UiObject(int xOff, int yOff, int w, int h, SdlTexture *t, std::function<bool(SDL_Event& e)> evth) : 
+UiObject::UiObject(int xOff, int yOff, int w, int h, std::shared_ptr<SdlTexture> t, std::function<bool(SDL_Event& e)> evth) : 
+	uiTexture(t),
 	evtHandler(evth),
 	preRenderProcedure(nullptr),
 	postRenderProcedure(nullptr)
@@ -41,7 +42,7 @@ UiObject::UiObject(int xOff, int yOff, int w, int h, SdlTexture *t, std::functio
 	logicalWidth = width;
 	logicalHeight = height;
 	
-	uiTexture = t;
+	//uiTexture = t;
 }
 
 UiObject::~UiObject()
@@ -49,17 +50,20 @@ UiObject::~UiObject()
 	for(UiObject *childUiObj : childList)
 		delete childUiObj;
 
-	if(uiTexture != NULL)
-		delete uiTexture;
+	//if(uiTexture != NULL)
+	//	delete uiTexture;
 }
 
 
 void UiObject::addChild(UiObject *c)
 {
-	c->setParentUiManager(parentUiManager);
-	c->parent = this;
+	if(c != NULL)
+	{
+		c->setParentUiManager(parentUiManager);
+		c->parent = this;
 
-	childList.push_front(c);
+		childList.push_front(c);
+	}
 }
 
 void UiObject::bringToFront()
@@ -87,15 +91,7 @@ void UiObject::bringToFront()
 
 // ----- Settings ----- //
 
-void UiObject::setUiObjectTexture(SdlTexture *t)
-{
-	if(uiTexture != NULL)
-		delete uiTexture;
-
-	uiTexture = t;
-}
-
-void UiObject::setUiObjectTextureNoDelete(SdlTexture *t)
+void UiObject::setUiObjectTexture(std::shared_ptr<SdlTexture> t)
 {
 	uiTexture = t;
 }
@@ -110,6 +106,8 @@ void UiObject::setUiObjectSize(int w, int h)
 {
 	width = w;
 	height = h;
+	logicalWidth = w;
+	logicalHeight = h;
 }
 
 void UiObject::setUiObjectLogicalSize(int logicalW, int logicalH)

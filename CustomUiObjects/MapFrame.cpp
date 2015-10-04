@@ -7,6 +7,9 @@
 
 #include "CustomSdlTextures/MapTexture.h"
 
+#include "Ui/UiManager.h"
+#include "DefaultUiObjects/UiLabel.h"
+
 #include "Ui/EventAggregator.h"
 #include "Ui/UiEvents/UiEventCode.h"
 #include "Ui/UiEvents/WalkWindowOpened.h"
@@ -34,11 +37,11 @@ MapFrame::MapFrame(UiManager *parentUiMngr, int x, int y, int w, int h, Map* map
 	if(parentUiManager == NULL)
 		std::cout << "MapFrame without parentUiManager (is NULL)." << std::endl;
 
-	mapTexture = new MapTexture(parentUiManager->getRenderer(), mapArray[selectedMap]);
+	mapTexture = std::make_shared<MapTexture>(parentUiManager->getRenderer(), mapArray[selectedMap]);
 	setUiObjectTexture(mapTexture);
 
-	mouseText = new MouseHeightText(parentUiManager);
-	setPostRenderProcedure([&]() { mouseText->render(absoluteX, absoluteY); });
+	mouseTooltip = new UiLabel(0, 0, "", 20, 220, 20, 60);
+	addChild(mouseTooltip);
 }
 
 MapFrame::~MapFrame()
@@ -131,11 +134,11 @@ void MapFrame::updateMouseText()
 			text = ss.str();
 		}
 
-		mouseText->update(text);
+		mouseTooltip->setText(text);
 
 		int x, y;
 		UiObject::getRelativeMousePos(this, &x, &y);
-		mouseText->setUiObjectOffset(x, y - 30);
+		mouseTooltip->setUiObjectOffset(x, y - 30);
 	}
 }
 

@@ -18,12 +18,7 @@ WalkWindow::WalkWindow(Map *theMap) :
 				WALK_SCREEN_SIZE, WALK_SCREEN_SIZE, // window resolution
 				SDL_WINDOW_RESIZABLE | SDL_WINDOW_HIDDEN, 
 				SDL_RENDERER_ACCELERATED | SDL_RENDERER_TARGETTEXTURE), 
-	worldMap(theMap), 
-	walkTexture(SDL_CreateTexture(getRenderer(), 
-										SDL_PIXELFORMAT_RGBA8888, 
-										SDL_TEXTUREACCESS_TARGET, 
-										WALK_SCREEN_SIZE,
-										WALK_SCREEN_SIZE), WALK_SCREEN_SIZE, WALK_SCREEN_SIZE)
+	worldMap(theMap)
 {
 	hide(); // set superclass settings to hidden window state to sync with SDL_WINDOW_HIDDEN 
 	
@@ -34,9 +29,15 @@ WalkWindow::WalkWindow(Map *theMap) :
 	walkY = 0;
 
 	SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "nearest");
+	
+	walkTexture = std::make_shared<SdlTexture>(SDL_CreateTexture(getRenderer(), 
+												SDL_PIXELFORMAT_RGBA8888, 
+												SDL_TEXTUREACCESS_TARGET, 
+												WALK_SCREEN_SIZE,
+												WALK_SCREEN_SIZE), WALK_SCREEN_SIZE, WALK_SCREEN_SIZE);
 
 	updateWalkTex();
-	windowUi->addChild(new UiObject(0, 0, &walkTexture, nullptr));
+	windowUi->addChild(new UiObject(0, 0, walkTexture, nullptr));
 }
 
 void WalkWindow::setPos(int x, int y)
@@ -142,7 +143,7 @@ bool WalkWindow::customSdlEvtHandler(SDL_Event& e)
 
 void WalkWindow::updateWalkTex()
 {
-	walkTexture.setAsRenderTarget(getRenderer());
+	walkTexture->setAsRenderTarget(getRenderer());
 	SDL_SetRenderDrawColor(getRenderer(), 0, 0, 0, 255);
 	SDL_RenderClear(getRenderer());
 
@@ -193,5 +194,5 @@ void WalkWindow::updateWalkTex()
 			squarePosIt++;
 		}
 
-	walkTexture.releaseRenderTarget(getRenderer());
+	walkTexture->releaseRenderTarget(getRenderer());
 }

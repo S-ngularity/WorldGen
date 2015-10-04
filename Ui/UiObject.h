@@ -5,6 +5,7 @@
 
 #include <list>
 #include <functional>
+#include <memory>
 
 #include <SDL2/SDL.h>
 
@@ -20,7 +21,7 @@ class UiObject
 
 		int logicalWidth, logicalHeight;
 
-		SdlTexture *uiTexture;
+		std::shared_ptr<SdlTexture> uiTexture;
 
 		std::function<bool(SDL_Event& e)> evtHandler;
 		std::function<void()> preRenderProcedure;
@@ -41,8 +42,8 @@ class UiObject
 
 	public:
 		UiObject(int xOff, int yOff, int w, int h);
-		UiObject(int xOff, int yOff, SdlTexture *t, std::function<bool(SDL_Event& e)> evth);
-		UiObject(int xOff, int yOff, int w, int h, SdlTexture *t, std::function<bool(SDL_Event& e)> evth);
+		UiObject(int xOff, int yOff, std::shared_ptr<SdlTexture> t, std::function<bool(SDL_Event& e)> evth);
+		UiObject(int xOff, int yOff, int w, int h, std::shared_ptr<SdlTexture> t, std::function<bool(SDL_Event& e)> evth);
 		virtual ~UiObject();
 
 		void setParentUiManager(UiManager *uiMngr);
@@ -50,9 +51,7 @@ class UiObject
 		void addChild(UiObject *c);
 
 		// Settings
-		void setUiObjectTexture(SdlTexture *t);
-		void setUiObjectTextureNoDelete(SdlTexture *t);
-		
+		void setUiObjectTexture(std::shared_ptr<SdlTexture> t);
 		void setUiObjectOffset(int x, int y); // Offset from parent
 		void setUiObjectSize(int w, int h);
 

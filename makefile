@@ -19,8 +19,8 @@ SRC =	main.cpp \
 		Ui/UiObject.cpp Ui/UiManager.cpp Ui/EventAggregator.cpp \
 		CustomSdlTextures/MapTexture.cpp \
 		CustomSdlWindows/NoiseWindow.cpp CustomSdlWindows/WalkWindow.cpp \
-		CustomUiObjects/MapFrame.cpp CustomUiObjects/MouseHeightText.cpp \
-		DefaultUiObjects/UiButton.cpp DefaultUiObjects/UiPanel.cpp
+		CustomUiObjects/MapFrame.cpp \
+		DefaultUiObjects/UiButton.cpp DefaultUiObjects/UiPanel.cpp DefaultUiObjects/UiLabel.cpp
 
 OUT = Worldgen
 
