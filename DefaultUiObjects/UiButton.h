@@ -17,6 +17,7 @@ class UiButton : public UiObject
 	private:
 		std::function<void()> customButtonAction;
 		std::shared_ptr<SdlTexture> btTexture, btTextureHover, btTexturePressed;
+		UiLabel *label;
 		
 		bool clickHappenedHere;
 		bool isPressed;

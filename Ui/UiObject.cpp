@@ -15,8 +15,8 @@ UiObject::UiObject(int xOff, int yOff, std::shared_ptr<SdlTexture> t, std::funct
 {
 	if(t != NULL)
 	{
-		setUiObjectSize(t->getW(), t->getH());
-		setUiObjectLogicalSize(t->getW(), t->getH());
+		setUiObjectSize(t->getWidth(), t->getHeight());
+		setUiObjectLogicalSize(t->getWidth(), t->getHeight());
 	}
 }
 
@@ -49,11 +49,10 @@ UiObject::~UiObject()
 {
 	for(UiObject *childUiObj : childList)
 		delete childUiObj;
-
-	//if(uiTexture != NULL)
-	//	delete uiTexture;
 }
 
+
+// ----- Settings ----- //
 
 void UiObject::addChild(UiObject *c)
 {
@@ -89,8 +88,6 @@ void UiObject::bringToFront()
 	}
 }
 
-// ----- Settings ----- //
-
 void UiObject::setUiObjectTexture(std::shared_ptr<SdlTexture> t)
 {
 	uiTexture = t;
@@ -98,8 +95,14 @@ void UiObject::setUiObjectTexture(std::shared_ptr<SdlTexture> t)
 
 void UiObject::setUiObjectOffset(int x, int y)
 {
+	absoluteX -= xOffset;
+	absoluteY -= yOffset;
+
 	xOffset = x;
 	yOffset = y;
+
+	absoluteX += xOffset;
+	absoluteY += yOffset;
 }
 
 void UiObject::setUiObjectSize(int w, int h)
@@ -116,6 +119,20 @@ void UiObject::setUiObjectLogicalSize(int logicalW, int logicalH)
 	logicalHeight = logicalH;
 }
 
+void UiObject::setParentUiManager(UiManager *uiMngr)
+{
+	parentUiManager = uiMngr;
+
+	for(UiObject *childUiObj : childList)
+		childUiObj->setParentUiManager(uiMngr);
+}
+
+void UiObject::getUiObjectOffset(int *xOff, int *yOff)
+{
+	*xOff = xOffset;
+	*yOff = yOffset;
+}
+
 int UiObject::getWidth()
 {
 	return width;
@@ -124,14 +141,6 @@ int UiObject::getWidth()
 int UiObject::getHeight()
 {
 	return height;
-}
-
-void UiObject::setParentUiManager(UiManager *uiMngr)
-{
-	parentUiManager = uiMngr;
-
-	for(UiObject *childUiObj : childList)
-		childUiObj->setParentUiManager(uiMngr);
 }
 
 

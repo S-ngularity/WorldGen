@@ -8,20 +8,27 @@
 #include <string>
 
 UiLabel::UiLabel(int xOff, int yOff, std::string text, int size, int r, int g, int b) : 
+	UiLabel(xOff, yOff, ALIGN_TOP_LEFT, text, size, r, g, b)
+{}
+
+UiLabel::UiLabel(int xOff, int yOff, AlignMode alignMode, std::string text, int size, int r, int g, int b) : 
 	UiObject(xOff, yOff, 0, 0), 
 	labelFont(NULL), 
+	align(alignMode), 
 	labelText(text), 
 	fontSize(size), 
-	colorR(r), 
-	colorG(g), 
-	colorB(b), 
+	colorR(r), colorG(g), colorB(b), 
+	originalX(xOff), originalY(yOff), alignedX(xOff), alignedY(yOff), 
 	needUpdate(true)
 {
 	setPreRenderProcedure([&](){ labelPreRender(); });
+	setPostRenderProcedure([&](){ labelPostRender(); });
 
 	labelFont = TTF_OpenFont("Resources/OpenSans-Regular.ttf", fontSize);
 	if(labelFont == NULL)
 		std::cout << "Failed to load labelFont in UiLabel! SDL_ttf Error: " << TTF_GetError() << std::endl;
+	else
+		TTF_SetFontStyle(labelFont, TTF_STYLE_BOLD);
 }
 
 UiLabel::~UiLabel()
@@ -50,6 +57,11 @@ void UiLabel::setColor(int r, int g, int b)
 	needUpdate = true;
 }
 
+void UiLabel::setAlignMode(AlignMode a)
+{
+	align = a;
+}
+
 void UiLabel::labelPreRender()
 {
 	if(needUpdate)
@@ -73,10 +85,8 @@ void UiLabel::labelPreRender()
 				std::cout << "Failed to load labelFont in UiLabel! SDL_ttf Error: " << TTF_GetError() << std::endl;
 				return;
 			}
-			else
-				TTF_SetFontStyle(labelFont, TTF_STYLE_BOLD);
 
-			SDL_Surface* tempSurface = TTF_RenderText_Blended(labelFont, labelText.c_str(), {(Uint8) colorR, (Uint8) colorG, (Uint8) colorB});
+			SDL_Surface* tempSurface = TTF_RenderText_Solid(labelFont, labelText.c_str(), {(Uint8) colorR, (Uint8) colorG, (Uint8) colorB});
 			if(tempSurface == NULL)
 			{
 				std::cout << "Unable to render text surface in UiLabel! SDL_ttf Error: " << TTF_GetError() << std::endl;
@@ -100,7 +110,34 @@ void UiLabel::labelPreRender()
 			SDL_FreeSurface(tempSurface);
 		}
 
+		getUiObjectOffset(&originalX, &originalY);
+
+		if(align == ALIGN_TOP_LEFT || align == ALIGN_CENTER_LEFT || align == ALIGN_BOTTOM_LEFT)
+			alignedX = originalX;
+
+		else if(align == ALIGN_TOP_CENTER || align == ALIGN_CENTER_CENTER || align == ALIGN_BOTTOM_CENTER)
+			alignedX = originalX - getWidth() / 2.f;
+
+		else if(align == ALIGN_TOP_RIGHT || align == ALIGN_CENTER_RIGHT || align == ALIGN_BOTTOM_RIGHT)
+			alignedX = originalX - getWidth();
+
+
+		if(align == ALIGN_TOP_LEFT || align == ALIGN_TOP_CENTER || align == ALIGN_TOP_RIGHT)
+			alignedY = originalY;
+
+		else if(align == ALIGN_CENTER_LEFT || align == ALIGN_CENTER_CENTER || align == ALIGN_CENTER_RIGHT)
+			alignedY = originalY - getHeight() / 2.f;
+
+		else if(align == ALIGN_BOTTOM_LEFT || align == ALIGN_BOTTOM_CENTER || align == ALIGN_BOTTOM_RIGHT)
+			alignedY = originalY - getHeight();
+
 		needUpdate = false;
 	}
+	
+	setUiObjectOffset(alignedX, alignedY);
+}
 
+void UiLabel::labelPostRender()
+{
+	setUiObjectOffset(originalX, originalY);
 }

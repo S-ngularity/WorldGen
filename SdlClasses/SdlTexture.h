@@ -39,8 +39,8 @@ class SdlTexture
 		void setBlendMode(SDL_BlendMode blending);
 		void setAlpha(Uint8 alpha);
 		
-		int getW();
-		int getH();
+		int getWidth();
+		int getHeight();
 
 		bool isNull();
 };

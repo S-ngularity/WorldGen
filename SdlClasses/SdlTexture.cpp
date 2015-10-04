@@ -134,12 +134,12 @@ void SdlTexture::setAlpha(Uint8 alpha)
 	SDL_SetTextureAlphaMod(texture, alpha);
 }
 
-int SdlTexture::getW()
+int SdlTexture::getWidth()
 {
 	return width;
 }
 
-int SdlTexture::getH()
+int SdlTexture::getHeight()
 {
 	return height;
 }

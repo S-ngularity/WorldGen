@@ -3,6 +3,8 @@
 
 #include "SdlClasses/SdlWindow.h"
 
+#include <memory>
+
 #include <SDL2/SDL.h>
 
 class Map;
@@ -25,7 +27,7 @@ class NoiseWindow : public SdlWindow
 
 		// UI creation
 		void createGui();
-		SDL_Texture* createDrawnTexture(int width, int height, int r, int g, int b, int a);
+		std::shared_ptr<SdlTexture> createDrawnTexture(int width, int height, int r, int g, int b, int a);
 
 	public:
 		NoiseWindow(Map* mapArr[], int num);

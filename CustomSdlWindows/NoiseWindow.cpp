@@ -46,15 +46,15 @@ void NoiseWindow::customUiEventHandler(UiEventCode &c)
 
 // UI
 
-SDL_Texture* NoiseWindow::createDrawnTexture(int width, int height, int r, int g, int b, int a)
+std::shared_ptr<SdlTexture> NoiseWindow::createDrawnTexture(int width, int height, int r, int g, int b, int a)
 {
-	SDL_Texture *targetTex = SDL_CreateTexture(getRenderer(), SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_TARGET, width, height);
-	SDL_SetRenderTarget(getRenderer(), targetTex);
+	std::shared_ptr<SdlTexture> tex = std::make_shared<SdlTexture>(SDL_CreateTexture(getRenderer(), SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_TARGET, width, height));
+	tex->setAsRenderTarget(getRenderer());
 	SDL_SetRenderDrawColor(getRenderer(), r, g, b, a);
 	SDL_RenderClear(getRenderer());
-	SDL_SetRenderTarget(getRenderer(), NULL);
+	tex->releaseRenderTarget(getRenderer());
 
-	return targetTex;
+	return tex;
 }
 
 MapFrame *mapFrame = nullptr;
@@ -65,13 +65,13 @@ void NoiseWindow::createGui()
 	mapFrame->setUiObjectLogicalSize(windowUi->getWidth(), windowUi->getHeight());
 
 	UiPanel *sidebar = new UiPanel(windowUi->getWidth() - SIDEBAR_WIDTH, 0, 
-									std::make_shared<SdlTexture>(createDrawnTexture(SIDEBAR_WIDTH, windowUi->getHeight(), 0, 126, 126, 255)));
+									createDrawnTexture(SIDEBAR_WIDTH, windowUi->getHeight(), 0, 126, 126, 255));
 
 	sidebar->addChild(new UiButton(30, 30, 
 									NULL, 
-									std::make_shared<SdlTexture>(createDrawnTexture(30, 30, 0, 255, 0, 255)), 
-									std::make_shared<SdlTexture>(createDrawnTexture(30, 30, 115, 255, 115, 255)), 
-									std::make_shared<SdlTexture>(createDrawnTexture(30, 30, 0, 205, 0, 255)), 
+									createDrawnTexture(30, 30, 0, 255, 0, 255), 
+									createDrawnTexture(30, 30, 115, 255, 115, 255), 
+									createDrawnTexture(30, 30, 0, 205, 0, 255), 
 									//std::make_shared<SdlTexture>(MyUtils::loadTexture(getRenderer(), "Resources\\btNormal.png"), 30, 30), 
 									//std::make_shared<SdlTexture>(MyUtils::loadTexture(getRenderer(), "Resources\\btHover.png"), 30, 30), 
 									//std::make_shared<SdlTexture>(MyUtils::loadTexture(getRenderer(), "Resources\\btPressed.png"), 30, 30), 
@@ -79,37 +79,37 @@ void NoiseWindow::createGui()
 
 	sidebar->addChild(new UiButton(80, 30, 
 									NULL, 
-									std::make_shared<SdlTexture>(createDrawnTexture(30, 30, 0, 255, 0, 255)), 
-									std::make_shared<SdlTexture>(createDrawnTexture(30, 30, 115, 255, 115, 255)), 
-									std::make_shared<SdlTexture>(createDrawnTexture(30, 30, 0, 205, 0, 255)), 
+									createDrawnTexture(30, 30, 0, 255, 0, 255), 
+									createDrawnTexture(30, 30, 115, 255, 115, 255), 
+									createDrawnTexture(30, 30, 0, 205, 0, 255), 
 									[&](){ mapFrame->selectMap(1); } ));
 
 	sidebar->addChild(new UiButton(130, 30, 
 									NULL, 
-									std::make_shared<SdlTexture>(createDrawnTexture(30, 30, 0, 255, 0, 255)), 
-									std::make_shared<SdlTexture>(createDrawnTexture(30, 30, 115, 255, 115, 255)), 
-									std::make_shared<SdlTexture>(createDrawnTexture(30, 30, 0, 205, 0, 255)), 
+									createDrawnTexture(30, 30, 0, 255, 0, 255), 
+									createDrawnTexture(30, 30, 115, 255, 115, 255), 
+									createDrawnTexture(30, 30, 0, 205, 0, 255), 
 									[&](){ mapFrame->selectMap(2); } ));
 
 	sidebar->addChild(new UiButton(55, 80, 
 									NULL, 
-									std::make_shared<SdlTexture>(createDrawnTexture(30, 30, 0, 255, 0, 255)), 
-									std::make_shared<SdlTexture>(createDrawnTexture(30, 30, 115, 255, 115, 255)), 
-									std::make_shared<SdlTexture>(createDrawnTexture(30, 30, 0, 205, 0, 255)), 
+									createDrawnTexture(30, 30, 0, 255, 0, 255), 
+									createDrawnTexture(30, 30, 115, 255, 115, 255), 
+									createDrawnTexture(30, 30, 0, 205, 0, 255), 
 									[&](){ mapFrame->selectNoise(0); } ));
 
 	sidebar->addChild(new UiButton(105, 80, 
 									NULL, 
-									std::make_shared<SdlTexture>(createDrawnTexture(30, 30, 0, 255, 0, 255)), 
-									std::make_shared<SdlTexture>(createDrawnTexture(30, 30, 115, 255, 115, 255)), 
-									std::make_shared<SdlTexture>(createDrawnTexture(30, 30, 0, 205, 0, 255)), 
+									createDrawnTexture(30, 30, 0, 255, 0, 255), 
+									createDrawnTexture(30, 30, 115, 255, 115, 255), 
+									createDrawnTexture(30, 30, 0, 205, 0, 255), 
 									[&](){ mapFrame->selectNoise(1); } ));
 
 	sidebar->addChild(new UiButton(30, windowUi->getHeight() - 60, 
 									new UiLabel(0, 0, "RUN", 12, 255, 0, 0), 
-									std::make_shared<SdlTexture>(createDrawnTexture(130, 30, 0, 255, 0, 255)), 
-									std::make_shared<SdlTexture>(createDrawnTexture(130, 30, 115, 255, 115, 255)), 
-									std::make_shared<SdlTexture>(createDrawnTexture(130, 30, 0, 205, 0, 255)), 
+									createDrawnTexture(130, 30, 0, 255, 0, 255), 
+									createDrawnTexture(130, 30, 115, 255, 115, 255), 
+									createDrawnTexture(130, 30, 0, 205, 0, 255), 
 									[&](){ mapFrame->runNoise(); } ));
 
 	mapFrame->addChild(sidebar);

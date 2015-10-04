@@ -40,22 +40,24 @@ class UiObject
 
 		int absoluteX, absoluteY;
 
+		void getUiObjectOffset(int *xOff, int *yOff);
+
 	public:
 		UiObject(int xOff, int yOff, int w, int h);
 		UiObject(int xOff, int yOff, std::shared_ptr<SdlTexture> t, std::function<bool(SDL_Event& e)> evth);
 		UiObject(int xOff, int yOff, int w, int h, std::shared_ptr<SdlTexture> t, std::function<bool(SDL_Event& e)> evth);
 		virtual ~UiObject();
 
-		void setParentUiManager(UiManager *uiMngr);
-
-		void addChild(UiObject *c);
-
 		// Settings
+		void addChild(UiObject *c);
+		
 		void setUiObjectTexture(std::shared_ptr<SdlTexture> t);
 		void setUiObjectOffset(int x, int y); // Offset from parent
+		
 		void setUiObjectSize(int w, int h);
-
 		void setUiObjectLogicalSize(int logicalW, int logicalH);
+		
+		void setParentUiManager(UiManager *uiMngr);
 		
 		int getWidth();
 		int getHeight();

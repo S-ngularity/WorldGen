@@ -8,6 +8,7 @@ UiButton::UiButton(int xOff, int yOff, UiLabel *textLabel, std::shared_ptr<SdlTe
 	UiObject(xOff, yOff, t, [&](SDL_Event &e){ return buttonEvtHandler(e); }),
 	customButtonAction(btEvtH)
 {
+	label = textLabel;
 	btTexture = t;
 	btTextureHover = NULL;
 	btTexturePressed = NULL;
@@ -17,14 +18,18 @@ UiButton::UiButton(int xOff, int yOff, UiLabel *textLabel, std::shared_ptr<SdlTe
 
 	setPreRenderProcedure([&](){ buttonPreRender(); });
 
-	if(textLabel != NULL)
-		addChild(textLabel);
+	if(label != NULL)
+	{
+		label->setAlignMode(ALIGN_CENTER_CENTER);
+		addChild(label);
+	}
 }
 
 UiButton::UiButton(int xOff, int yOff, int w, int h, UiLabel *textLabel, std::shared_ptr<SdlTexture> t, std::function<void()> btEvtH) : 
 	UiObject(xOff, yOff, w, h, t, [&](SDL_Event &e){ return buttonEvtHandler(e); }),
 	customButtonAction(btEvtH)
 {
+	label = textLabel;
 	btTexture = t;
 	btTextureHover = NULL;
 	btTexturePressed = NULL;
@@ -34,14 +39,18 @@ UiButton::UiButton(int xOff, int yOff, int w, int h, UiLabel *textLabel, std::sh
 
 	setPreRenderProcedure([&](){ buttonPreRender(); });
 
-	if(textLabel != NULL)
-		addChild(textLabel);
+	if(label != NULL)
+	{
+		label->setAlignMode(ALIGN_CENTER_CENTER);
+		addChild(label);
+	}
 }
 
 UiButton::UiButton(int xOff, int yOff, UiLabel *textLabel, std::shared_ptr<SdlTexture> t, std::shared_ptr<SdlTexture> tHover, std::shared_ptr<SdlTexture> tPressed, std::function<void()> btEvtH) :  
 	UiObject(xOff, yOff, t, [&](SDL_Event &e){ return buttonEvtHandler(e); }),
 	customButtonAction(btEvtH)
 {
+	label = textLabel;
 	btTexture = t;
 	btTextureHover = tHover;
 	btTexturePressed = tPressed;
@@ -51,14 +60,18 @@ UiButton::UiButton(int xOff, int yOff, UiLabel *textLabel, std::shared_ptr<SdlTe
 
 	setPreRenderProcedure([&](){ buttonPreRender(); });
 
-	if(textLabel != NULL)
-		addChild(textLabel);
+	if(label != NULL)
+	{
+		label->setAlignMode(ALIGN_CENTER_CENTER);
+		addChild(label);
+	}
 }
 
 UiButton::UiButton(int xOff, int yOff, int w, int h, UiLabel *textLabel, std::shared_ptr<SdlTexture> t, std::shared_ptr<SdlTexture> tHover, std::shared_ptr<SdlTexture> tPressed, std::function<void()> btEvtH) : 
 	UiObject(xOff, yOff, w, h, t, [&](SDL_Event &e){ return buttonEvtHandler(e); }),
 	customButtonAction(btEvtH)
 {
+	label = textLabel;
 	btTexture = t;
 	btTextureHover = tHover;
 	btTexturePressed = tPressed;
@@ -68,8 +81,11 @@ UiButton::UiButton(int xOff, int yOff, int w, int h, UiLabel *textLabel, std::sh
 
 	setPreRenderProcedure([&](){ buttonPreRender(); });
 
-	if(textLabel != NULL)
-		addChild(textLabel);
+	if(label != NULL)
+	{
+		label->setAlignMode(ALIGN_CENTER_CENTER);
+		addChild(label);
+	}
 }
 
 bool UiButton::buttonEvtHandler(SDL_Event &e)
@@ -153,5 +169,13 @@ void UiButton::buttonPreRender()
 	{
 		if(btTexture != NULL)
 			setUiObjectTexture(btTexture);
+	}
+
+	if(label != NULL)
+	{
+		int myX, myY;
+		getUiObjectOffset(&myX, &myY);
+		
+		label->setUiObjectOffset(getWidth() / 2.f, getHeight() / 2.f);
 	}
 }

@@ -40,7 +40,7 @@ MapFrame::MapFrame(UiManager *parentUiMngr, int x, int y, int w, int h, Map* map
 	mapTexture = std::make_shared<MapTexture>(parentUiManager->getRenderer(), mapArray[selectedMap]);
 	setUiObjectTexture(mapTexture);
 
-	mouseTooltip = new UiLabel(0, 0, "", 20, 220, 20, 60);
+	mouseTooltip = new UiLabel(0, 0, ALIGN_BOTTOM_LEFT, "", 20, 220, 20, 60);
 	addChild(mouseTooltip);
 }
 
@@ -138,7 +138,7 @@ void MapFrame::updateMouseText()
 
 		int x, y;
 		UiObject::getRelativeMousePos(this, &x, &y);
-		mouseTooltip->setUiObjectOffset(x, y - 30);
+		mouseTooltip->setUiObjectOffset(x, y);
 	}
 }
 
