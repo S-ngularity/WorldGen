@@ -153,23 +153,14 @@ void UiButton::buttonPreRender()
 		isPressed = false;
 
 
-	if(isPressed)
-	{
-		if(btTexturePressed != NULL)
-			setUiObjectTexture(btTexturePressed);
-	}
+	if(isPressed && btTexturePressed != NULL)
+		setUiObjectTexture(btTexturePressed);
 
-	else if(UiObject::mouseOnTop == this && !mouseIsPressed)
-	{
-		if(btTextureHover != NULL)
-			setUiObjectTexture(btTextureHover);
-	}
+	else if(UiObject::mouseOnTop == this && !mouseIsPressed && btTextureHover != NULL)
+		setUiObjectTexture(btTextureHover);
 
-	else
-	{
-		if(btTexture != NULL)
-			setUiObjectTexture(btTexture);
-	}
+	else if(btTexture != NULL)
+		setUiObjectTexture(btTexture);
 
 	if(label != NULL)
 	{

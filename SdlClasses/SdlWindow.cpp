@@ -112,7 +112,7 @@ bool SdlWindow::handleSdlEvent(SDL_Event& e)
 				break;
 
 				// Get new dimensions and repaint
-				case SDL_WINDOWEVENT_RESIZED:
+				case SDL_WINDOWEVENT_SIZE_CHANGED:
 					windowWidth = e.window.data1;
 					windowHeight = e.window.data2;
 					windowUi->setWindowScale(getWindowWidthScale(), getWindowHeightScale());
@@ -120,7 +120,7 @@ bool SdlWindow::handleSdlEvent(SDL_Event& e)
 
 				// Repaint on expose
 				case SDL_WINDOWEVENT_EXPOSED:
-					
+					doRefresh();
 				break;
 
 				// Mouse enter
@@ -158,6 +158,7 @@ bool SdlWindow::handleSdlEvent(SDL_Event& e)
 				// Hide on close
 				case SDL_WINDOWEVENT_CLOSE:
 					SDL_HideWindow(window);
+					shown = false;
 				break;
 
 				default:
