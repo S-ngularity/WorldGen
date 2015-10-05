@@ -70,6 +70,7 @@ bool WalkWindow::customSdlEvtHandler(SDL_Event& e)
 				switch(e.key.keysym.sym)
 				{
 					case SDLK_UP:
+					case SDLK_w:
 						if(walkY - 1 < 0)
 							walkY = 0;
 
@@ -79,6 +80,7 @@ bool WalkWindow::customSdlEvtHandler(SDL_Event& e)
 					break;
 
 					case SDLK_DOWN:
+					case SDLK_s:
 						if(walkY + 1 >= worldMap->getMapHeight())
 							walkY = worldMap->getMapHeight() - 1;
 
@@ -88,6 +90,7 @@ bool WalkWindow::customSdlEvtHandler(SDL_Event& e)
 					break;
 
 					case SDLK_LEFT:
+					case SDLK_a:
 						if(worldMap->getH(walkX - 1, walkY) > worldMap->getSeaLevel())
 						{
 							if(walkX - 1 < 0)
@@ -100,6 +103,7 @@ bool WalkWindow::customSdlEvtHandler(SDL_Event& e)
 					break;
 
 					case SDLK_RIGHT:
+					case SDLK_d:
 						if(worldMap->getH(walkX + 1, walkY) > worldMap->getSeaLevel())
 						{
 							if(walkX + 1 >= worldMap->getMapWidth())

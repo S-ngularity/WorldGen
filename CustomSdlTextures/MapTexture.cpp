@@ -55,13 +55,30 @@ void MapTexture::update()
 	for(int y = 0; y < worldMap->getMapHeight(); y++)
 		for(int x = 0; x < worldMap->getMapWidth(); x++)
 		{
-			if(seaRenderMode == WITH_SEA && worldMap->getH(x, y) <= worldMap->getSeaLevel())
+			// Color map limits
+			if(x == 0 && (y == 0 || y == worldMap->getMapHeight()-1))
+			{
+				r = 0;
+				g = 255;
+				b = 0;
+			}
+
+			else if(x == 0)
+			{
+				r = 75;
+				g = 110;
+				b = 190;
+			}
+
+			// Sea
+			else if(seaRenderMode == WITH_SEA && worldMap->getH(x, y) <= worldMap->getSeaLevel())
 			{
 				r = 25;
 				g = 45;
 				b = 85;
 			}
 
+			// Land
 			else
 			{
 				Uint8 baseColor, hColor;

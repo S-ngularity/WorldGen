@@ -25,31 +25,43 @@ MapFrame::MapFrame(UiManager *parentUiMngr, int x, int y, int w, int h, Map* map
 	UiObject(x, y, w, h, NULL,
 			[&](SDL_Event &e){return customSdlEvtHandler(e);})
 {
+	// Map array
 	mapArray = mapArr;
 	numMaps = num;
 	selectedMap = 0;
 
+	// Noise array
 	noiseArray[0] = new OpenSimplexNoise(mapArray[0], octaves, freq, persistence, freqDiv);
 	noiseArray[1] = new DiamSqNoise(mapArray[0]);
-	selectedNoise = 0;
+	selectedNoise = 1;
 
+	// Textures
 	setParentUiManager(parentUiMngr);
-
 	if(parentUiManager == NULL)
 		std::cout << "MapFrame without parentUiManager (is NULL)." << std::endl;
 
-	mapTexture = std::make_shared<MapTexture>(parentUiManager->getRenderer(), mapArray[selectedMap]);
-	setUiObjectTexture(mapTexture);
+	mapTexture = std::make_unique<MapTexture>(parentUiManager->getRenderer(), mapArray[selectedMap]);
+	
+	frameTexture = std::make_shared<SdlTexture>(SDL_CreateTexture(parentUiManager->getRenderer(), SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_TARGET, w, h));
+	setUiObjectTexture(frameTexture);
 
+	// Mouse tooltip for map height
 	mouseTooltip = new UiLabel(0, 0, ALIGN_BOTTOM_LEFT, "", 20, 220, 20, 60);
 	addChild(mouseTooltip);
 
+	// Dragging functionality
+	SDL_GetMouseState(&mouseLastX, &mouseLastY);
+	clickHappenedHere = false;
+	mapOffset = 0;
+	setPreRenderProcedure([&](){ preRenderProcedure(); });
+
+	// Send map info update
 	publishMapInfo();
 }
 
 MapFrame::~MapFrame()
 {
-	for(int i = 0; i < 3; i++)
+	for(int i = 0; i < numNoises; i++)
 		delete noiseArray[i];
 }
 
@@ -101,11 +113,6 @@ void MapFrame::runNoise()
 	publishMapInfo();
 }
 
-void MapFrame::resetNoise()
-{
-	noiseArray[selectedNoise]->reset();
-}
-
 void MapFrame::updateMouseText()
 {
 	int mapX, mapY;
@@ -141,6 +148,8 @@ bool MapFrame::mapPosFromMouse(int *x, int *y)
 	int mapFrameWidth = getWidth();
 	int mapFrameHeight = getHeight();
 
+	*x -= mapOffset;
+	
 	// mousePos / frameSize = mapPos / mapSize --> 
 	// mapPos = (mousePos / frameSize) * mapSize
 	*x = (*x / (double)mapFrameWidth) * mapArray[selectedMap]->getMapWidth() + 0.5; // +0.5 to round to the nearest int
@@ -192,7 +201,7 @@ bool MapFrame::customSdlEvtHandler(SDL_Event &e)
 				break;
 
 				case SDLK_r:
-					resetNoise();
+					noiseArray[selectedNoise]->reset();
 					runNoise();
 				break;
 
@@ -217,10 +226,7 @@ bool MapFrame::customSdlEvtHandler(SDL_Event &e)
 				break;
 
 				case SDLK_3:
-					if(e.key.keysym.mod & KMOD_SHIFT)
-						selectNoise(2);
-
-					else if(!(e.key.keysym.mod & KMOD_SHIFT))
+					if(!(e.key.keysym.mod & KMOD_SHIFT))
 						selectMap(2);
 				break;
 
@@ -239,9 +245,32 @@ bool MapFrame::customSdlEvtHandler(SDL_Event &e)
 				if(mapPosFromMouse(&x, &y))
 					EventAggregator::Instance().getEvent<WalkWindowOpened>().publishEvent(WalkWindowOpened(mapArray[selectedMap], x, y));
 			}
+
+			if(e.button.button == SDL_BUTTON_LEFT)
+				clickHappenedHere = false;
+		break;
+
+		case SDL_MOUSEBUTTONDOWN:
+			if(e.button.button == SDL_BUTTON_LEFT)
+			{
+				SDL_GetMouseState(&mouseLastX, &mouseLastY);
+				clickHappenedHere = true;
+			}
 		break;
 
 		case SDL_MOUSEMOTION:
+			if(clickHappenedHere && (SDL_GetMouseState(NULL, NULL) & SDL_BUTTON(SDL_BUTTON_LEFT)))
+			{
+				int mouseX, mouseY;
+				SDL_GetMouseState(&mouseX, &mouseY);
+
+				const double MOUSE_SENSIBILITY = 1;
+				mapOffset = mapOffset + (mouseX - mouseLastX) * MOUSE_SENSIBILITY;
+
+				mouseLastX = mouseX;
+				mouseLastY = mouseY;
+			}
+
 			updateMouseText();
 		break;
 
@@ -324,10 +353,43 @@ void MapFrame::setLandAndSeaRenderModes(int modeLand, int modeSea)
 
 void MapFrame::publishMapInfo()
 {
-	EventAggregator::Instance().getEvent<MapInfoUpdate>().publishEvent(MapInfoUpdate(	noiseArray[selectedNoise]->name, 
-																						selectedMap + 1, 
-																						mapArray[selectedMap]->getSeaLevel(), 
-																						mapArray[selectedMap]->getHighestH(), 
-																						mapArray[selectedMap]->getLowestH(), 
-																						noiseArray[selectedNoise]->getPercentComplete()));
+	EventAggregator::Instance()
+		.getEvent<MapInfoUpdate>()
+			.publishEvent(MapInfoUpdate(noiseArray[selectedNoise]->name, 
+										selectedMap + 1, 
+										mapArray[selectedMap]->getSeaLevel(), 
+										mapArray[selectedMap]->getHighestH(), 
+										mapArray[selectedMap]->getLowestH(), 
+										noiseArray[selectedNoise]->getPercentComplete()));
+}
+
+
+void MapFrame::preRenderProcedure()
+{
+	// Update clickHappenedHere if it was released outside this UiObject
+	if(!(SDL_GetMouseState(NULL, NULL) & SDL_BUTTON(SDL_BUTTON_LEFT)))
+		clickHappenedHere = false;
+
+	// Wrap mapOffset
+	if(mapOffset > frameTexture->getWidth())
+		mapOffset = mapOffset % frameTexture->getWidth();
+	else if(mapOffset < 0)
+		mapOffset = frameTexture->getWidth() + mapOffset % frameTexture->getWidth();
+
+	// Print scrolling mapTexture to frameTexture
+	frameTexture->setAsRenderTarget(parentUiManager->getRenderer());
+
+	mapTexture->renderFitToArea(parentUiManager->getRenderer(), 
+									mapOffset - frameTexture->getWidth(), 
+									0, 
+									frameTexture->getWidth(), 
+									frameTexture->getHeight());	
+
+	mapTexture->renderFitToArea(parentUiManager->getRenderer(), 
+									mapOffset, 
+									0, 
+									frameTexture->getWidth(), 
+									frameTexture->getHeight());
+
+	frameTexture->releaseRenderTarget(parentUiManager->getRenderer());
 }

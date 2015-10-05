@@ -89,7 +89,10 @@ void SdlTexture::renderFitToArea(SDL_Renderer *r, int x, int y, int areaW, int a
 		double scaleH = (double)areaH / (double)height;
 
 		SDL_Rect renderRect = {x, y, (int)round((double)width * scaleW), (int)round((double)height * scaleH)};
-		SDL_RenderCopy(r, texture, NULL, &renderRect);
+		if(SDL_RenderCopy(r, texture, NULL, &renderRect) < 0)
+		{
+			std::cout << "SdlTexture render error: " << SDL_GetError() << std::endl;
+		}
 	}
 }
 

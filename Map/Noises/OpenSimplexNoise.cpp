@@ -13,7 +13,7 @@ using namespace std;
 OpenSimplexNoise::OpenSimplexNoise(Map *theMap, int oct, double freq, double pers, double fdiv) : 
 	Noise("OpenSimplex")
 {
-	srand(time(NULL));
+	//srand(time(NULL));
 
 	map = theMap;
 	alreadySaved = false;

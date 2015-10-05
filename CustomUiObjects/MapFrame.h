@@ -11,6 +11,7 @@
 class Map;
 class Noise;
 class MapTexture;
+class SdlTexture;
 class UiManager;
 class UiLabel;
 
@@ -23,30 +24,33 @@ const int octaves = 10; const double freq = 0.003, persistence = 0.6, freqDiv = 
 class MapFrame : public UiObject
 {
 	private:
-		std::shared_ptr<MapTexture> mapTexture;
+		std::unique_ptr<MapTexture> mapTexture;
+		std::shared_ptr<SdlTexture> frameTexture;
 
 		int numMaps;
 		Map* *mapArray;
 
+		static const int numNoises = 2;
+		Noise* noiseArray[numNoises];
+
 		int selectedMap;
 		int selectedNoise;
 
-		Noise* noiseArray[3];
-		//OpenSimplexNoise noiseSimplex;//(map, 10, 0.004, 0.6, 1.9);
-		//DiamSqNoise noiseDiam;
-		//MyNoise noiseMy;
-
 		UiLabel *mouseTooltip;
+
+		bool clickHappenedHere;
+		int mouseLastX, mouseLastY;
+		int mapOffset;
 
 		void updateMouseText();
 		
 		bool mapPosFromMouse(int *x, int *y);
-		
-		void resetNoise();
 
 		bool customSdlEvtHandler(SDL_Event &e);
 
 		void publishMapInfo();
+
+		void preRenderProcedure();
 
 	public:
 		MapFrame(UiManager *parentUiMngr, int x, int y, int w, int h, Map* mapArr[], int num);

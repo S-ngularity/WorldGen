@@ -17,7 +17,7 @@ using namespace std;
 DiamSqNoise::DiamSqNoise(Map *theMap) : 
 	Noise("Diamond Square")
 {
-	srand(time(NULL));
+	//srand(time(NULL));
 
 	map = theMap;
 	alreadySaved = false;
