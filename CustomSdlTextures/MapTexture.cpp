@@ -51,8 +51,16 @@ void MapTexture::update()
 {
 	Uint32 *pixelIt = mapPixels;
 	Uint8 r, g, b, a = 255;
+	
+	int dashedLineCounter = -1;
 
 	for(int y = 0; y < worldMap->getMapHeight(); y++)
+	{
+		// Count pixels of the dashed line
+		++dashedLineCounter;
+		if(dashedLineCounter == 30)
+			dashedLineCounter = 0;
+
 		for(int x = 0; x < worldMap->getMapWidth(); x++)
 		{
 			// Color map limits
@@ -63,7 +71,8 @@ void MapTexture::update()
 				b = 0;
 			}
 
-			else if(x == 0)
+			// dashed vertical line
+			else if(x == 0 && dashedLineCounter < 10)
 			{
 				r = 75;
 				g = 110;
@@ -128,7 +137,7 @@ void MapTexture::update()
 
 			pixelIt++;
 		}
-
+	}
 
 	void *texturePixels;
 	int texturePitch;
