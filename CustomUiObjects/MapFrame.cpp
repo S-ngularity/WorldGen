@@ -282,30 +282,35 @@ bool MapFrame::customSdlEvtHandler(SDL_Event &e)
 			}
 		break;
 
+		#define ZOOM_AMOUNT 10
+
 		case SDL_MOUSEWHEEL:
 			if(e.wheel.y > 0)
 			{
-				int x, y;
-
-				if(!UiObject::getRelativeMousePos(this, &x, &y))
-					break;
-
-				zoomW -= 10;
-				zoomH -= 10;
-				
-				if(zoomW < 1 || zoomH < 1)
+				if(zoomW != ZOOM_AMOUNT && zoomH != ZOOM_AMOUNT)
 				{
-					zoomW = 1;
-					zoomH = 1;
+					int x, y;
+
+					if(!UiObject::getRelativeMousePos(this, &x, &y))
+						break;
+
+					zoomW -= ZOOM_AMOUNT;
+					zoomH -= ZOOM_AMOUNT;
+					
+					if(zoomW < ZOOM_AMOUNT || zoomH < ZOOM_AMOUNT)
+					{
+						zoomW = ZOOM_AMOUNT;
+						zoomH = ZOOM_AMOUNT;
+					}
+
+					zoomX += ZOOM_AMOUNT * x / (double) getWidth();
+					if(zoomX > frameTexture[selectedMap]->getWidth() - zoomW)
+						zoomX = frameTexture[selectedMap]->getWidth() - zoomW;
+
+					zoomY += ZOOM_AMOUNT * y / (double) getHeight();
+					if(zoomY > frameTexture[selectedMap]->getHeight() - zoomH)
+						zoomY = frameTexture[selectedMap]->getHeight() - zoomH;
 				}
-
-				zoomX += 10 * x / (double) getWidth();
-				if(zoomX > frameTexture[selectedMap]->getWidth() - zoomW)
-					zoomX = frameTexture[selectedMap]->getWidth() - zoomW;
-
-				zoomY += 10 * y / (double) getHeight();
-				if(zoomY > frameTexture[selectedMap]->getHeight() - zoomH)
-					zoomY = frameTexture[selectedMap]->getHeight() - zoomH;
 			}
 
 			else if(e.wheel.y < 0)
@@ -315,8 +320,8 @@ bool MapFrame::customSdlEvtHandler(SDL_Event &e)
 				if(!UiObject::getRelativeMousePos(this, &x, &y))
 					return false;
 
-				zoomW += 10;
-				zoomH += 10;
+				zoomW += ZOOM_AMOUNT;
+				zoomH += ZOOM_AMOUNT;
 
 				if(zoomW > frameTexture[selectedMap]->getWidth() || zoomH > frameTexture[selectedMap]->getHeight())
 				{
@@ -324,11 +329,11 @@ bool MapFrame::customSdlEvtHandler(SDL_Event &e)
 					zoomH = frameTexture[selectedMap]->getHeight();
 				}
 
-				zoomX -= 10 * x / (double) getWidth();
+				zoomX -= ZOOM_AMOUNT * x / (double) getWidth();
 				if(zoomX < 0)
 					zoomX = 0;
 
-				zoomY -= 10 * y / (double) getHeight();
+				zoomY -= ZOOM_AMOUNT * y / (double) getHeight();
 				if(zoomY < 0)
 					zoomY = 0;
 
