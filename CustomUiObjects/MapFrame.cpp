@@ -161,16 +161,15 @@ bool MapFrame::mapPosFromMouse(int *x, int *y)
 	if(!UiObject::getRelativeMousePos(this, x, y))
 		return false;
 
-	// framePos / frameSize = zoomOffsetPos / zoomSize
+	// zoomOffsetPos / zoomSize = framePos / frameSize
 	// zoomOffsetPos = (framePos / frameSize) * zoomSize
-	double xTemp = (*x / (double) getWidth()) * zoomW; // zoom offset pos from zoom top left pos
+	double xTemp = (*x / (double) getWidth()) * zoomW; // zoom offset pos (on mouse pointer) from zoom top left pos
 	double yTemp = (*y / (double) getHeight()) * zoomH;
 	
-	// zoomX+zoomOffsetPos / frameSize = mapPos / mapSize --> 
-	// mapPos = (zoomX+zoomOffsetPos / frameSize) * mapSize
-	*x = floor(((zoomX - mapOffset + xTemp) / (double) frameTexture[selectedMap]->getWidth()) * mapArray[selectedMap]->getMapWidth());
-	*y = floor(((zoomY + yTemp) / (double) frameTexture[selectedMap]->getHeight()) * mapArray[selectedMap]->getMapHeight());
+	*x = floor(zoomX + xTemp - mapOffset);
+	*y = floor(zoomY + yTemp);
 
+	// wrap mapOffset
 	if(*x < 0)
 		*x = mapArray[selectedMap]->getMapWidth() + *x % mapArray[selectedMap]->getMapWidth();
 
@@ -282,7 +281,7 @@ bool MapFrame::customSdlEvtHandler(SDL_Event &e)
 			}
 		break;
 
-		#define ZOOM_AMOUNT 10
+		#define ZOOM_AMOUNT (int)(frameTexture[selectedMap]->getWidth() * 0.04)
 
 		case SDL_MOUSEWHEEL:
 			if(e.wheel.y > 0)
@@ -294,20 +293,23 @@ bool MapFrame::customSdlEvtHandler(SDL_Event &e)
 					if(!UiObject::getRelativeMousePos(this, &x, &y))
 						break;
 
+					// reduce focus area
 					zoomW -= ZOOM_AMOUNT;
 					zoomH -= ZOOM_AMOUNT;
 					
+					// limit zoom area
 					if(zoomW < ZOOM_AMOUNT || zoomH < ZOOM_AMOUNT)
 					{
 						zoomW = ZOOM_AMOUNT;
 						zoomH = ZOOM_AMOUNT;
 					}
 
-					zoomX += ZOOM_AMOUNT * x / (double) getWidth();
+					// move focus area relative to the mouse pointer
+					zoomX += ZOOM_AMOUNT * x / (double) getWidth() * 1.01; // 1.01 to compensate mouse round error on the UiObjects limit
 					if(zoomX > frameTexture[selectedMap]->getWidth() - zoomW)
 						zoomX = frameTexture[selectedMap]->getWidth() - zoomW;
 
-					zoomY += ZOOM_AMOUNT * y / (double) getHeight();
+					zoomY += ZOOM_AMOUNT * y / (double) getHeight() * 1.01;
 					if(zoomY > frameTexture[selectedMap]->getHeight() - zoomH)
 						zoomY = frameTexture[selectedMap]->getHeight() - zoomH;
 				}
@@ -320,15 +322,18 @@ bool MapFrame::customSdlEvtHandler(SDL_Event &e)
 				if(!UiObject::getRelativeMousePos(this, &x, &y))
 					return false;
 
+				// enlarge focus area
 				zoomW += ZOOM_AMOUNT;
 				zoomH += ZOOM_AMOUNT;
 
+				// limit zoom area
 				if(zoomW > frameTexture[selectedMap]->getWidth() || zoomH > frameTexture[selectedMap]->getHeight())
 				{
 					zoomW = frameTexture[selectedMap]->getWidth();
 					zoomH = frameTexture[selectedMap]->getHeight();
 				}
 
+				// move focus area relative to the mouse pointer
 				zoomX -= ZOOM_AMOUNT * x / (double) getWidth();
 				if(zoomX < 0)
 					zoomX = 0;
@@ -337,6 +342,7 @@ bool MapFrame::customSdlEvtHandler(SDL_Event &e)
 				if(zoomY < 0)
 					zoomY = 0;
 
+				// avoid focus area to go beyond texture limits
 				if(zoomX + zoomW > frameTexture[selectedMap]->getWidth())
 					zoomX = frameTexture[selectedMap]->getWidth() - zoomW;
 
@@ -515,6 +521,7 @@ void MapFrame::preRenderProcedure()
 
 	frameTexture[selectedMap]->releaseRenderTarget(parentUiManager->getRenderer());
 
+	// render frameTexture's zoomed area to UiObject's area
 	frameTexture[selectedMap]->renderCutFitToArea(parentUiManager->getRenderer(),
 										absoluteX, 
 										absoluteY, 
