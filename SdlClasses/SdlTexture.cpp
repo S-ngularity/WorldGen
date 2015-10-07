@@ -96,6 +96,22 @@ void SdlTexture::renderFitToArea(SDL_Renderer *r, int x, int y, int areaW, int a
 	}
 }
 
+void SdlTexture::renderCutFitToArea(SDL_Renderer *r, int x, int y, int areaW, int areaH, int cX, int cY, int cW, int cH)
+{
+	if(texture != NULL)
+	{
+		double scaleW = (double)areaW / (double)width;
+		double scaleH = (double)areaH / (double)height;
+
+		SDL_Rect renderRect = {x, y, (int)round((double)width * scaleW), (int)round((double)height * scaleH)};
+		SDL_Rect cropRect = {cX, cY, cW, cH};
+		if(SDL_RenderCopy(r, texture, &cropRect, &renderRect) < 0)
+		{
+			std::cout << "SdlTexture render error: " << SDL_GetError() << std::endl;
+		}
+	}
+}
+
 void SdlTexture::setAsRenderTarget(SDL_Renderer *r)
 {
 	renderTargetStack.push(this);

@@ -40,7 +40,10 @@ class MapFrame : public UiObject
 
 		bool clickHappenedHere;
 		int mouseLastX, mouseLastY;
+		double mouseXDragOffset, mouseYDragOffset;
 		int mapOffset;
+
+		int zoomX, zoomY, zoomW, zoomH;
 
 		void updateMouseText();
 		

@@ -43,7 +43,7 @@ MapFrame::MapFrame(UiManager *parentUiMngr, int x, int y, int w, int h, Map* map
 	mapTexture = std::make_unique<MapTexture>(parentUiManager->getRenderer(), mapArray[selectedMap]);
 	
 	frameTexture = std::make_shared<SdlTexture>(SDL_CreateTexture(parentUiManager->getRenderer(), SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_TARGET, w, h));
-	setUiObjectTexture(frameTexture);
+	//setUiObjectTexture(frameTexture);
 
 	// Mouse tooltip for map height
 	mouseTooltip = new UiLabel(0, 0, ALIGN_BOTTOM_LEFT, "", 20, 220, 20, 60);
@@ -51,9 +51,17 @@ MapFrame::MapFrame(UiManager *parentUiMngr, int x, int y, int w, int h, Map* map
 
 	// Dragging functionality
 	SDL_GetMouseState(&mouseLastX, &mouseLastY);
+	mouseXDragOffset = 0;
+	mouseYDragOffset = 0;
 	clickHappenedHere = false;
 	mapOffset = 0;
 	setPreRenderProcedure([&](){ preRenderProcedure(); });
+
+	// Zoom
+	zoomX = 0;
+	zoomH = 0;
+	zoomW = frameTexture->getWidth();
+	zoomH = frameTexture->getHeight();
 
 	// Send map info update
 	publishMapInfo();
@@ -145,15 +153,15 @@ bool MapFrame::mapPosFromMouse(int *x, int *y)
 	if(!UiObject::getRelativeMousePos(this, x, y))
 		return false;
 
-	int mapFrameWidth = getWidth();
-	int mapFrameHeight = getHeight();
-
-	*x -= mapOffset;
+	// framePos / frameSize = zoomOffsetPos / zoomSize
+	// zoomOffsetPos = (framePos / frameSize) * zoomSize
+	*x = (*x / (double) getWidth()) * zoomW; // zoom offset pos from zoom top left pos
+	*y = (*y / (double) getHeight()) * zoomH;
 	
-	// mousePos / frameSize = mapPos / mapSize --> 
-	// mapPos = (mousePos / frameSize) * mapSize
-	*x = (*x / (double)mapFrameWidth) * mapArray[selectedMap]->getMapWidth() + 0.5; // +0.5 to round to the nearest int
-	*y = (*y / (double)mapFrameHeight) * mapArray[selectedMap]->getMapHeight() + 0.5;
+	// zoomX+zoomOffsetPos / frameSize = mapPos / mapSize --> 
+	// mapPos = (zoomX+zoomOffsetPos / frameSize) * mapSize
+	*x = ((zoomX - mapOffset + *x) / (double) getWidth()) * mapArray[selectedMap]->getMapWidth() + 0.5; // +0.5 to round to the nearest int
+	*y = ((zoomY + *y) / (double) getHeight()) * mapArray[selectedMap]->getMapHeight() + 0.5;
 
 	return true;
 }
@@ -254,7 +262,67 @@ bool MapFrame::customSdlEvtHandler(SDL_Event &e)
 			if(e.button.button == SDL_BUTTON_LEFT)
 			{
 				SDL_GetMouseState(&mouseLastX, &mouseLastY);
+				mouseXDragOffset = 0;
+				mouseYDragOffset = 0;
 				clickHappenedHere = true;
+			}
+		break;
+
+		case SDL_MOUSEWHEEL:
+			if(e.wheel.y > 0)
+			{
+				int x, y;
+
+				if(!UiObject::getRelativeMousePos(this, &x, &y))
+					break;
+
+				zoomW -= 10;
+				zoomH -= 10;
+				
+				if(zoomW < 1 || zoomH < 1)
+				{
+					zoomW = 1;
+					zoomH = 1;
+				}
+
+				zoomX += 10 * x / (double) frameTexture->getWidth();
+				if(zoomX > frameTexture->getWidth() - zoomW)
+					zoomX = frameTexture->getWidth() - zoomW;
+
+				zoomY += 10 * y / (double) frameTexture->getHeight();
+				if(zoomY > frameTexture->getHeight() - zoomH)
+					zoomY = frameTexture->getHeight() - zoomH;
+			}
+
+			else if(e.wheel.y < 0)
+			{
+				int x, y;
+
+				if(!UiObject::getRelativeMousePos(this, &x, &y))
+					return false;
+
+				zoomW += 10;
+				zoomH += 10;
+
+				if(zoomW > frameTexture->getWidth() || zoomH > frameTexture->getHeight())
+				{
+					zoomW = frameTexture->getWidth();
+					zoomH = frameTexture->getHeight();
+				}
+
+				zoomX -= 10 * x / (double) frameTexture->getWidth();
+				if(zoomX < 0)
+					zoomX = 0;
+
+				zoomY -= 10 * y / (double) frameTexture->getHeight();
+				if(zoomY < 0)
+					zoomY = 0;
+
+				if(zoomX + zoomW > frameTexture->getWidth())
+					zoomX = frameTexture->getWidth() - zoomW;
+
+				if(zoomY + zoomH > frameTexture->getHeight())
+					zoomY = frameTexture->getHeight() - zoomH;
 			}
 		break;
 
@@ -264,8 +332,39 @@ bool MapFrame::customSdlEvtHandler(SDL_Event &e)
 				int mouseX, mouseY;
 				SDL_GetMouseState(&mouseX, &mouseY);
 
-				const double MOUSE_SENSIBILITY = 1;
-				mapOffset = mapOffset + (mouseX - mouseLastX) * MOUSE_SENSIBILITY;
+				// offset counter to avoid double<->int conversion problems
+				mouseXDragOffset += (mouseX - mouseLastX) * zoomW / (double) getWidth();
+				mouseYDragOffset += (mouseY - mouseLastY) * zoomH / (double) getHeight();
+
+				// X drag is on mapOffset
+				if(mouseXDragOffset > 1)
+				{
+					mapOffset += (int) mouseXDragOffset;
+					mouseXDragOffset -= (int) mouseXDragOffset;
+				}
+
+				else if(mouseXDragOffset < -1)
+				{
+					mapOffset += (int) mouseXDragOffset;
+					mouseXDragOffset -= (int) mouseXDragOffset;
+				}
+
+				// Y drag is on zoom point
+				if(mouseYDragOffset > 1)
+				{
+					zoomY -= (int) mouseYDragOffset;
+					if(zoomY < 0)
+						zoomY = 0;
+					mouseYDragOffset -= (int) mouseYDragOffset;
+				}
+
+				else if(mouseYDragOffset < -1)
+				{
+					zoomY -= (int) mouseYDragOffset;
+					if(zoomY > frameTexture->getHeight() - zoomH)
+						zoomY = frameTexture->getHeight() - zoomH;
+					mouseYDragOffset -= (int) mouseYDragOffset;
+				}
 
 				mouseLastX = mouseX;
 				mouseLastY = mouseY;
@@ -392,4 +491,11 @@ void MapFrame::preRenderProcedure()
 									frameTexture->getHeight());
 
 	frameTexture->releaseRenderTarget(parentUiManager->getRenderer());
+
+	frameTexture->renderCutFitToArea(parentUiManager->getRenderer(),
+										absoluteX, 
+										absoluteY, 
+										getWidth(), 
+										getHeight(),
+										zoomX, zoomY, zoomW, zoomH);
 }

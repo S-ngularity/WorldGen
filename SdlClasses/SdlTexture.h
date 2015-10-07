@@ -27,6 +27,7 @@ class SdlTexture
 		void render(SDL_Renderer *r, int x, int y);
 		void renderScaled(SDL_Renderer *r, int x, int y, double sW, double sH);
 		void renderFitToArea(SDL_Renderer *r, int x, int y, int areaW, int areaH);
+		void renderCutFitToArea(SDL_Renderer *r, int x, int y, int areaW, int areaH, int cX, int cY, int cW, int cH);
 
 		void setAsRenderTarget(SDL_Renderer *r);
 		void releaseRenderTarget(SDL_Renderer *r);
