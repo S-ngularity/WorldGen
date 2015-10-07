@@ -25,7 +25,7 @@ class MapFrame : public UiObject
 {
 	private:
 		std::unique_ptr<MapTexture> mapTexture;
-		std::shared_ptr<SdlTexture> frameTexture;
+		std::unique_ptr<SdlTexture> *frameTexture;
 
 		int numMaps;
 		Map* *mapArray;
