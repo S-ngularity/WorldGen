@@ -161,7 +161,7 @@ bool MapFrame::mapPosFromMouse(int *x, int *y)
 	if(!UiObject::getRelativeMousePos(this, x, y))
 		return false;
 
-	// zoomOffsetPos / zoomSize = framePos / frameSize
+	// framePos / frameSize = zoomOffsetPos / zoomSize
 	// zoomOffsetPos = (framePos / frameSize) * zoomSize
 	double xTemp = (*x / (double) getWidth()) * zoomW; // zoom offset pos (on mouse pointer) from zoom top left pos
 	double yTemp = (*y / (double) getHeight()) * zoomH;
@@ -259,6 +259,7 @@ bool MapFrame::customSdlEvtHandler(SDL_Event &e)
 		break;
 
 		case SDL_MOUSEBUTTONUP:
+			// on right click release, open WalkWindow
 			if(e.button.button == SDL_BUTTON_RIGHT)
 			{
 				int x, y;
@@ -272,6 +273,7 @@ bool MapFrame::customSdlEvtHandler(SDL_Event &e)
 		break;
 
 		case SDL_MOUSEBUTTONDOWN:
+			// on left click press, setup variables for dragging
 			if(e.button.button == SDL_BUTTON_LEFT)
 			{
 				SDL_GetMouseState(&mouseLastX, &mouseLastY);
@@ -281,15 +283,70 @@ bool MapFrame::customSdlEvtHandler(SDL_Event &e)
 			}
 		break;
 
-		#define ZOOM_AMOUNT (int)(frameTexture[selectedMap]->getWidth() * 0.04)
+		case SDL_MOUSEMOTION:
+			// if click began inside and it's pressed
+			if(clickHappenedHere && (SDL_GetMouseState(NULL, NULL) & SDL_BUTTON(SDL_BUTTON_LEFT)))
+			{
+				int mouseX, mouseY;
+				SDL_GetMouseState(&mouseX, &mouseY);
+
+				// offset counter to avoid double<->int conversion problems
+				// mouse motion * zoom scale * inverse of window scale
+				mouseXDragOffset += (mouseX - mouseLastX) * (zoomW / (double) getWidth()) * (1 / parentUiManager->getWindowScaleW());
+				mouseYDragOffset += (mouseY - mouseLastY) * (zoomH / (double) getHeight()) * (1 / parentUiManager->getWindowScaleH());
+
+				// when drag offset is over 1, drag 1
+				// X drag is on mapOffset
+				if(mouseXDragOffset > 1)
+				{
+					mapOffset += (int) mouseXDragOffset;
+					mouseXDragOffset -= (int) mouseXDragOffset;
+				}
+
+				else if(mouseXDragOffset < -1)
+				{
+					mapOffset += (int) mouseXDragOffset;
+					mouseXDragOffset -= (int) mouseXDragOffset;
+				}
+
+				// Y drag is on zoom point
+				if(mouseYDragOffset > 1)
+				{
+					zoomY -= (int) mouseYDragOffset;
+					if(zoomY < 0)
+						zoomY = 0;
+					mouseYDragOffset -= (int) mouseYDragOffset;
+				}
+
+				else if(mouseYDragOffset < -1)
+				{
+					zoomY -= (int) mouseYDragOffset;
+					if(zoomY > frameTexture[selectedMap]->getHeight() - zoomH)
+						zoomY = frameTexture[selectedMap]->getHeight() - zoomH;
+					mouseYDragOffset -= (int) mouseYDragOffset;
+				}
+
+				// last mouse pos is where it is now
+				mouseLastX = mouseX;
+				mouseLastY = mouseY;
+			}
+
+			updateMouseText();
+		break;
+
+		#define ZOOM_AMOUNT (int)(frameTexture[selectedMap]->getWidth() * 0.05)
 
 		case SDL_MOUSEWHEEL:
+			// wheel up
 			if(e.wheel.y > 0)
 			{
+				// if not on max zoom
 				if(zoomW != ZOOM_AMOUNT && zoomH != ZOOM_AMOUNT)
 				{
 					int x, y;
 
+					// relative mouse pos from this UiObject 0,0, scaled 
+					// to the original size (even if the window is resized)
 					if(!UiObject::getRelativeMousePos(this, &x, &y))
 						break;
 
@@ -297,7 +354,7 @@ bool MapFrame::customSdlEvtHandler(SDL_Event &e)
 					zoomW -= ZOOM_AMOUNT;
 					zoomH -= ZOOM_AMOUNT;
 					
-					// limit zoom area
+					// limit zoom area (max zoom)
 					if(zoomW < ZOOM_AMOUNT || zoomH < ZOOM_AMOUNT)
 					{
 						zoomW = ZOOM_AMOUNT;
@@ -349,53 +406,6 @@ bool MapFrame::customSdlEvtHandler(SDL_Event &e)
 				if(zoomY + zoomH > frameTexture[selectedMap]->getHeight())
 					zoomY = frameTexture[selectedMap]->getHeight() - zoomH;
 			}
-		break;
-
-		case SDL_MOUSEMOTION:
-			if(clickHappenedHere && (SDL_GetMouseState(NULL, NULL) & SDL_BUTTON(SDL_BUTTON_LEFT)))
-			{
-				int mouseX, mouseY;
-				SDL_GetMouseState(&mouseX, &mouseY);
-
-				// offset counter to avoid double<->int conversion problems
-				mouseXDragOffset += (mouseX - mouseLastX) * zoomW / (double) getWidth();
-				mouseYDragOffset += (mouseY - mouseLastY) * zoomH / (double) getHeight();
-
-				// X drag is on mapOffset
-				if(mouseXDragOffset > 1)
-				{
-					mapOffset += (int) mouseXDragOffset;
-					mouseXDragOffset -= (int) mouseXDragOffset;
-				}
-
-				else if(mouseXDragOffset < -1)
-				{
-					mapOffset += (int) mouseXDragOffset;
-					mouseXDragOffset -= (int) mouseXDragOffset;
-				}
-
-				// Y drag is on zoom point
-				if(mouseYDragOffset > 1)
-				{
-					zoomY -= (int) mouseYDragOffset;
-					if(zoomY < 0)
-						zoomY = 0;
-					mouseYDragOffset -= (int) mouseYDragOffset;
-				}
-
-				else if(mouseYDragOffset < -1)
-				{
-					zoomY -= (int) mouseYDragOffset;
-					if(zoomY > frameTexture[selectedMap]->getHeight() - zoomH)
-						zoomY = frameTexture[selectedMap]->getHeight() - zoomH;
-					mouseYDragOffset -= (int) mouseYDragOffset;
-				}
-
-				mouseLastX = mouseX;
-				mouseLastY = mouseY;
-			}
-
-			updateMouseText();
 		break;
 
 		// if event wasn't from keyboard, doesn't return to parent
