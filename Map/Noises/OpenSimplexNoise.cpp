@@ -1,6 +1,8 @@
 #include "OpenSimplexNoise.h"
 #include "Map/Map.h"
 
+#include "Ui/UiEvents/NoiseInfoRequest.h"
+
 #include <iostream>
 #include <cmath>
 
@@ -13,6 +15,10 @@ using namespace std;
 OpenSimplexNoise::OpenSimplexNoise(Map *theMap, int oct, double freq, double pers, double fdiv) : 
 	Noise("OpenSimplex")
 {
+	EventAggregator::Instance().getEvent<UiEventCode>().subscribe(
+															[&](UiEventCode &c){ handleEvtCode(c); });
+	EventAggregator::Instance().getEvent<NoiseInfoRequest*>().subscribe(
+															[&](NoiseInfoRequest* &n){ n->setInfo(octaves, frequency, persistence, freqDiv); });
 	//srand(time(NULL));
 
 	map = theMap;
@@ -24,11 +30,62 @@ OpenSimplexNoise::OpenSimplexNoise(Map *theMap, int oct, double freq, double per
 	frequency = freq;
 	persistence = pers;
 	freqDiv = fdiv;
+
+	EventAggregator::Instance().getEvent<UiEventCode>().publishEvent(UiEventCode(UIEVT_NOISEINFOUPDATED));
 }
 
 OpenSimplexNoise::~OpenSimplexNoise()
 {
+	EventAggregator::Instance().getEvent<UiEventCode>().unsubscribe(
+															[&](UiEventCode &c){ handleEvtCode(c); });
+	EventAggregator::Instance().getEvent<NoiseInfoRequest*>().unsubscribe(
+															[&](NoiseInfoRequest* &n){ n->setInfo(octaves, frequency, persistence, freqDiv); });
+
 	open_simplex_noise_free(context);
+}
+
+void OpenSimplexNoise::handleEvtCode(UiEventCode &c)
+{
+	switch(c.code)
+	{
+		case UIEVT_FREQINCREASE:
+			frequency += 0.0002;
+		break;
+
+		case UIEVT_FREQDECREASE:
+			frequency -= 0.0002;
+		break;
+
+		case UIEVT_PERSINCREASE:
+			persistence += 0.02;
+		break;
+
+		case UIEVT_PERSDECREASE:
+			persistence -= 0.02;
+		break;
+
+		case UIEVT_FDIVINCREASE:
+			freqDiv += 0.02;
+		break;
+
+		case UIEVT_FDIVDECREASE:
+			freqDiv -= 0.02;
+		break;
+	}
+
+	switch(c.code)
+	{
+		case UIEVT_FREQINCREASE:
+		case UIEVT_FREQDECREASE:
+		case UIEVT_PERSINCREASE:
+		case UIEVT_PERSDECREASE:
+		case UIEVT_FDIVINCREASE:
+		case UIEVT_FDIVDECREASE:
+			EventAggregator::Instance().getEvent<UiEventCode>().publishEvent(UiEventCode(UIEVT_NOISEINFOUPDATED));
+		break;
+
+	}
+
 }
 
 void OpenSimplexNoise::setMap(Map *m)

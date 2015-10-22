@@ -11,6 +11,7 @@
 #include "Ui/EventAggregator.h"
 #include "Ui/UiEvents/UiEventCode.h"
 #include "Ui/UiEvents/MapInfoUpdate.h"
+#include "Ui/UiEvents/NoiseInfoRequest.h"
 
 #include "MyUtils.h"
 
@@ -52,6 +53,21 @@ void NoiseWindow::customUiEventHandler(UiEventCode &c)
 	{
 		doRefresh();
 	}
+
+	if(c.code == UIEVT_NOISEINFOUPDATED)
+	{
+		NoiseInfoRequest req;
+		EventAggregator::Instance().getEvent<NoiseInfoRequest*>().publishEvent(&req);
+
+		std::stringstream ss;
+		
+		ss << "\n\nOct: " << req.oct
+		<< "\nFrequency: " << req.freq 
+		<< "\nPersistency: " << req.pers
+		<< "\nfDiv: " << req.fDiv;
+		
+		noiseInfoText->setText(ss.str());
+	}
 }
 
 void NoiseWindow::updateMapInfo(MapInfoUpdate &info)
@@ -87,6 +103,7 @@ void NoiseWindow::createGui()
 {
 	// before mapFrame so it can receive the first map info event with updateMapInfo() above
 	mapInfoText = new UiLabel(30, 150, "", 18, 175, 0, 0);
+	noiseInfoText = new UiLabel(30, windowUi->getHeight() - 310, "", 18, 175, 0, 0);
 	
 	mapFrame = new MapFrame(windowUi, 0, 0, windowUi->getWidth() - SIDEBAR_WIDTH, windowUi->getHeight(), mapArray, numMaps);
 	mapFrame->setUiObjectLogicalSize(windowUi->getWidth(), windowUi->getHeight());
@@ -95,6 +112,7 @@ void NoiseWindow::createGui()
 									createDrawnTexture(SIDEBAR_WIDTH, windowUi->getHeight(), 0, 126, 126, 255));
 
 	sidebar->addChild(mapInfoText);
+	sidebar->addChild(noiseInfoText);
 
 	sidebar->addChild(new UiButton(30, 30, 
 									new UiLabel(0, 0, "1", 16, 235, 235, 235), 
@@ -196,6 +214,50 @@ void NoiseWindow::createGui()
 									std::make_shared<SdlTexture>(MyUtils::loadTexture(getRenderer(), "Resources\\btHover.png"), 100, 30), 
 									std::make_shared<SdlTexture>(MyUtils::loadTexture(getRenderer(), "Resources\\btPressed.png"), 100, 30), 
 									[&](){ mapFrame->normalizeMap(normalizedLevel); } ));
+
+
+	//noise adjust buttons
+	sidebar->addChild(new UiButton(30, windowUi->getHeight() - 145, 
+									new UiLabel(0, 0, "f", 12, 235, 235, 235), 
+									std::make_shared<SdlTexture>(MyUtils::loadTexture(getRenderer(), "Resources\\btNormal.png"), 15, 15), 
+									std::make_shared<SdlTexture>(MyUtils::loadTexture(getRenderer(), "Resources\\btHover.png"), 15, 15), 
+									std::make_shared<SdlTexture>(MyUtils::loadTexture(getRenderer(), "Resources\\btPressed.png"), 15, 15), 
+									[&](){	EventAggregator::Instance().getEvent<UiEventCode>().publishEvent(UiEventCode(UIEVT_FREQDECREASE)); } ));
+
+	sidebar->addChild(new UiButton(50, windowUi->getHeight() - 145, 
+									new UiLabel(0, 0, "F", 12, 235, 235, 235), 
+									std::make_shared<SdlTexture>(MyUtils::loadTexture(getRenderer(), "Resources\\btNormal.png"), 15, 15), 
+									std::make_shared<SdlTexture>(MyUtils::loadTexture(getRenderer(), "Resources\\btHover.png"), 15, 15), 
+									std::make_shared<SdlTexture>(MyUtils::loadTexture(getRenderer(), "Resources\\btPressed.png"), 15, 15), 
+									[&](){	EventAggregator::Instance().getEvent<UiEventCode>().publishEvent(UiEventCode(UIEVT_FREQINCREASE)); } ));
+
+	sidebar->addChild(new UiButton(75, windowUi->getHeight() - 145, 
+									new UiLabel(0, 0, "p", 12, 235, 235, 235), 
+									std::make_shared<SdlTexture>(MyUtils::loadTexture(getRenderer(), "Resources\\btNormal.png"), 15, 15), 
+									std::make_shared<SdlTexture>(MyUtils::loadTexture(getRenderer(), "Resources\\btHover.png"), 15, 15), 
+									std::make_shared<SdlTexture>(MyUtils::loadTexture(getRenderer(), "Resources\\btPressed.png"), 15, 15), 
+									[&](){	EventAggregator::Instance().getEvent<UiEventCode>().publishEvent(UiEventCode(UIEVT_PERSDECREASE)); } ));
+
+	sidebar->addChild(new UiButton(95, windowUi->getHeight() - 145, 
+									new UiLabel(0, 0, "P", 12, 235, 235, 235), 
+									std::make_shared<SdlTexture>(MyUtils::loadTexture(getRenderer(), "Resources\\btNormal.png"), 15, 15), 
+									std::make_shared<SdlTexture>(MyUtils::loadTexture(getRenderer(), "Resources\\btHover.png"), 15, 15), 
+									std::make_shared<SdlTexture>(MyUtils::loadTexture(getRenderer(), "Resources\\btPressed.png"), 15, 15), 
+									[&](){	EventAggregator::Instance().getEvent<UiEventCode>().publishEvent(UiEventCode(UIEVT_PERSINCREASE)); } ));
+
+	sidebar->addChild(new UiButton(120, windowUi->getHeight() - 145, 
+									new UiLabel(0, 0, "d", 12, 235, 235, 235), 
+									std::make_shared<SdlTexture>(MyUtils::loadTexture(getRenderer(), "Resources\\btNormal.png"), 15, 15), 
+									std::make_shared<SdlTexture>(MyUtils::loadTexture(getRenderer(), "Resources\\btHover.png"), 15, 15), 
+									std::make_shared<SdlTexture>(MyUtils::loadTexture(getRenderer(), "Resources\\btPressed.png"), 15, 15), 
+									[&](){	EventAggregator::Instance().getEvent<UiEventCode>().publishEvent(UiEventCode(UIEVT_FDIVDECREASE)); } ));
+
+	sidebar->addChild(new UiButton(140, windowUi->getHeight() - 145, 
+									new UiLabel(0, 0, "D", 12, 235, 235, 235), 
+									std::make_shared<SdlTexture>(MyUtils::loadTexture(getRenderer(), "Resources\\btNormal.png"), 15, 15), 
+									std::make_shared<SdlTexture>(MyUtils::loadTexture(getRenderer(), "Resources\\btHover.png"), 15, 15), 
+									std::make_shared<SdlTexture>(MyUtils::loadTexture(getRenderer(), "Resources\\btPressed.png"), 15, 15), 
+									[&](){	EventAggregator::Instance().getEvent<UiEventCode>().publishEvent(UiEventCode(UIEVT_FDIVINCREASE)); } ));
 
 	mapFrame->addChild(sidebar);
 	windowUi->addChild(mapFrame);

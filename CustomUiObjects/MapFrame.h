@@ -15,8 +15,6 @@ class SdlTexture;
 class UiManager;
 class UiLabel;
 
-// Simplex noise settings
-const int octaves = 10; const double freq = 0.003, persistence = 0.6, freqDiv = 2.2;
 
 // ask for noise screen update at every X percent completed
 #define UPDATE_AT_PERCENT 25
@@ -24,6 +22,9 @@ const int octaves = 10; const double freq = 0.003, persistence = 0.6, freqDiv = 
 class MapFrame : public UiObject
 {
 	private:
+		// Simplex noise settings
+		const int octaves = 10; const double freq = 0.0024, persistence = 0.6, freqDiv = 2.08;
+		
 		std::unique_ptr<MapTexture> mapTexture;
 		std::unique_ptr<SdlTexture> *frameTexture;
 
