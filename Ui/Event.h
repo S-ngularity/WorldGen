@@ -22,7 +22,7 @@ class Event
 			//subscriberList.remove(action);
 		}
 
-		void publishEvent(EventType evt)
+		void publish(EventType evt)
 		{
 			for(auto action : subscriberList)
 				action(evt);

@@ -15,10 +15,8 @@ using namespace std;
 OpenSimplexNoise::OpenSimplexNoise(Map *theMap, int oct, double freq, double pers, double fdiv) : 
 	Noise("OpenSimplex")
 {
-	EventAggregator::Instance().getEvent<UiEventCode>().subscribe(
-															[&](UiEventCode &c){ handleEvtCode(c); });
-	EventAggregator::Instance().getEvent<NoiseInfoRequest*>().subscribe(
-															[&](NoiseInfoRequest* &n){ n->setInfo(octaves, frequency, persistence, freqDiv); });
+	EvtAggr::subscribe<UiCode>( [&](UiCode &c){ handleEvtCode(c); } );
+	EvtAggr::subscribe<NoiseInfoRequest*>( [&](NoiseInfoRequest* &n){ n->setInfo(octaves, frequency, persistence, freqDiv); } );
 	//srand(time(NULL));
 
 	map = theMap;
@@ -31,20 +29,18 @@ OpenSimplexNoise::OpenSimplexNoise(Map *theMap, int oct, double freq, double per
 	persistence = pers;
 	freqDiv = fdiv;
 
-	EventAggregator::Instance().getEvent<UiEventCode>().publishEvent(UiEventCode(UIEVT_NOISEINFOUPDATED));
+	EvtAggr::publish<UiCode>(UiCode(UIEVT_NOISEINFOUPDATED));
 }
 
 OpenSimplexNoise::~OpenSimplexNoise()
 {
-	EventAggregator::Instance().getEvent<UiEventCode>().unsubscribe(
-															[&](UiEventCode &c){ handleEvtCode(c); });
-	EventAggregator::Instance().getEvent<NoiseInfoRequest*>().unsubscribe(
-															[&](NoiseInfoRequest* &n){ n->setInfo(octaves, frequency, persistence, freqDiv); });
+	EvtAggr::unsubscribe<UiCode>( [&](UiCode &c){ handleEvtCode(c); } );
+	EvtAggr::unsubscribe<NoiseInfoRequest*>( [&](NoiseInfoRequest* &n){ n->setInfo(octaves, frequency, persistence, freqDiv); } );
 
 	open_simplex_noise_free(context);
 }
 
-void OpenSimplexNoise::handleEvtCode(UiEventCode &c)
+void OpenSimplexNoise::handleEvtCode(UiCode &c)
 {
 	switch(c.code)
 	{
@@ -81,7 +77,7 @@ void OpenSimplexNoise::handleEvtCode(UiEventCode &c)
 		case UIEVT_PERSDECREASE:
 		case UIEVT_FDIVINCREASE:
 		case UIEVT_FDIVDECREASE:
-			EventAggregator::Instance().getEvent<UiEventCode>().publishEvent(UiEventCode(UIEVT_NOISEINFOUPDATED));
+			EvtAggr::publish<UiCode>(UiCode(UIEVT_NOISEINFOUPDATED));
 		break;
 
 	}

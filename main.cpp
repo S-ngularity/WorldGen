@@ -11,7 +11,7 @@
 #include "CustomSdlWindows/NoiseWindow.h"
 #include "CustomSdlWindows/WalkWindow.h"
 
-#include "Ui/EventAggregator.h"
+#include "Ui/EvtAggr.h"
 #include "Ui/UiEvents/WalkWindowOpened.h"
 
 #include <SDL2/SDL.h>
@@ -61,8 +61,7 @@ int main(int argc, char* args[])
 	noiseWindow = new NoiseWindow(worldMapsVect, mapNum);
 	walkWindow = new WalkWindow(worldMapsVect[0]);
 
-	EventAggregator::Instance().getEvent<WalkWindowOpened>().subscribe(
-															[&](WalkWindowOpened &w){ openWalkWindow(w); });
+	EvtAggr::subscribe<WalkWindowOpened>( [&](WalkWindowOpened &w){ openWalkWindow(w); } );
 
 	// while window is open
 	while(noiseWindow->isShown())
@@ -76,8 +75,7 @@ int main(int argc, char* args[])
 		regulateFrameRate();
 	}
 
-	EventAggregator::Instance().getEvent<WalkWindowOpened>().unsubscribe(
-															[&](WalkWindowOpened &w){ openWalkWindow(w); });
+	EvtAggr::unsubscribe<WalkWindowOpened>( [&](WalkWindowOpened &w){ openWalkWindow(w); } );
 
 	delete noiseWindow;
 	delete walkWindow;

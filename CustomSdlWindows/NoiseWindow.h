@@ -11,7 +11,7 @@ class Map;
 class Noise;
 class UiObject;
 class UiLabel;
-class UiEventCode;
+class UiCode;
 class MapInfoUpdate;
 
 const int SIDEBAR_WIDTH = 210;
@@ -28,7 +28,7 @@ class NoiseWindow : public SdlWindow
 		UiLabel *noiseInfoText;
 
 		// Ui Event handlers
-		void customUiEventHandler(UiEventCode &c);
+		void customUiEventHandler(UiCode &c);
 		void updateMapInfo(MapInfoUpdate &info);
 
 		// UI creation

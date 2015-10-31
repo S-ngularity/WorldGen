@@ -1,10 +1,10 @@
 #ifndef UIEVENTCODES
 #define UIEVENTCODES
 
-class UiEventCode
+class UiCode
 {
 	public:
-		UiEventCode(int c) { code = c;}
+		UiCode(int c) { code = c;}
 		int code;
 };
 

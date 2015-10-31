@@ -10,8 +10,8 @@
 #include "Ui/UiManager.h"
 #include "DefaultUiObjects/UiLabel.h"
 
-#include "Ui/EventAggregator.h"
-#include "Ui/UiEvents/UiEventCode.h"
+#include "Ui/EvtAggr.h"
+#include "Ui/UiEvents/UiCode.h"
 #include "Ui/UiEvents/WalkWindowOpened.h"
 #include "Ui/UiEvents/MapInfoUpdate.h"
 
@@ -119,7 +119,7 @@ void MapFrame::runNoise()
 		{
 			mapTexture->update();
 			publishMapInfo();
-			EventAggregator::Instance().getEvent<UiEventCode>().publishEvent(UiEventCode(UIEVT_RUNNOISEUPDATE));
+			EvtAggr::publish<UiCode>(UiCode(UIEVT_RUNNOISEUPDATE));
 			updateMapTexture = false;
 		}
 
@@ -265,7 +265,7 @@ bool MapFrame::customSdlEvtHandler(SDL_Event &e)
 				int x, y;
 				
 				if(mapPosFromMouse(&x, &y))
-					EventAggregator::Instance().getEvent<WalkWindowOpened>().publishEvent(WalkWindowOpened(mapArray[selectedMap], x, y));
+					EvtAggr::publish<WalkWindowOpened>(WalkWindowOpened(mapArray[selectedMap], x, y));
 			}
 
 			if(e.button.button == SDL_BUTTON_LEFT)
@@ -491,14 +491,12 @@ void MapFrame::setLandAndSeaRenderModes(int modeLand, int modeSea)
 
 void MapFrame::publishMapInfo()
 {
-	EventAggregator::Instance()
-		.getEvent<MapInfoUpdate>()
-			.publishEvent(MapInfoUpdate(noiseArray[selectedNoise]->name, 
-										selectedMap + 1, 
-										mapArray[selectedMap]->getSeaLevel(), 
-										mapArray[selectedMap]->getHighestH(), 
-										mapArray[selectedMap]->getLowestH(), 
-										noiseArray[selectedNoise]->getPercentComplete()));
+	EvtAggr::publish<MapInfoUpdate>(MapInfoUpdate(noiseArray[selectedNoise]->name, 
+												selectedMap + 1, 
+												mapArray[selectedMap]->getSeaLevel(), 
+												mapArray[selectedMap]->getHighestH(), 
+												mapArray[selectedMap]->getLowestH(), 
+												noiseArray[selectedNoise]->getPercentComplete()));
 }
 
 

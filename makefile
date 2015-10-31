@@ -16,7 +16,7 @@ SRC =	main.cpp \
 		Map/Noises/OpenSimplexC/open-simplex-noise.cpp \
 		SdlClasses/SdlTexture.cpp \
 		SdlClasses/SdlWindow.cpp \
-		Ui/UiObject.cpp Ui/UiManager.cpp Ui/EventAggregator.cpp \
+		Ui/UiObject.cpp Ui/UiManager.cpp Ui/EvtAggr.cpp \
 		CustomSdlTextures/MapTexture.cpp \
 		CustomSdlWindows/NoiseWindow.cpp CustomSdlWindows/WalkWindow.cpp \
 		CustomUiObjects/MapFrame.cpp \

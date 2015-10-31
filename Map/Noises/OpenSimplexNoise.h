@@ -4,8 +4,8 @@
 #include "../Noises/Noise.h"
 #include "OpenSimplexC/open-simplex-noise.h"
 
-#include "Ui/EventAggregator.h"
-#include "Ui/UiEvents/UiEventCode.h"
+#include "Ui/EvtAggr.h"
+#include "Ui/UiEvents/UiCode.h"
 
 class Map;
 
@@ -45,7 +45,7 @@ class OpenSimplexNoise : public Noise
 		OpenSimplexNoise(Map *theMap, int oct, double freq, double pers, double fdiv);
 		~OpenSimplexNoise();
 
-		void handleEvtCode(UiEventCode &c);
+		void handleEvtCode(UiCode &c);
 
 		void setMap(Map *m);
 
