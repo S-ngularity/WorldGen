@@ -42,16 +42,16 @@ MapFrame::MapFrame(UiManager *parentUiMngr, int x, int y, int w, int h, Map* map
 
 	mapTexture = std::make_unique<MapTexture>(parentUiManager->getRenderer(), mapArray[selectedMap]);
 	
-	frameTexture = new std::unique_ptr<SdlTexture>[numMaps];
+	frameTexture = new std::shared_ptr<SdlTexture>[numMaps];
 	for(int i = 0; i < numMaps; i++)
 	{
-		frameTexture[i] = std::make_unique<SdlTexture>(SDL_CreateTexture(parentUiManager->getRenderer(), 
+		frameTexture[i] = std::make_shared<SdlTexture>(SDL_CreateTexture(parentUiManager->getRenderer(), 
 																		SDL_PIXELFORMAT_RGBA8888, 
 																		SDL_TEXTUREACCESS_TARGET, 
 																		mapArray[i]->getMapWidth(), 
 																		mapArray[i]->getMapHeight()));
 	}
-	//setUiObjectTexture(frameTexture);
+	setUiObjectTexture(frameTexture[selectedMap]);
 
 	// Mouse tooltip for map height
 	mouseTooltip = new UiLabel(0, 0, ALIGN_BOTTOM_LEFT, "", 20, 220, 20, 60);
@@ -529,11 +529,6 @@ void MapFrame::preRenderProcedure()
 
 	frameTexture[selectedMap]->releaseRenderTarget(parentUiManager->getRenderer());
 
-	// render frameTexture's zoomed area to UiObject's area
-	frameTexture[selectedMap]->renderCutFitToArea(parentUiManager->getRenderer(),
-										absoluteX, 
-										absoluteY, 
-										getWidth(), 
-										getHeight(),
-										zoomX, zoomY, zoomW, zoomH);
+	setUiObjectTexture(frameTexture[selectedMap]);
+	getTexture()->setCropRect(zoomX, zoomY, zoomW, zoomH);
 }

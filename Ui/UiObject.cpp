@@ -133,6 +133,11 @@ void UiObject::getUiObjectOffset(int *xOff, int *yOff)
 	*yOff = yOffset;
 }
 
+std::shared_ptr<SdlTexture> UiObject::getTexture()
+{
+	return uiTexture;
+}
+
 int UiObject::getWidth()
 {
 	return width;

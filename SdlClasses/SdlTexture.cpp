@@ -68,7 +68,7 @@ void SdlTexture::render(SDL_Renderer *r, int x, int y)
 	if(texture != NULL)
 	{
 		SDL_Rect renderRect = {x, y, width, height};
-		SDL_RenderCopy(r, texture, NULL, &renderRect);
+		SDL_RenderCopy(r, texture, cropRect.get(), &renderRect);
 	}
 }
 
@@ -77,7 +77,7 @@ void SdlTexture::renderScaled(SDL_Renderer *r, int x, int y, double sW, double s
 	if(texture != NULL)
 	{
 		SDL_Rect renderRect = {x, y, (int)((double)width * sW), (int)((double)height * sH)};
-		SDL_RenderCopy(r, texture, NULL, &renderRect);
+		SDL_RenderCopy(r, texture, cropRect.get(), &renderRect);
 	}
 }
 
@@ -89,23 +89,7 @@ void SdlTexture::renderFitToArea(SDL_Renderer *r, int x, int y, int areaW, int a
 		double scaleH = (double)areaH / (double)height;
 
 		SDL_Rect renderRect = {x, y, (int)round((double)width * scaleW), (int)round((double)height * scaleH)};
-		if(SDL_RenderCopy(r, texture, NULL, &renderRect) < 0)
-		{
-			std::cout << "SdlTexture render error: " << SDL_GetError() << std::endl;
-		}
-	}
-}
-
-void SdlTexture::renderCutFitToArea(SDL_Renderer *r, int x, int y, int areaW, int areaH, int cX, int cY, int cW, int cH)
-{
-	if(texture != NULL)
-	{
-		double scaleW = (double)areaW / (double)width;
-		double scaleH = (double)areaH / (double)height;
-
-		SDL_Rect renderRect = {x, y, (int)round((double)width * scaleW), (int)round((double)height * scaleH)};
-		SDL_Rect cropRect = {cX, cY, cW, cH};
-		if(SDL_RenderCopy(r, texture, &cropRect, &renderRect) < 0)
+		if(SDL_RenderCopy(r, texture, cropRect.get(), &renderRect) < 0)
 		{
 			std::cout << "SdlTexture render error: " << SDL_GetError() << std::endl;
 		}
@@ -151,6 +135,22 @@ void SdlTexture::setBlendMode(SDL_BlendMode blending)
 void SdlTexture::setAlpha(Uint8 alpha)
 {
 	SDL_SetTextureAlphaMod(texture, alpha);
+}
+
+void SdlTexture::setCropRect(std::shared_ptr<SDL_Rect> newCropRect)
+{
+	cropRect = newCropRect;
+}
+
+void SdlTexture::setCropRect(int cX, int cY, int cW, int cH)
+{
+	if(cropRect == NULL)
+		cropRect = std::make_shared<SDL_Rect>();
+
+	cropRect->x = cX;
+	cropRect->y = cY;
+	cropRect->w = cW;
+	cropRect->h = cH;
 }
 
 int SdlTexture::getWidth()

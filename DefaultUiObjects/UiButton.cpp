@@ -9,9 +9,18 @@ UiButton::UiButton(int xOff, int yOff, UiLabel *textLabel, std::shared_ptr<SdlTe
 	customButtonAction(btEvtH)
 {
 	label = textLabel;
-	btTexture = t;
-	btTextureHover = NULL;
-	btTexturePressed = NULL;
+
+	if(getTexture() != NULL)
+	{
+		standardClipRect = std::make_shared<SDL_Rect>();
+		*standardClipRect = {0, 0, t->getWidth()/3, t->getHeight() };
+		
+		hoverClipRect = std::make_shared<SDL_Rect>();
+		*hoverClipRect = {t->getWidth()/3, 0, t->getWidth()/3, t->getHeight()};
+		
+		pressedClipRect = std::make_shared<SDL_Rect>();
+		*pressedClipRect = {t->getWidth()/3 * 2, 0, t->getWidth()/3, t->getHeight()};
+	}
 
 	clickHappenedHere = false;
 	isPressed = false;
@@ -30,51 +39,18 @@ UiButton::UiButton(int xOff, int yOff, int w, int h, UiLabel *textLabel, std::sh
 	customButtonAction(btEvtH)
 {
 	label = textLabel;
-	btTexture = t;
-	btTextureHover = NULL;
-	btTexturePressed = NULL;
-
-	clickHappenedHere = false;
-	isPressed = false;
-
-	setPreRenderProcedure([&](){ buttonPreRender(); });
-
-	if(label != NULL)
+	
+	if(getTexture() != NULL)
 	{
-		label->setAlignMode(ALIGN_CENTER_CENTER);
-		addChild(label);
+		standardClipRect = std::make_shared<SDL_Rect>();
+		*standardClipRect = {0, 0, t->getWidth()/3, t->getHeight() };
+		
+		hoverClipRect = std::make_shared<SDL_Rect>();
+		*hoverClipRect = {t->getWidth()/3, 0, t->getWidth()/3, t->getHeight()};
+		
+		pressedClipRect = std::make_shared<SDL_Rect>();
+		*pressedClipRect = {t->getWidth()/3 * 2, 0, t->getWidth()/3, t->getHeight()};
 	}
-}
-
-UiButton::UiButton(int xOff, int yOff, UiLabel *textLabel, std::shared_ptr<SdlTexture> t, std::shared_ptr<SdlTexture> tHover, std::shared_ptr<SdlTexture> tPressed, std::function<void()> btEvtH) :  
-	UiObject(xOff, yOff, t, [&](SDL_Event &e){ return buttonEvtHandler(e); }),
-	customButtonAction(btEvtH)
-{
-	label = textLabel;
-	btTexture = t;
-	btTextureHover = tHover;
-	btTexturePressed = tPressed;
-
-	clickHappenedHere = false;
-	isPressed = false;
-
-	setPreRenderProcedure([&](){ buttonPreRender(); });
-
-	if(label != NULL)
-	{
-		label->setAlignMode(ALIGN_CENTER_CENTER);
-		addChild(label);
-	}
-}
-
-UiButton::UiButton(int xOff, int yOff, int w, int h, UiLabel *textLabel, std::shared_ptr<SdlTexture> t, std::shared_ptr<SdlTexture> tHover, std::shared_ptr<SdlTexture> tPressed, std::function<void()> btEvtH) : 
-	UiObject(xOff, yOff, w, h, t, [&](SDL_Event &e){ return buttonEvtHandler(e); }),
-	customButtonAction(btEvtH)
-{
-	label = textLabel;
-	btTexture = t;
-	btTextureHover = tHover;
-	btTexturePressed = tPressed;
 
 	clickHappenedHere = false;
 	isPressed = false;
@@ -152,15 +128,17 @@ void UiButton::buttonPreRender()
 	else
 		isPressed = false;
 
+	if(getTexture() != NULL)
+	{
+		if(isPressed)
+			getTexture()->setCropRect(pressedClipRect);
 
-	if(isPressed && btTexturePressed != NULL)
-		setUiObjectTexture(btTexturePressed);
+		else if(UiObject::mouseOnTop == this && !isPressed)
+			getTexture()->setCropRect(hoverClipRect);
 
-	else if(UiObject::mouseOnTop == this && !isPressed && btTextureHover != NULL)
-		setUiObjectTexture(btTextureHover);
-
-	else if(btTexture != NULL)
-		setUiObjectTexture(btTexture);
+		else
+			getTexture()->setCropRect(standardClipRect);
+	}
 
 	if(label != NULL)
 	{

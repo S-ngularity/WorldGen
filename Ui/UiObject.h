@@ -41,6 +41,7 @@ class UiObject
 		int absoluteX, absoluteY;
 
 		void getUiObjectOffset(int *xOff, int *yOff);
+		std::shared_ptr<SdlTexture> getTexture();
 
 	public:
 		UiObject(int xOff, int yOff, int w, int h);
