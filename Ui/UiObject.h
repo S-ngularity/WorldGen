@@ -32,6 +32,10 @@ class UiObject
 
 		void bringToFront();
 
+		// Is automatically called when this UiObject or one of it's parents is added to a UiManager
+		// Until then, the parentUiManager is NULL and many functions that rely on it will fail
+		void setParentUiManager(UiManager *uiMngr);
+		friend class UiManager;
 
 	protected:
 		static UiObject *mouseOnTop;
@@ -57,10 +61,6 @@ class UiObject
 		
 		void setUiObjectSize(int w, int h);
 		void setUiObjectLogicalSize(int logicalW, int logicalH);
-		
-		// Is automatically called when this UiObject or one of it's parents is added to a UiManager
-		// Until then, the parentUiManager is NULL and many functions that rely on it will fail
-		void setParentUiManager(UiManager *uiMngr);
 		
 		int getWidth();
 		int getHeight();
