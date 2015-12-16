@@ -1,8 +1,11 @@
 #include "MyUtils.h"
 
+#include <memory>
 #include <iostream>
 
-SDL_Texture* MyUtils::loadTexture(SDL_Renderer *r, std::string path)
+#include "SdlClasses/SdlTexture.h"
+
+std::shared_ptr<SdlTexture> MyUtils::loadTexture(SDL_Renderer *r, std::string path)
 {
 	// The final texture
 	SDL_Texture* newTexture = NULL;
@@ -30,5 +33,5 @@ SDL_Texture* MyUtils::loadTexture(SDL_Renderer *r, std::string path)
 	// Standard blend mode
 	//SDL_SetTextureBlendMode(newTexture, SDL_BLENDMODE_BLEND);
 
-	return newTexture;
+	return std::make_shared<SdlTexture>(newTexture);
 }

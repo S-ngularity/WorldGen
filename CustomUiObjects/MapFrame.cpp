@@ -21,7 +21,7 @@
 #include <string>
 #include <sstream>
 
-MapFrame::MapFrame(UiManager *parentUiMngr, int x, int y, int w, int h, Map* mapArr[], int num) : 
+MapFrame::MapFrame(int x, int y, int w, int h, Map* mapArr[], int num) : 
 	UiObject(x, y, w, h, NULL,
 			[&](SDL_Event &e){return customSdlEvtHandler(e);})
 {
@@ -29,14 +29,22 @@ MapFrame::MapFrame(UiManager *parentUiMngr, int x, int y, int w, int h, Map* map
 	mapArray = mapArr;
 	numMaps = num;
 	selectedMap = 0;
+}
 
+MapFrame::~MapFrame()
+{
+	for(int i = 0; i < numNoises; i++)
+		delete noiseArray[i];
+}
+
+void MapFrame::init()
+{
 	// Noise array
 	noiseArray[0] = new OpenSimplexNoise(mapArray[0], octaves, freq, persistence, freqDiv);
 	noiseArray[1] = new DiamSqNoise(mapArray[0]);
 	selectedNoise = 1;
 
 	// Textures
-	setParentUiManager(parentUiMngr);
 	if(parentUiManager == NULL)
 		std::cout << "MapFrame without parentUiManager (is NULL)." << std::endl;
 
@@ -73,12 +81,6 @@ MapFrame::MapFrame(UiManager *parentUiMngr, int x, int y, int w, int h, Map* map
 
 	// Send map info update
 	publishMapInfo();
-}
-
-MapFrame::~MapFrame()
-{
-	for(int i = 0; i < numNoises; i++)
-		delete noiseArray[i];
 }
 
 void MapFrame::runNoise()

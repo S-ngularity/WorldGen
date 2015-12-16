@@ -58,8 +58,13 @@ class MapFrame : public UiObject
 		void preRenderProcedure();
 
 	public:
-		MapFrame(UiManager *parentUiMngr, int x, int y, int w, int h, Map* mapArr[], int num);
+		MapFrame(int x, int y, int w, int h, Map* mapArr[], int num);
 		~MapFrame();
+
+		// Initializes the noises/textures and then publish a MapUpdateInfo
+		// Should only be called after MapFrame is granted to have a parentUiManager
+		// (after MapFrame or one of it's ancestors has been added to a UiManager)
+		void init();
 
 		void runNoise();
 

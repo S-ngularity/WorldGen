@@ -80,6 +80,9 @@ void UiObject::bringToFront()
 
 	else
 	{
+		if(parentUiManager == NULL)
+			std::cout << "UiObject::bringToFront() called without a valid parentUiManager (is NULL)." << std::endl;
+
 		if(parentUiManager->childList.front() != this)
 		{
 			parentUiManager->childList.remove(this);
@@ -175,7 +178,7 @@ void UiObject::render(int parentX, int parentY)
 	if(uiTexture != NULL)
 	{
 		if(parentUiManager == NULL)
-			std::cout << "UiObject without parentUiManager (is NULL)." << std::endl;
+			std::cout << "UiObject::render() called without a valid parentUiManager (is NULL)." << std::endl;
 
 		uiTexture->renderFitToArea(parentUiManager->getRenderer(), absoluteX, absoluteY, width, height);
 	}
@@ -203,7 +206,7 @@ void UiObject::renderScaled(int parentX, int parentY, double sW, double sH)
 	if(uiTexture != NULL)
 	{
 		if(parentUiManager == NULL)
-			std::cout << "UiObject without parentUiManager (is NULL)." << std::endl;
+			std::cout << "UiObject::renderScaled() called without a valid parentUiManager (is NULL)." << std::endl;
 
 		uiTexture->renderFitToArea(parentUiManager->getRenderer(), absoluteX, absoluteY, width * scaleW, height * scaleH);
 	}
@@ -258,6 +261,9 @@ bool UiObject::handleSdlEventMouse(SDL_Event& e)
 
 		if(e.type == SDL_MOUSEBUTTONUP)
 		{
+			if(parentUiManager == NULL)
+				std::cout << "UiObject::handleSdlEventMouse() called without a valid parentUiManager (is NULL)." << std::endl;
+			
 			parentUiManager->setFocusedUiObject(this);
 
 			bringToFront();
@@ -306,7 +312,7 @@ bool UiObject::isMouseInside()
 	SDL_GetMouseState(&x, &y);
 
 	if(parentUiManager == NULL)
-			std::cout << "UiObject without parentUiManager (is NULL)." << std::endl;
+			std::cout << "UiObject::isMouseInside() called without a valid parentUiManager (is NULL)." << std::endl;
 
 	if(	x >= absoluteX * parentUiManager->getWindowScaleW() && 
 		x < (absoluteX + logicalWidth) * parentUiManager->getWindowScaleW() &&
@@ -324,8 +330,11 @@ bool UiObject::getRelativeMousePos(UiObject *obj, int *x, int *y)
 {
 	SDL_GetMouseState(x, y);
 
+	if(obj == NULL)
+		std::cout << "UiObject::getRelativeMousePos() called without a valid UiObject *obj argument (is NULL)." << std::endl;
+
 	if(obj->parentUiManager == NULL)
-			std::cout << "UiObject without parentUiManager (is NULL)." << std::endl;
+			std::cout << "UiObject::getRelativeMousePos() called without a valid parentUiManager (is NULL) for the provided argument UiObject *obj." << std::endl;
 
 	*x = (*x - obj->absoluteX * obj->parentUiManager->getWindowScaleW()) / obj->parentUiManager->getWindowScaleW();
 	*y = (*y - obj->absoluteY * obj->parentUiManager->getWindowScaleH()) / obj->parentUiManager->getWindowScaleH();

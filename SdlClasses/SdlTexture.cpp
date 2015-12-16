@@ -31,7 +31,7 @@ SdlTexture::~SdlTexture()
 	clearTexture();
 }
 
-SDL_Texture* SdlTexture::getTexture()
+SDL_Texture* SdlTexture::getSDL_Texture()
 {
 	return texture;
 }

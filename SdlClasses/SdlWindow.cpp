@@ -68,7 +68,7 @@ SdlWindow::SdlWindow(char const *title, int x, int y, int w, int h, int resW, in
 				SDL_RenderClear(wndRenderer);
 				resolutionTexture.releaseRenderTarget(wndRenderer);
 
-				windowUi = new UiManager(wndRenderer, resW, resH, getWindowWidthScale(), getWindowHeightScale()); // create base windowUi object
+				windowUiManager = new UiManager(wndRenderer, resW, resH, getWindowWidthScale(), getWindowHeightScale()); // create base windowUiManager object
 			}
 
 		}
@@ -115,7 +115,7 @@ bool SdlWindow::handleSdlEvent(SDL_Event& e)
 				case SDL_WINDOWEVENT_SIZE_CHANGED:
 					windowWidth = e.window.data1;
 					windowHeight = e.window.data2;
-					windowUi->setWindowScale(getWindowWidthScale(), getWindowHeightScale());
+					windowUiManager->setWindowScale(getWindowWidthScale(), getWindowHeightScale());
 				break;
 
 				// Repaint on expose
@@ -169,7 +169,7 @@ bool SdlWindow::handleSdlEvent(SDL_Event& e)
 		else
 		{
 			// handle other events with the implemented handler
-			windowUi->handleSdlEvent(e);
+			windowUiManager->handleSdlEvent(e);
 
 			// handle other events with the implemented handler
 			if(evtHandler)
@@ -213,7 +213,7 @@ void SdlWindow::doRefresh()
 		resolutionTexture.setAsRenderTarget(wndRenderer);
 		SDL_SetRenderDrawColor(wndRenderer, 255, 0, 255, 255);
 		SDL_RenderClear(wndRenderer);
-		windowUi->render();
+		windowUiManager->render();
 		resolutionTexture.releaseRenderTarget(wndRenderer);
 
 		resolutionTexture.renderFitToArea(wndRenderer, 0, 0, windowWidth, windowHeight);

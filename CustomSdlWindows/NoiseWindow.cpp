@@ -50,7 +50,7 @@ void NoiseWindow::customUiEventHandler(UiCode &c)
 		doRefresh();
 	}
 
-	if(c.code == UIEVT_NOISEINFOUPDATED)
+	if(c.code == UIEVT_NOISEINFOUPDATED && noiseInfoText != NULL)
 	{
 		NoiseInfoRequest req;
 		EvtAggr::publish<NoiseInfoRequest*>(&req);
@@ -97,129 +97,139 @@ MapFrame *mapFrame = nullptr;
 
 void NoiseWindow::createGui()
 {
-	// before mapFrame so it can receive the first map info event with updateMapInfo() above
+	mapFrame = new MapFrame(0, 0, windowUiManager->getWidth() - SIDEBAR_WIDTH, windowUiManager->getHeight(), mapArray, numMaps);
+
+	std::shared_ptr<SdlTexture> sidebarBg = createDrawnTexture(SIDEBAR_WIDTH, windowUiManager->getHeight(), 0, 126, 126, 255);
+	UiPanel *sidebar = new UiPanel(windowUiManager->getWidth() - SIDEBAR_WIDTH, 0, sidebarBg);
+
 	mapInfoText = new UiLabel(30, 150, "", 18, 175, 0, 0);
-	noiseInfoText = new UiLabel(30, windowUi->getHeight() - 310, "", 18, 175, 0, 0);
-	
-	mapFrame = new MapFrame(windowUi, 0, 0, windowUi->getWidth() - SIDEBAR_WIDTH, windowUi->getHeight(), mapArray, numMaps);
-	mapFrame->setUiObjectLogicalSize(windowUi->getWidth(), windowUi->getHeight());
-
-	UiPanel *sidebar = new UiPanel(windowUi->getWidth() - SIDEBAR_WIDTH, 0, 
-									createDrawnTexture(SIDEBAR_WIDTH, windowUi->getHeight(), 0, 126, 126, 255));
-
 	sidebar->addChild(mapInfoText);
+	
+	noiseInfoText = new UiLabel(30, windowUiManager->getHeight() - 310, "", 18, 175, 0, 0);
 	sidebar->addChild(noiseInfoText);
 
+	std::shared_ptr<SdlTexture> standardBtTexture = MyUtils::loadTexture(getRenderer(), "Resources\\btSprite.png");
+
+	// Map selectors
 	sidebar->addChild(new UiButton(	30, 30, 
 									30, 30,
 									new UiLabel(0, 0, "1", 16, 235, 235, 235), 
-									std::make_shared<SdlTexture>(MyUtils::loadTexture(getRenderer(), "Resources\\btSprite.png")), 
+									standardBtTexture, 
 									[&](){ mapFrame->selectMap(0); } ));
 
 	sidebar->addChild(new UiButton(	90, 30, 
 									30, 30, 
 									new UiLabel(0, 0, "2", 16, 235, 235, 235), 
-									std::make_shared<SdlTexture>(MyUtils::loadTexture(getRenderer(), "Resources\\btSprite.png")), 
+									standardBtTexture, 
 									[&](){ mapFrame->selectMap(1); } ));
 
 	sidebar->addChild(new UiButton(	150, 30, 
 									30, 30, 
 									new UiLabel(0, 0, "3", 16, 235, 235, 235), 
-									std::make_shared<SdlTexture>(MyUtils::loadTexture(getRenderer(), "Resources\\btSprite.png")), 
+									standardBtTexture, 
 									[&](){ mapFrame->selectMap(2); } ));
 
+	// Noise selectors
 	sidebar->addChild(new UiButton(	30, 80, 
 									70, 30, 
 									new UiLabel(0, 0, "OpSim", 14, 235, 235, 235), 
-									std::make_shared<SdlTexture>(MyUtils::loadTexture(getRenderer(), "Resources\\btSprite.png")), 
+									standardBtTexture, 
 									[&](){ mapFrame->selectNoise(0); } ));
 
 	sidebar->addChild(new UiButton(	110, 80, 
 									70, 30, 
 									new UiLabel(0, 0, "DiamSq", 14, 235, 235, 235), 
-									std::make_shared<SdlTexture>(MyUtils::loadTexture(getRenderer(), "Resources\\btSprite.png")), 
+									standardBtTexture, 
 									[&](){ mapFrame->selectNoise(1); } ));
 
-	sidebar->addChild(new UiButton(	30, windowUi->getHeight() - 60, 
+	sidebar->addChild(new UiButton(	30, windowUiManager->getHeight() - 60, 
 									150, 30, 
 									new UiLabel(0, 0, "RUN", 22, 235, 235, 235), 
-									std::make_shared<SdlTexture>(MyUtils::loadTexture(getRenderer(), "Resources\\btSprite.png")), 
+									standardBtTexture, 
 									[&](){ mapFrame->runNoise(); } ));
 
-	static int normalizedLevel = 20;
-	static UiLabel *nLevel = new UiLabel(48, windowUi->getHeight() - 100, ALIGN_BOTTOM_CENTER, "20", 18, 235, 235, 235);
-
+	// Normalization buttons
+	static UiLabel *nLevel = new UiLabel(48, windowUiManager->getHeight() - 100, ALIGN_BOTTOM_CENTER, "20", 18, 235, 235, 235);
 	sidebar->addChild(nLevel);
 
-	sidebar->addChild(new UiButton(	50, windowUi->getHeight() - 95, 
+	static int normalizedLevel = 20;
+
+	sidebar->addChild(new UiButton(	50, windowUiManager->getHeight() - 95, 
 									15, 15, 
 									new UiLabel(0, 0, "+", 12, 235, 235, 235), 
-									std::make_shared<SdlTexture>(MyUtils::loadTexture(getRenderer(), "Resources\\btSprite.png")), 
+									standardBtTexture, 
 									[&](){	normalizedLevel++;
 											std::stringstream ss;
 											ss << normalizedLevel;
 											nLevel->setText(ss.str()); } ));
 
-	sidebar->addChild(new UiButton(	30, windowUi->getHeight() - 95, 
+	sidebar->addChild(new UiButton(	30, windowUiManager->getHeight() - 95, 
 									15, 15, 
 									new UiLabel(0, 0, "-", 12, 235, 235, 235), 
-									std::make_shared<SdlTexture>(MyUtils::loadTexture(getRenderer(), "Resources\\btSprite.png")), 
+									standardBtTexture, 
 									[&](){ normalizedLevel--;
 											std::stringstream ss;
 											ss << normalizedLevel;
 											nLevel->setText(ss.str()); } ));
 
-	sidebar->addChild(new UiButton(	80, windowUi->getHeight() - 115, 
+	sidebar->addChild(new UiButton(	80, windowUiManager->getHeight() - 115, 
 									100, 30, 
 									new UiLabel(0, 0, "Normalize", 14, 235, 235, 235), 
-									std::make_shared<SdlTexture>(MyUtils::loadTexture(getRenderer(), "Resources\\btSprite.png")), 
+									standardBtTexture, 
 									[&](){ mapFrame->normalizeMap(normalizedLevel); } ));
 
 
-	//noise adjust buttons
-	sidebar->addChild(new UiButton(	30, windowUi->getHeight() - 145, 
+	// Noise adjust buttons
+	sidebar->addChild(new UiButton(	30, windowUiManager->getHeight() - 145, 
 									15, 15, 
 									new UiLabel(0, 0, "f", 12, 235, 235, 235), 
-									std::make_shared<SdlTexture>(MyUtils::loadTexture(getRenderer(), "Resources\\btSprite.png")), 
+									standardBtTexture, 
 									[&](){	EvtAggr::publish<UiCode>(UiCode(UIEVT_FREQDECREASE)); } ));
 
-	sidebar->addChild(new UiButton(	50, windowUi->getHeight() - 145, 
+	sidebar->addChild(new UiButton(	50, windowUiManager->getHeight() - 145, 
 									15, 15, 
 									new UiLabel(0, 0, "F", 12, 235, 235, 235), 
-									std::make_shared<SdlTexture>(MyUtils::loadTexture(getRenderer(), "Resources\\btSprite.png")), 
+									standardBtTexture, 
 									[&](){	EvtAggr::publish<UiCode>(UiCode(UIEVT_FREQINCREASE)); } ));
 
-	sidebar->addChild(new UiButton(	75, windowUi->getHeight() - 145, 
+	sidebar->addChild(new UiButton(	75, windowUiManager->getHeight() - 145, 
 									15, 15, 
 									new UiLabel(0, 0, "p", 12, 235, 235, 235), 
-									std::make_shared<SdlTexture>(MyUtils::loadTexture(getRenderer(), "Resources\\btSprite.png")), 
+									standardBtTexture, 
 									[&](){	EvtAggr::publish<UiCode>(UiCode(UIEVT_PERSDECREASE)); } ));
 
-	sidebar->addChild(new UiButton(	95, windowUi->getHeight() - 145, 
+	sidebar->addChild(new UiButton(	95, windowUiManager->getHeight() - 145, 
 									15, 15,  
 									new UiLabel(0, 0, "P", 12, 235, 235, 235), 
-									std::make_shared<SdlTexture>(MyUtils::loadTexture(getRenderer(), "Resources\\btSprite.png")), 
+									standardBtTexture, 
 									[&](){	EvtAggr::publish<UiCode>(UiCode(UIEVT_PERSINCREASE)); } ));
 
-	sidebar->addChild(new UiButton(	120, windowUi->getHeight() - 145, 
+	sidebar->addChild(new UiButton(	120, windowUiManager->getHeight() - 145, 
 									15, 15, 
 									new UiLabel(0, 0, "d", 12, 235, 235, 235), 
-									std::make_shared<SdlTexture>(MyUtils::loadTexture(getRenderer(), "Resources\\btSprite.png")), 
+									standardBtTexture, 
 									[&](){	EvtAggr::publish<UiCode>(UiCode(UIEVT_FDIVDECREASE)); } ));
 
-	sidebar->addChild(new UiButton(	140, windowUi->getHeight() - 145, 
+	sidebar->addChild(new UiButton(	140, windowUiManager->getHeight() - 145, 
 									15, 15, 
 									new UiLabel(0, 0, "D", 12, 235, 235, 235), 
-									std::make_shared<SdlTexture>(MyUtils::loadTexture(getRenderer(), "Resources\\btSprite.png")), 
+									standardBtTexture, 
 									[&](){	EvtAggr::publish<UiCode>(UiCode(UIEVT_FDIVINCREASE)); } ));
 
+	mapFrame->setUiObjectLogicalSize(windowUiManager->getWidth(), windowUiManager->getHeight());
 	mapFrame->addChild(sidebar);
-	windowUi->addChild(mapFrame);
+	windowUiManager->addChild(mapFrame);
+
+	mapFrame->init();
 }
 
 std::shared_ptr<SdlTexture> NoiseWindow::createDrawnTexture(int width, int height, int r, int g, int b, int a)
 {
-	std::shared_ptr<SdlTexture> tex = std::make_shared<SdlTexture>(SDL_CreateTexture(getRenderer(), SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_TARGET, width, height));
+	std::shared_ptr<SdlTexture> tex = std::make_shared<SdlTexture>(SDL_CreateTexture(	getRenderer(), 
+																						SDL_PIXELFORMAT_RGBA8888, 
+																						SDL_TEXTUREACCESS_TARGET, 
+																						width, height));
+
 	tex->setAsRenderTarget(getRenderer());
 	SDL_SetRenderDrawColor(getRenderer(), r, g, b, a);
 	SDL_RenderClear(getRenderer());

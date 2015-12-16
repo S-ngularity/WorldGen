@@ -18,7 +18,13 @@ WalkWindow::WalkWindow(Map *theMap) :
 				WALK_SCREEN_SIZE, WALK_SCREEN_SIZE, // window resolution
 				SDL_WINDOW_RESIZABLE | SDL_WINDOW_HIDDEN, 
 				SDL_RENDERER_ACCELERATED | SDL_RENDERER_TARGETTEXTURE), 
-	worldMap(theMap)
+	worldMap(theMap), 
+	walkTexture(new SdlTexture(	SDL_CreateTexture(getRenderer(), 
+									SDL_PIXELFORMAT_RGBA8888, 
+									SDL_TEXTUREACCESS_TARGET, 
+									WALK_SCREEN_SIZE,
+									WALK_SCREEN_SIZE), 
+								WALK_SCREEN_SIZE, WALK_SCREEN_SIZE))
 {
 	hide(); // set superclass settings to hidden window state to sync with SDL_WINDOW_HIDDEN 
 	
@@ -29,15 +35,9 @@ WalkWindow::WalkWindow(Map *theMap) :
 	walkY = 0;
 
 	SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "nearest");
-	
-	walkTexture = std::make_shared<SdlTexture>(SDL_CreateTexture(getRenderer(), 
-												SDL_PIXELFORMAT_RGBA8888, 
-												SDL_TEXTUREACCESS_TARGET, 
-												WALK_SCREEN_SIZE,
-												WALK_SCREEN_SIZE), WALK_SCREEN_SIZE, WALK_SCREEN_SIZE);
 
 	updateWalkTex();
-	windowUi->addChild(new UiObject(0, 0, walkTexture, nullptr));
+	windowUiManager->addChild(new UiObject(0, 0, walkTexture, nullptr));
 }
 
 void WalkWindow::setPos(int x, int y)

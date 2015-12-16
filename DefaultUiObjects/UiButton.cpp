@@ -13,13 +13,13 @@ UiButton::UiButton(int xOff, int yOff, UiLabel *textLabel, std::shared_ptr<SdlTe
 	if(getTexture() != NULL)
 	{
 		standardClipRect = std::make_shared<SDL_Rect>();
-		*standardClipRect = {0, 0, t->getWidth()/3, t->getHeight() };
+		*standardClipRect = {0, 0, t->getWidth(), t->getHeight()/3 };
 		
 		hoverClipRect = std::make_shared<SDL_Rect>();
-		*hoverClipRect = {t->getWidth()/3, 0, t->getWidth()/3, t->getHeight()};
+		*hoverClipRect = {0, t->getHeight()/3, t->getWidth(), t->getHeight()/3};
 		
 		pressedClipRect = std::make_shared<SDL_Rect>();
-		*pressedClipRect = {t->getWidth()/3 * 2, 0, t->getWidth()/3, t->getHeight()};
+		*pressedClipRect = {0, t->getHeight()/3 * 2, t->getWidth(), t->getHeight()/3};
 	}
 
 	clickHappenedHere = false;
@@ -43,13 +43,13 @@ UiButton::UiButton(int xOff, int yOff, int w, int h, UiLabel *textLabel, std::sh
 	if(getTexture() != NULL)
 	{
 		standardClipRect = std::make_shared<SDL_Rect>();
-		*standardClipRect = {0, 0, t->getWidth()/3, t->getHeight() };
+		*standardClipRect = {0, 0, t->getWidth(), t->getHeight()/3 };
 		
 		hoverClipRect = std::make_shared<SDL_Rect>();
-		*hoverClipRect = {t->getWidth()/3, 0, t->getWidth()/3, t->getHeight()};
+		*hoverClipRect = {0, t->getHeight()/3, t->getWidth(), t->getHeight()/3};
 		
 		pressedClipRect = std::make_shared<SDL_Rect>();
-		*pressedClipRect = {t->getWidth()/3 * 2, 0, t->getWidth()/3, t->getHeight()};
+		*pressedClipRect = {0, t->getHeight()/3 * 2, t->getWidth(), t->getHeight()/3};
 	}
 
 	clickHappenedHere = false;

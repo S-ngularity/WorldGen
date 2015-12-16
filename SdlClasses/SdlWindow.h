@@ -42,7 +42,7 @@ class SdlWindow
 		bool shown;
 
 	protected:
-		UiManager *windowUi;
+		UiManager *windowUiManager;
 
 		unsigned int windowID;
 

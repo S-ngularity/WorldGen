@@ -18,7 +18,7 @@ class SdlTexture
 		int height;
 
 	protected:
-		SDL_Texture* getTexture();
+		SDL_Texture* getSDL_Texture();
 
 	public:
 		SdlTexture();

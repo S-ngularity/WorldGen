@@ -142,9 +142,9 @@ void MapTexture::update()
 	void *texturePixels;
 	int texturePitch;
 
-	SDL_LockTexture(getTexture(), NULL, &texturePixels, &texturePitch);
+	SDL_LockTexture(getSDL_Texture(), NULL, &texturePixels, &texturePitch);
 	memcpy(texturePixels, mapPixels, worldMap->getMapWidth() * sizeof (Uint32) * worldMap->getMapHeight());
-	SDL_UnlockTexture(getTexture());
+	SDL_UnlockTexture(getSDL_Texture());
 }
 
 
