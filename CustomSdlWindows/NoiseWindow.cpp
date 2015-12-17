@@ -97,9 +97,11 @@ MapFrame *mapFrame = nullptr;
 
 void NoiseWindow::createGui()
 {
+	std::shared_ptr<SdlTexture> standardBtTexture = MyUtils::loadTexture(getRenderer(), "Resources\\btSprite.png");
+	std::shared_ptr<SdlTexture> sidebarBg = createDrawnTexture(SIDEBAR_WIDTH, windowUiManager->getHeight(), 0, 126, 126, 255);
+
 	mapFrame = new MapFrame(0, 0, windowUiManager->getWidth() - SIDEBAR_WIDTH, windowUiManager->getHeight(), mapArray, numMaps);
 
-	std::shared_ptr<SdlTexture> sidebarBg = createDrawnTexture(SIDEBAR_WIDTH, windowUiManager->getHeight(), 0, 126, 126, 255);
 	UiPanel *sidebar = new UiPanel(windowUiManager->getWidth() - SIDEBAR_WIDTH, 0, sidebarBg);
 
 	mapInfoText = new UiLabel(30, 150, "", 18, 175, 0, 0);
@@ -107,8 +109,6 @@ void NoiseWindow::createGui()
 	
 	noiseInfoText = new UiLabel(30, windowUiManager->getHeight() - 310, "", 18, 175, 0, 0);
 	sidebar->addChild(noiseInfoText);
-
-	std::shared_ptr<SdlTexture> standardBtTexture = MyUtils::loadTexture(getRenderer(), "Resources\\btSprite.png");
 
 	// Map selectors
 	sidebar->addChild(new UiButton(	30, 30, 

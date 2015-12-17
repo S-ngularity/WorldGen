@@ -26,12 +26,12 @@ MapTexture::~MapTexture()
 
 void MapTexture::setMapAndUpdate(Map *theMap)
 {
-	int w = worldMap->getMapWidth();
-	int h = worldMap->getMapHeight();
+	int oldW = worldMap->getMapWidth();
+	int oldH = worldMap->getMapHeight();
 
 	worldMap = theMap;
 
-	if(worldMap->getMapWidth() != w || worldMap->getMapHeight() != h)
+	if(worldMap->getMapWidth() != oldW || worldMap->getMapHeight() != oldH)
 	{
 		delete mapPixels;
 		mapPixels = new Uint32[worldMap->getMapWidth() * worldMap->getMapHeight()];

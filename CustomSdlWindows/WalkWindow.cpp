@@ -19,12 +19,12 @@ WalkWindow::WalkWindow(Map *theMap) :
 				SDL_WINDOW_RESIZABLE | SDL_WINDOW_HIDDEN, 
 				SDL_RENDERER_ACCELERATED | SDL_RENDERER_TARGETTEXTURE), 
 	worldMap(theMap), 
-	walkTexture(new SdlTexture(	SDL_CreateTexture(getRenderer(), 
-									SDL_PIXELFORMAT_RGBA8888, 
-									SDL_TEXTUREACCESS_TARGET, 
-									WALK_SCREEN_SIZE,
-									WALK_SCREEN_SIZE), 
-								WALK_SCREEN_SIZE, WALK_SCREEN_SIZE))
+	walkTexture(std::make_shared<SdlTexture>(SDL_CreateTexture(getRenderer(), 
+												SDL_PIXELFORMAT_RGBA8888, 
+												SDL_TEXTUREACCESS_TARGET, 
+												WALK_SCREEN_SIZE,
+												WALK_SCREEN_SIZE), 
+											WALK_SCREEN_SIZE, WALK_SCREEN_SIZE))
 {
 	hide(); // set superclass settings to hidden window state to sync with SDL_WINDOW_HIDDEN 
 	
@@ -36,29 +36,51 @@ WalkWindow::WalkWindow(Map *theMap) :
 
 	SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "nearest");
 
-	updateWalkTex();
+	if(worldMap == NULL)
+		std::cout << "WalkWindow constructed with a NULL worldMap." << std::endl;
+
+	else
+		updateWalkTex();
+
 	windowUiManager->addChild(new UiObject(0, 0, walkTexture, nullptr));
 }
 
 void WalkWindow::setPos(int x, int y)
 {
-	walkX = x;
-	walkY = y;
+	if(worldMap == NULL)
+		std::cout << "WalkWindow::setPos() called on WalkWindow with a NULL worldMap." << std::endl;
 
-	updateWalkTex();
+	//else if(!worldMap->isPosInsideNoWrap(x, y))
+	//		std::cout << "WalkWindow::setPos() called with out-of-bounds x and/or y: x = " << x << " y = " << y << "." << std::endl;
+
+	else
+	{
+		walkX = x;
+		walkY = y;
+		
+		updateWalkTex();
+	}
 }
 
 void WalkWindow::setMap(Map *m)
 {
 	worldMap = m;
-	setPos(0, 0);
+
+	if(m == NULL)
+		std::cout << "WalkWindow::setMap() called with a NULL argument Map *m." << std::endl;
+
+	else
+		setPos(0, 0);
 }
 
 bool WalkWindow::customSdlEvtHandler(SDL_Event& e)
 {
 	bool returnValue = false;
 
-	if(hasKeyboardFocus())
+	if(worldMap == NULL)
+		std::cout << "WalkWindow::customSdlEvtHandler() called on WalkWindow with a NULL worldMap." << std::endl;
+
+	else if(hasKeyboardFocus())
 	{
 		bool updateScreen = false;
 		
@@ -147,6 +169,12 @@ bool WalkWindow::customSdlEvtHandler(SDL_Event& e)
 
 void WalkWindow::updateWalkTex()
 {
+	if(worldMap == NULL)
+	{
+		std::cout << "WalkWindow::updateWalkTex() called on WalkWindow with a NULL worldMap." << std::endl;
+		return;
+	}
+
 	walkTexture->setAsRenderTarget(getRenderer());
 	SDL_SetRenderDrawColor(getRenderer(), 0, 0, 0, 255);
 	SDL_RenderClear(getRenderer());

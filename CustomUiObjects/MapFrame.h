@@ -27,7 +27,7 @@ class MapFrame : public UiObject
 		//const int octaves = 10; const double freq = 0.0028, persistence = 0.6, freqDiv = 1.9;
 		
 		std::unique_ptr<MapTexture> mapTexture;
-		std::shared_ptr<SdlTexture> *frameTexture;
+		std::shared_ptr<SdlTexture> frameTexture;
 
 		int numMaps;
 		Map* *mapArray;

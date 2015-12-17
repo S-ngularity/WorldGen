@@ -342,6 +342,8 @@ bool UiObject::getRelativeMousePos(UiObject *obj, int *x, int *y)
 	if(	*x < 0 || *x > obj->width || 
 		*y < 0 || *y > obj->height)
 	{
+		std::cout << "UiObject::getRelativeMousePos() returned invalid x and/or y: x = " << *x << " y = " << *y << "." << std::endl;
+
 		*x = -1;
 		*y = -1;
 
