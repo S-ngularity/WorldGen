@@ -17,17 +17,17 @@ class Map;
 class MapTexture : public SdlTexture
 {
 	private:
-		Map *worldMap;
+		std::weak_ptr<Map> worldMap;
 		Uint32 *mapPixels;
 		SDL_Renderer *context;
 
 		int seaRenderMode, landRenderMode;
 		
 	public:
-		MapTexture(SDL_Renderer *r, Map *theMap);
+		MapTexture(SDL_Renderer *r, std::weak_ptr<Map> theMap);
 		~MapTexture();
 
-		void setMapAndUpdate(Map *theMap);
+		void setMapAndUpdate(std::weak_ptr<Map> theMap);
 
 		void update();
 

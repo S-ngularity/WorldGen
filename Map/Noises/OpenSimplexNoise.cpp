@@ -12,17 +12,21 @@
 
 using namespace std;
 
-OpenSimplexNoise::OpenSimplexNoise(Map *theMap, int oct, double freq, double pers, double fdiv) : 
-	Noise("OpenSimplex")
+OpenSimplexNoise::OpenSimplexNoise(std::weak_ptr<Map> theMap, int oct, double freq, double pers, double fdiv) : 
+	Noise("OpenSimplex"), 
+	alreadySaved(false)
 {
 	EvtAggr::subscribe<UiCode>( [&](UiCode &c){ handleEvtCode(c); } );
 	EvtAggr::subscribe<NoiseInfoRequest*>( [&](NoiseInfoRequest* &n){ n->setInfo(octaves, frequency, persistence, freqDiv); } );
 	//srand(time(NULL));
 
-	map = theMap;
-	alreadySaved = false;
-	
-	reset();
+	if(theMap.expired())
+		std::cout << "OpenSimplexNoise::OpenSimplexNoise() called with an expired argument theMap." << std::endl;
+	else
+	{
+		map = theMap;
+		reset();
+	}
 
 	octaves = oct;
 	frequency = freq;
@@ -84,17 +88,32 @@ void OpenSimplexNoise::handleEvtCode(UiCode &c)
 
 }
 
-void OpenSimplexNoise::setMap(Map *m)
+void OpenSimplexNoise::setMap(std::weak_ptr<Map> m)
 {
+	if(m.expired())
+	{
+		std::cout << "OpenSimplexNoise::setMap() called with an expired argument m." << std::endl;
+		map.reset();
+
+		return;
+	}
+
 	map = m;
 	reset();
 }
 
 void OpenSimplexNoise::reset()
 {
+	actualMap = map.lock();
+	if(actualMap == nullptr)
+	{
+		std::cout << "OpenSimplexNoise::reset() called with a NULL actualMap." << std::endl;
+		return;
+	}
+
 	state = running;
 	doneIts = 0;
-	totalIts = map->getMapHeight();
+	totalIts = actualMap->getMapHeight();
 	nowX = 0;
 	nowY = 0;
 
@@ -110,16 +129,22 @@ void OpenSimplexNoise::runOnce()
 {
 	if(state != done)
 	{
-		if(doneIts == 0)
+		if(actualMap == nullptr)
 		{
-			map->setHighestH(0);
-			map->setLowestH(MAX_H);
-			map->setSeaLevel(SEA_LEVEL);
+			std::cout << "OpenSimplexNoise::runOnce() called with a NULL actualMap." << std::endl;
+			return;
 		}
 
-		if(nowY < map->getMapHeight()) // uma linha por chamada
+		if(doneIts == 0)
 		{
-			while(nowX < map->getMapWidth())
+			actualMap->setHighestH(0);
+			actualMap->setLowestH(MAX_H);
+			actualMap->setSeaLevel(SEA_LEVEL);
+		}
+
+		if(nowY < actualMap->getMapHeight()) // uma linha por chamada
+		{
+			while(nowX < actualMap->getMapWidth())
 			{
 				double value = 0;
 				double amp = 1, maxAmp = 0;
@@ -128,13 +153,13 @@ void OpenSimplexNoise::runOnce()
 				//*
 				double pi = 3.14159265359;
 
-				int x1 = 0, x2 = map->getMapWidth();
-				double s = (double)nowX / map->getMapWidth();
+				int x1 = 0, x2 = actualMap->getMapWidth();
+				double s = (double)nowX / actualMap->getMapWidth();
 				double dx = x2 - x1;
 				
 				/*
-				int y1 = 0, y2 = map->getMapHeight();
-				double t = (double)nowY / map->getMapHeight();
+				int y1 = 0, y2 = actualMap->getMapHeight();
+				double t = (double)nowY / actualMap->getMapHeight();
 				double dy = y2 - y1;//*/
 
 				double nx = x1 + cos(s * 2 * pi) * dx / (2 * pi);
@@ -163,13 +188,13 @@ void OpenSimplexNoise::runOnce()
 				value /= maxAmp;
 
 				value *= MAX_H;
-				map->setH(nowX, nowY, value);
+				actualMap->setH(nowX, nowY, value);
 
-				if(value > map->getHighestH())
-					map->setHighestH(value);
+				if(value > actualMap->getHighestH())
+					actualMap->setHighestH(value);
 
-				if(value < map->getLowestH())
-					map->setLowestH(value);
+				if(value < actualMap->getLowestH())
+					actualMap->setLowestH(value);
 
 				nowX++;
 			}
@@ -187,29 +212,30 @@ void OpenSimplexNoise::checkIfFinished()
 {
 	if(doneIts == totalIts && state == running)
 	{
-		map->normalize(MAX_H);
+		actualMap->normalize(MAX_H);
 //*
 		if(!alreadySaved) // SALVAR UMA VEZ RESULTADO EM TGA
 		{
 			unsigned char *imageData;
-			imageData = (unsigned char*)malloc(sizeof(unsigned char) * map->getMapWidth() * map->getMapHeight());
+			imageData = (unsigned char*)malloc(sizeof(unsigned char) * actualMap->getMapWidth() * actualMap->getMapHeight());
 
-			for(int y = 0; y < map->getMapHeight(); y++)
-				for(int x = 0; x < map->getMapWidth(); x++)
+			for(int y = 0; y < actualMap->getMapHeight(); y++)
+				for(int x = 0; x < actualMap->getMapWidth(); x++)
 				{
-					if(map->getH(x, y) <= map->getSeaLevel())
-						imageData[(map->getMapHeight() - 1 - y) * map->getMapWidth() + x] = 0;//(unsigned char)(((float)(map->getSeaLevel() - 1) / MAX_H) * 256.0);
+					if(actualMap->getH(x, y) <= actualMap->getSeaLevel())
+						imageData[(actualMap->getMapHeight() - 1 - y) * actualMap->getMapWidth() + x] = 0;//(unsigned char)(((float)(actualMap->getSeaLevel() - 1) / MAX_H) * 256.0);
 
 					else
-						imageData[(map->getMapHeight() - 1 - y) * map->getMapWidth() + x] = (unsigned char)((int)((map->getH(x, y) - map->getSeaLevel()) / (float)(MAX_H - map->getSeaLevel()) * 255.0)); //(unsigned char)((int)(((float)map->getH(x, y) / MAX_H) * 256.0));
+						imageData[(actualMap->getMapHeight() - 1 - y) * actualMap->getMapWidth() + x] = (unsigned char)((int)((actualMap->getH(x, y) - actualMap->getSeaLevel()) / (float)(MAX_H - actualMap->getSeaLevel()) * 255.0)); //(unsigned char)((int)(((float)actualMap->getH(x, y) / MAX_H) * 256.0));
 				}
 
-			tgaSave("t.tga", map->getMapWidth(), map->getMapHeight(), 8, imageData);
+			tgaSave("t.tga", actualMap->getMapWidth(), actualMap->getMapHeight(), 8, imageData);
 
-			alreadySaved = true;
+			//alreadySaved = true;
 		}//*/
 
 		state = done;
+		actualMap = nullptr;
 	}
 }
 

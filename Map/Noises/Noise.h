@@ -4,6 +4,7 @@
 #include "Map/Map.h"
 
 #include <string>
+#include <memory>
 
 #ifndef NOISESTATES
 #define NOISESTATES
@@ -18,7 +19,7 @@ class Noise
 		Noise(std::string n) : name(n) {};
 		virtual ~Noise() {};
 		
-		virtual void setMap(Map *m) = 0;
+		virtual void setMap(std::weak_ptr<Map> m) = 0;
 
 		virtual void reset() = 0;
 		

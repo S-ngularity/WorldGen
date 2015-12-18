@@ -1,7 +1,6 @@
 #include <iostream>
 #include <iomanip>
-
-#include <unordered_map>
+#include <memory>
 
 #include <stdlib.h>
 #include <time.h>
@@ -20,15 +19,8 @@ using namespace std;
 
 SDL_Event event;
 
-NoiseWindow *noiseWindow;
-WalkWindow *walkWindow;
-
-const int mapNum = 3;
-
-Map worldMap(1025, 1025);
-Map worldMap2(1025, 1025);
-Map worldMap3(1025, 1025);
-Map* worldMapsVect[mapNum] = {&worldMap, &worldMap2, &worldMap3};
+unique_ptr<NoiseWindow> noiseWindow;
+unique_ptr<WalkWindow> walkWindow;
 
 //funções SDL
 bool SDLStart();
@@ -58,8 +50,8 @@ int main(int argc, char* args[])
 		return -1;
 	}
 
-	noiseWindow = new NoiseWindow(worldMapsVect, mapNum);
-	walkWindow = new WalkWindow(worldMapsVect[0]);
+	noiseWindow = make_unique<NoiseWindow>();
+	walkWindow = make_unique<WalkWindow>();
 
 	EvtAggr::subscribe<WalkWindowOpened>( [&](WalkWindowOpened &w){ openWalkWindow(w); } );
 
@@ -77,8 +69,9 @@ int main(int argc, char* args[])
 
 	EvtAggr::unsubscribe<WalkWindowOpened>( [&](WalkWindowOpened &w){ openWalkWindow(w); } );
 
-	delete noiseWindow;
-	delete walkWindow;
+	// delete windows before closing SDL
+	noiseWindow.reset();
+	walkWindow.reset();
 
 	SDLClose();
 

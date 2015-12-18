@@ -21,34 +21,25 @@
 #include <string>
 #include <sstream>
 
-MapFrame::MapFrame(int x, int y, int w, int h, Map* mapArr[], int num) : 
+MapFrame::MapFrame(int x, int y, int w, int h, std::vector<std::shared_ptr<Map>> &mapVec) : 
 	UiObject(x, y, w, h, NULL,
-			[&](SDL_Event &e){return customSdlEvtHandler(e);})
+			[&](SDL_Event &e){return customSdlEvtHandler(e);}), 
+	selectedMapIdx(0), 
+	selectedNoiseIdx(1), 
+	mapVector(mapVec)
 {
-	// Map array
-	mapArray = mapArr;
-	numMaps = num;
-	selectedMap = 0;
-}
-
-MapFrame::~MapFrame()
-{
-	for(int i = 0; i < numNoises; i++)
-		delete noiseArray[i];
+	// Noise vector
+	noiseVector.push_back(std::make_unique<OpenSimplexNoise>(mapVector.at(selectedMapIdx), octaves, freq, persistence, freqDiv));
+	noiseVector.push_back(std::make_unique<DiamSqNoise>(mapVector.at(selectedMapIdx)));
 }
 
 void MapFrame::init()
 {
-	// Noise array
-	noiseArray[0] = new OpenSimplexNoise(mapArray[0], octaves, freq, persistence, freqDiv);
-	noiseArray[1] = new DiamSqNoise(mapArray[0]);
-	selectedNoise = 1;
-
 	// Textures
 	if(parentUiManager == NULL)
 		std::cout << "MapFrame without parentUiManager (is NULL)." << std::endl;
 
-	mapTexture = std::make_unique<MapTexture>(parentUiManager->getRenderer(), mapArray[selectedMap]);
+	mapTexture = std::make_unique<MapTexture>(parentUiManager->getRenderer(), mapVector.at(selectedMapIdx));
 	
 	frameTexture = std::make_shared<SdlTexture>(SDL_CreateTexture(parentUiManager->getRenderer(), 
 																		SDL_PIXELFORMAT_RGBA8888, 
@@ -84,19 +75,19 @@ void MapFrame::runNoise()
 	bool updateMapTexture = false;
 	int shownPercent = 0, updateAt = 0;
 
-	noiseArray[selectedNoise]->setMap(mapArray[selectedMap]);
+	noiseVector[selectedNoiseIdx]->setMap(mapVector.at(selectedMapIdx));
 
 	mapTexture->setSeaRenderMode(NO_SEA);  // no sea while not done
 	mapTexture->setLandRenderMode(FIXED);
 
-	while(noiseArray[selectedNoise]->getPercentComplete() < 100) // noise iterations
+	while(noiseVector[selectedNoiseIdx]->getPercentComplete() < 100) // noise iterations
 	{
-		noiseArray[selectedNoise]->runOnce();
+		noiseVector[selectedNoiseIdx]->runOnce();
 
 		// update only once per percent
-		if(noiseArray[selectedNoise]->getPercentComplete() != shownPercent)
+		if(noiseVector[selectedNoiseIdx]->getPercentComplete() != shownPercent)
 		{
-			shownPercent = noiseArray[selectedNoise]->getPercentComplete();
+			shownPercent = noiseVector[selectedNoiseIdx]->getPercentComplete();
 
 			if(shownPercent >= updateAt || shownPercent >= 100)
 			{
@@ -108,7 +99,7 @@ void MapFrame::runNoise()
 					mapTexture->setSeaRenderMode(WITH_SEA);
 					mapTexture->setLandRenderMode(VARYING_HIGHEST);
 
-					mapArray[selectedMap]->setSeaLevel(SEA_LEVEL);
+					mapVector.at(selectedMapIdx)->setSeaLevel(SEA_LEVEL);
 				}
 			}
 		}
@@ -133,10 +124,10 @@ void MapFrame::updateMouseText()
 	
 	if(mapPosFromMouse(&mapX, &mapY))
 	{
-		int h = mapArray[selectedMap]->getH(mapX, mapY);
+		int h = mapVector.at(selectedMapIdx)->getH(mapX, mapY);
 		std::string text;
 
-		if(mapTexture->getSeaRenderMode() == WITH_SEA && h <= mapArray[selectedMap]->getSeaLevel())
+		if(mapTexture->getSeaRenderMode() == WITH_SEA && h <= mapVector.at(selectedMapIdx)->getSeaLevel())
 			text = "Sea";
 
 		else
@@ -169,10 +160,10 @@ bool MapFrame::mapPosFromMouse(int *x, int *y)
 
 	// wrap mapOffset
 	if(*x < 0)
-		*x = mapArray[selectedMap]->getMapWidth() + *x % mapArray[selectedMap]->getMapWidth();
+		*x = mapVector.at(selectedMapIdx)->getMapWidth() + *x % mapVector.at(selectedMapIdx)->getMapWidth();
 
-	else if(*x >= mapArray[selectedMap]->getMapWidth())
-		*x = *x % mapArray[selectedMap]->getMapWidth();
+	else if(*x >= mapVector.at(selectedMapIdx)->getMapWidth())
+		*x = *x % mapVector.at(selectedMapIdx)->getMapWidth();
 
 	return true;
 }
@@ -190,7 +181,7 @@ bool MapFrame::customSdlEvtHandler(SDL_Event &e)
 						setSeaRenderMode(WITH_SEA);
 
 					// up = +1 sea_Level when with_sea
-					else if(!(e.key.keysym.mod & KMOD_SHIFT) && mapArray[selectedMap]->getSeaLevel() + 1 <= mapArray[selectedMap]->getHighestH())
+					else if(!(e.key.keysym.mod & KMOD_SHIFT) && mapVector.at(selectedMapIdx)->getSeaLevel() + 1 <= mapVector.at(selectedMapIdx)->getHighestH())
 						increaseSeaLevel();
 				break;
 
@@ -200,7 +191,7 @@ bool MapFrame::customSdlEvtHandler(SDL_Event &e)
 						setLandAndSeaRenderModes(FIXED, NO_SEA);
 
 					// down = -1 seaLevel when with_sea
-					else if(!(e.key.keysym.mod & KMOD_SHIFT) && mapArray[selectedMap]->getSeaLevel() - 1 >= 0 && mapTexture->getSeaRenderMode() == WITH_SEA)
+					else if(!(e.key.keysym.mod & KMOD_SHIFT) && mapVector.at(selectedMapIdx)->getSeaLevel() - 1 >= 0 && mapTexture->getSeaRenderMode() == WITH_SEA)
 						decreaseSeaLevel();
 				break;
 
@@ -220,7 +211,7 @@ bool MapFrame::customSdlEvtHandler(SDL_Event &e)
 				break;
 
 				case SDLK_r:
-					noiseArray[selectedNoise]->reset();
+					noiseVector[selectedNoiseIdx]->reset();
 					runNoise();
 				break;
 
@@ -263,7 +254,7 @@ bool MapFrame::customSdlEvtHandler(SDL_Event &e)
 				int x, y;
 				
 				if(mapPosFromMouse(&x, &y))
-					EvtAggr::publish<WalkWindowOpened>(WalkWindowOpened(mapArray[selectedMap], x, y));
+					EvtAggr::publish<WalkWindowOpened>(WalkWindowOpened(mapVector.at(selectedMapIdx), x, y));
 			}
 
 			if(e.button.button == SDL_BUTTON_LEFT)
@@ -417,9 +408,9 @@ bool MapFrame::customSdlEvtHandler(SDL_Event &e)
 
 void MapFrame::selectMap(int i)
 {
-	selectedMap = i;
+	selectedMapIdx = i;
 
-	mapTexture->setMapAndUpdate(mapArray[selectedMap]);
+	mapTexture->setMapAndUpdate(mapVector.at(selectedMapIdx));
 
 	if(frameTexture->getWidth() != mapTexture->getWidth()
 		 || frameTexture->getHeight() != mapTexture->getHeight())
@@ -427,8 +418,8 @@ void MapFrame::selectMap(int i)
 		frameTexture = std::make_shared<SdlTexture>(SDL_CreateTexture(parentUiManager->getRenderer(), 
 																		SDL_PIXELFORMAT_RGBA8888, 
 																		SDL_TEXTUREACCESS_TARGET, 
-																		mapArray[selectedMap]->getMapWidth(), 
-																		mapArray[selectedMap]->getMapHeight()));
+																		mapVector.at(selectedMapIdx)->getMapWidth(), 
+																		mapVector.at(selectedMapIdx)->getMapHeight()));
 		
 		setUiObjectTexture(frameTexture);
 	}
@@ -443,17 +434,17 @@ void MapFrame::selectMap(int i)
 
 void MapFrame::selectNoise(int i)
 {
-	selectedNoise = i;
+	selectedNoiseIdx = i;
 
 	publishMapInfo();
 }
 
 void MapFrame::normalizeMap(int n)
 {
-	mapArray[selectedMap]->normalize(n);
+	mapVector.at(selectedMapIdx)->normalize(n);
 	
 	// reset sea level after normalization
-	mapArray[selectedMap]->setSeaLevel((mapArray[selectedMap]->getHighestH() / 2 ) - 1);
+	mapVector.at(selectedMapIdx)->setSeaLevel((mapVector.at(selectedMapIdx)->getHighestH() / 2 ) - 1);
 	
 	mapTexture->update();
 
@@ -462,7 +453,7 @@ void MapFrame::normalizeMap(int n)
 
 void MapFrame::increaseSeaLevel()
 {
-	mapArray[selectedMap]->increaseSeaLevel();
+	mapVector.at(selectedMapIdx)->increaseSeaLevel();
 
 	mapTexture->update();
 
@@ -471,7 +462,7 @@ void MapFrame::increaseSeaLevel()
 
 void MapFrame::decreaseSeaLevel()
 {
-	mapArray[selectedMap]->decreaseSeaLevel();
+	mapVector.at(selectedMapIdx)->decreaseSeaLevel();
 
 	mapTexture->update();
 
@@ -502,12 +493,12 @@ void MapFrame::setLandAndSeaRenderModes(int modeLand, int modeSea)
 
 void MapFrame::publishMapInfo()
 {
-	EvtAggr::publish<MapInfoUpdate>(MapInfoUpdate(noiseArray[selectedNoise]->name, 
-												selectedMap + 1, 
-												mapArray[selectedMap]->getSeaLevel(), 
-												mapArray[selectedMap]->getHighestH(), 
-												mapArray[selectedMap]->getLowestH(), 
-												noiseArray[selectedNoise]->getPercentComplete()));
+	EvtAggr::publish<MapInfoUpdate>(MapInfoUpdate(noiseVector[selectedNoiseIdx]->name, 
+												selectedMapIdx + 1, 
+												mapVector.at(selectedMapIdx)->getSeaLevel(), 
+												mapVector.at(selectedMapIdx)->getHighestH(), 
+												mapVector.at(selectedMapIdx)->getLowestH(), 
+												noiseVector[selectedNoiseIdx]->getPercentComplete()));
 }
 
 

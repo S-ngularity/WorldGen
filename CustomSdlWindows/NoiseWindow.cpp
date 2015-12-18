@@ -18,18 +18,19 @@
 #include <sstream>
 #include <string>
 
-NoiseWindow::NoiseWindow(Map* mapArr[], int num) : 
+NoiseWindow::NoiseWindow() : 
 	SdlWindow(	"WorldGen", 20, 40, 
 				SCREEN_WIDTH, SCREEN_HEIGHT, // window size 
 				SCREEN_WIDTH, SCREEN_HEIGHT, // window resolution
 				SDL_WINDOW_RESIZABLE, SDL_RENDERER_ACCELERATED | SDL_RENDERER_TARGETTEXTURE) // superclass window constructor
 {
+	mapVector = {std::make_shared<Map>(1025, 1025), 
+				std::make_shared<Map>(1025, 1025), 
+				std::make_shared<Map>(1025, 1025)};
+
 	EvtAggr::subscribe<UiCode>( [&](UiCode &c){ customUiEventHandler(c); } );
 
 	EvtAggr::subscribe<MapInfoUpdate>( [&](MapInfoUpdate &i){ updateMapInfo(i); } );
-
-	mapArray = mapArr;
-	numMaps = num;
 
 	SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "nearest");
 
@@ -100,10 +101,11 @@ void NoiseWindow::createGui()
 	std::shared_ptr<SdlTexture> standardBtTexture = MyUtils::loadTexture(getRenderer(), "Resources\\btSprite.png");
 	std::shared_ptr<SdlTexture> sidebarBg = createDrawnTexture(SIDEBAR_WIDTH, windowUiManager->getHeight(), 0, 126, 126, 255);
 
-	mapFrame = new MapFrame(0, 0, windowUiManager->getWidth() - SIDEBAR_WIDTH, windowUiManager->getHeight(), mapArray, numMaps);
+	mapFrame = new MapFrame(0, 0, windowUiManager->getWidth() - SIDEBAR_WIDTH, windowUiManager->getHeight(), mapVector);
 
 	UiPanel *sidebar = new UiPanel(windowUiManager->getWidth() - SIDEBAR_WIDTH, 0, sidebarBg);
 
+	// Text
 	mapInfoText = new UiLabel(30, 150, "", 18, 175, 0, 0);
 	sidebar->addChild(mapInfoText);
 	
@@ -142,6 +144,7 @@ void NoiseWindow::createGui()
 									standardBtTexture, 
 									[&](){ mapFrame->selectNoise(1); } ));
 
+	// Run button
 	sidebar->addChild(new UiButton(	30, windowUiManager->getHeight() - 60, 
 									150, 30, 
 									new UiLabel(0, 0, "RUN", 22, 235, 235, 235), 
@@ -220,6 +223,7 @@ void NoiseWindow::createGui()
 	mapFrame->addChild(sidebar);
 	windowUiManager->addChild(mapFrame);
 
+	// must happen after the MapFrame has been added to UiManager (so it has a parentUiManager)
 	mapFrame->init();
 }
 

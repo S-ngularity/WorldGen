@@ -4,6 +4,7 @@
 #include "SdlClasses/SdlWindow.h"
 
 #include <memory>
+#include <vector>
 
 #include <SDL2/SDL.h>
 
@@ -22,7 +23,7 @@ class NoiseWindow : public SdlWindow
 {
 	private:
 		int numMaps;
-		Map* *mapArray;
+		std::vector<std::shared_ptr<Map>> mapVector;
 
 		UiLabel *mapInfoText;
 		UiLabel *noiseInfoText;
@@ -36,7 +37,7 @@ class NoiseWindow : public SdlWindow
 		std::shared_ptr<SdlTexture> createDrawnTexture(int width, int height, int r, int g, int b, int a);
 
 	public:
-		NoiseWindow(Map* mapArr[], int num);
+		NoiseWindow();
 		~NoiseWindow();
 };
 

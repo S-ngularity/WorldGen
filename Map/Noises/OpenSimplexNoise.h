@@ -1,6 +1,8 @@
 #ifndef OSIMPLEXNOISE
 #define OSIMPLEXNOISE
 
+#include <memory>
+
 #include "../Noises/Noise.h"
 #include "OpenSimplexC/open-simplex-noise.h"
 
@@ -14,7 +16,8 @@ class Map;
 class OpenSimplexNoise : public Noise
 {
 	private:
-		Map *map;
+		std::weak_ptr<Map> map;
+		std::shared_ptr<Map> actualMap;
 
 		State state;
 
@@ -42,12 +45,12 @@ class OpenSimplexNoise : public Noise
 			 unsigned char	*imageData);
 
 	public:
-		OpenSimplexNoise(Map *theMap, int oct, double freq, double pers, double fdiv);
+		OpenSimplexNoise(std::weak_ptr<Map> theMap, int oct, double freq, double pers, double fdiv);
 		~OpenSimplexNoise();
 
 		void handleEvtCode(UiCode &c);
 
-		void setMap(Map *m);
+		void setMap(std::weak_ptr<Map> m);
 
 		void reset();
 

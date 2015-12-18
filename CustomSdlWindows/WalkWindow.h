@@ -18,7 +18,7 @@ const int WALK_SCREEN_SIZE = (walkTileSize * (walkTileNum*2 + 1));
 class WalkWindow : public SdlWindow
 {
 	private:
-		Map *worldMap;
+		std::weak_ptr<Map> worldMap;
 		std::shared_ptr<SdlTexture> walkTexture;
 		
 		int walkX, walkY;
@@ -28,10 +28,10 @@ class WalkWindow : public SdlWindow
 		bool customSdlEvtHandler(SDL_Event& e);
 
 	public:
-		WalkWindow(Map *theMap);
+		WalkWindow();
 		
 		void setPos(int x, int y);
-		void setMap(Map *m);
+		void setMap(std::weak_ptr<Map> m);
 };
 
 #endif

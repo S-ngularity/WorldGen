@@ -4,11 +4,13 @@
 #include "Map/Noises/Noise.h"
 
 #include <string>
+#include <memory>
 
 class DiamSqNoise : public Noise
 {
 	private:
-		Map *map;
+		std::weak_ptr<Map> map;
+		std::shared_ptr<Map> actualMap;
 
 		State state;
 
@@ -32,9 +34,9 @@ class DiamSqNoise : public Noise
 			 unsigned char	*imageData);
 
 	public:
-		DiamSqNoise(Map *theMap);
+		DiamSqNoise(std::weak_ptr<Map> theMap);
 
-		void setMap(Map *m);
+		void setMap(std::weak_ptr<Map> m);
 
 		void reset();
 

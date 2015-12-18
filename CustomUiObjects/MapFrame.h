@@ -4,6 +4,7 @@
 #include "Ui/UiObject.h"
 
 #include <memory>
+#include <vector>
 
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_ttf.h>
@@ -29,14 +30,11 @@ class MapFrame : public UiObject
 		std::unique_ptr<MapTexture> mapTexture;
 		std::shared_ptr<SdlTexture> frameTexture;
 
-		int numMaps;
-		Map* *mapArray;
+		int selectedMapIdx;
+		int selectedNoiseIdx;
 
-		static const int numNoises = 2;
-		Noise* noiseArray[numNoises];
-
-		int selectedMap;
-		int selectedNoise;
+		std::vector<std::shared_ptr<Map>> &mapVector;
+		std::vector<std::unique_ptr<Noise>> noiseVector;
 
 		UiLabel *mouseTooltip;
 
@@ -58,8 +56,7 @@ class MapFrame : public UiObject
 		void preRenderProcedure();
 
 	public:
-		MapFrame(int x, int y, int w, int h, Map* mapArr[], int num);
-		~MapFrame();
+		MapFrame(int x, int y, int w, int h, std::vector<std::shared_ptr<Map>> &mapVec);
 
 		// Initializes the noises/textures and then publish a MapUpdateInfo
 		// Should only be called after MapFrame is granted to have a parentUiManager

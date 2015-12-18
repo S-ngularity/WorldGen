@@ -12,19 +12,17 @@
 
 using namespace std;
 
-WalkWindow::WalkWindow(Map *theMap) : 
+WalkWindow::WalkWindow() : 
 	SdlWindow(	"WorldGen Walker", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 
 				WALK_SCREEN_SIZE, WALK_SCREEN_SIZE, // window size
 				WALK_SCREEN_SIZE, WALK_SCREEN_SIZE, // window resolution
 				SDL_WINDOW_RESIZABLE | SDL_WINDOW_HIDDEN, 
 				SDL_RENDERER_ACCELERATED | SDL_RENDERER_TARGETTEXTURE), 
-	worldMap(theMap), 
 	walkTexture(std::make_shared<SdlTexture>(SDL_CreateTexture(getRenderer(), 
 												SDL_PIXELFORMAT_RGBA8888, 
 												SDL_TEXTUREACCESS_TARGET, 
 												WALK_SCREEN_SIZE,
-												WALK_SCREEN_SIZE), 
-											WALK_SCREEN_SIZE, WALK_SCREEN_SIZE))
+												WALK_SCREEN_SIZE)))
 {
 	hide(); // set superclass settings to hidden window state to sync with SDL_WINDOW_HIDDEN 
 	
@@ -36,19 +34,13 @@ WalkWindow::WalkWindow(Map *theMap) :
 
 	SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "nearest");
 
-	if(worldMap == NULL)
-		std::cout << "WalkWindow constructed with a NULL worldMap." << std::endl;
-
-	else
-		updateWalkTex();
-
 	windowUiManager->addChild(new UiObject(0, 0, walkTexture, nullptr));
 }
 
 void WalkWindow::setPos(int x, int y)
 {
-	if(worldMap == NULL)
-		std::cout << "WalkWindow::setPos() called on WalkWindow with a NULL worldMap." << std::endl;
+	if(worldMap.expired())
+		std::cout << "WalkWindow::setPos() called with an expired worldMap." << std::endl;
 
 	//else if(!worldMap->isPosInsideNoWrap(x, y))
 	//		std::cout << "WalkWindow::setPos() called with out-of-bounds x and/or y: x = " << x << " y = " << y << "." << std::endl;
@@ -62,23 +54,25 @@ void WalkWindow::setPos(int x, int y)
 	}
 }
 
-void WalkWindow::setMap(Map *m)
+void WalkWindow::setMap(std::weak_ptr<Map> m)
 {
-	worldMap = m;
-
-	if(m == NULL)
-		std::cout << "WalkWindow::setMap() called with a NULL argument Map *m." << std::endl;
+	if(m.expired())
+		std::cout << "WalkWindow::setMap() called with an expired argument Map *m." << std::endl;
 
 	else
+	{
+		worldMap = m;
 		setPos(0, 0);
+	}
 }
 
 bool WalkWindow::customSdlEvtHandler(SDL_Event& e)
 {
 	bool returnValue = false;
+	auto actualMap = worldMap.lock();
 
-	if(worldMap == NULL)
-		std::cout << "WalkWindow::customSdlEvtHandler() called on WalkWindow with a NULL worldMap." << std::endl;
+	if(actualMap == nullptr)
+		std::cout << "WalkWindow::customSdlEvtHandler() called with a NULL actualMap." << std::endl;
 
 	else if(hasKeyboardFocus())
 	{
@@ -96,27 +90,27 @@ bool WalkWindow::customSdlEvtHandler(SDL_Event& e)
 						if(walkY - 1 < 0)
 							walkY = 0;
 
-						else if(worldMap->getH(walkX, walkY - 1) > worldMap->getSeaLevel())
+						else if(actualMap->getH(walkX, walkY - 1) > actualMap->getSeaLevel())
 							walkY--;
 						updateScreen = true;
 					break;
 
 					case SDLK_DOWN:
 					case SDLK_s:
-						if(walkY + 1 >= worldMap->getMapHeight())
-							walkY = worldMap->getMapHeight() - 1;
+						if(walkY + 1 >= actualMap->getMapHeight())
+							walkY = actualMap->getMapHeight() - 1;
 
-						else if(worldMap->getH(walkX, walkY + 1) > worldMap->getSeaLevel())
+						else if(actualMap->getH(walkX, walkY + 1) > actualMap->getSeaLevel())
 							walkY++;
 						updateScreen = true;
 					break;
 
 					case SDLK_LEFT:
 					case SDLK_a:
-						if(worldMap->getH(walkX - 1, walkY) > worldMap->getSeaLevel())
+						if(actualMap->getH(walkX - 1, walkY) > actualMap->getSeaLevel())
 						{
 							if(walkX - 1 < 0)
-								walkX = worldMap->getMapWidth() - 1;
+								walkX = actualMap->getMapWidth() - 1;
 							else
 								walkX--;
 						}
@@ -126,9 +120,9 @@ bool WalkWindow::customSdlEvtHandler(SDL_Event& e)
 
 					case SDLK_RIGHT:
 					case SDLK_d:
-						if(worldMap->getH(walkX + 1, walkY) > worldMap->getSeaLevel())
+						if(actualMap->getH(walkX + 1, walkY) > actualMap->getSeaLevel())
 						{
-							if(walkX + 1 >= worldMap->getMapWidth())
+							if(walkX + 1 >= actualMap->getMapWidth())
 								walkX = 0;
 							
 							else
@@ -169,9 +163,10 @@ bool WalkWindow::customSdlEvtHandler(SDL_Event& e)
 
 void WalkWindow::updateWalkTex()
 {
-	if(worldMap == NULL)
+	auto actualMap = worldMap.lock();
+	if(actualMap == nullptr)
 	{
-		std::cout << "WalkWindow::updateWalkTex() called on WalkWindow with a NULL worldMap." << std::endl;
+		std::cout << "WalkWindow::updateWalkTex() called with a NULL actualMap." << std::endl;
 		return;
 	}
 
@@ -192,30 +187,30 @@ void WalkWindow::updateWalkTex()
 			if(x == walkX && y == walkY)
 				SDL_SetRenderDrawColor(getRenderer(), 255, 0, 0, 255);
 			
-			else if(worldMap->isPosInsideWrap(x, y))
+			else if(actualMap->isPosInsideWrap(x, y))
 			{
-				if(worldMap->getH(x, y) <= worldMap->getSeaLevel())// && worldMap->getSeaLevel() >= worldMap->getH(walkX, walkY) - 2)
+				if(actualMap->getH(x, y) <= actualMap->getSeaLevel())// && actualMap->getSeaLevel() >= actualMap->getH(walkX, walkY) - 2)
 					SDL_SetRenderDrawColor(getRenderer(), SEA);
 
-				else if(worldMap->getH(x, y) < worldMap->getH(walkX, walkY) - 2)
+				else if(actualMap->getH(x, y) < actualMap->getH(walkX, walkY) - 2)
 					SDL_SetRenderDrawColor(getRenderer(), DOWN); // CANT SEE DOWN
 
-				else if(worldMap->getH(x, y) == worldMap->getH(walkX, walkY) - 2)
+				else if(actualMap->getH(x, y) == actualMap->getH(walkX, walkY) - 2)
 					SDL_SetRenderDrawColor(getRenderer(), TWODOWN); // TWO LeVeLS DOWN
 
-				else if(worldMap->getH(x, y) == worldMap->getH(walkX, walkY) - 1)
+				else if(actualMap->getH(x, y) == actualMap->getH(walkX, walkY) - 1)
 					SDL_SetRenderDrawColor(getRenderer(), ONEDOWN); // ONE LeVeL DOWN
 
-				else if(worldMap->getH(x, y) == worldMap->getH(walkX, walkY))
+				else if(actualMap->getH(x, y) == actualMap->getH(walkX, walkY))
 					SDL_SetRenderDrawColor(getRenderer(), GROUND); // GROUND 131, 166, 71
 
-				else if(worldMap->getH(x, y) == worldMap->getH(walkX, walkY) + 1)
+				else if(actualMap->getH(x, y) == actualMap->getH(walkX, walkY) + 1)
 					SDL_SetRenderDrawColor(getRenderer(), ONEUP); // ONE LeVeL UP
 
-				else if(worldMap->getH(x, y) == worldMap->getH(walkX, walkY) + 2)
+				else if(actualMap->getH(x, y) == actualMap->getH(walkX, walkY) + 2)
 					SDL_SetRenderDrawColor(getRenderer(), TWOUP); // ONE LeVeL UP
 
-				else if(worldMap->getH(x, y) > worldMap->getH(walkX, walkY) + 2)
+				else if(actualMap->getH(x, y) > actualMap->getH(walkX, walkY) + 2)
 					SDL_SetRenderDrawColor(getRenderer(), UP); // CANT SEE UP
 			}
 
