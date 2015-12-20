@@ -1,6 +1,7 @@
 #ifndef WALKWINDOW
 #define WALKWINDOW
 
+#include "Map/Map.h"
 #include "SdlClasses/SdlWindow.h"
 #include "SdlClasses/SdlTexture.h"
 
@@ -9,8 +10,6 @@
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_ttf.h>
 
-class Map;
-
 #define walkTileNum 15
 #define walkTileSize 20
 const int WALK_SCREEN_SIZE = (walkTileSize * (walkTileNum*2 + 1));
@@ -18,7 +17,8 @@ const int WALK_SCREEN_SIZE = (walkTileSize * (walkTileNum*2 + 1));
 class WalkWindow : public SdlWindow
 {
 	private:
-		std::weak_ptr<Map> worldMap;
+		Map worldMap;
+
 		std::shared_ptr<SdlTexture> walkTexture;
 		
 		int walkX, walkY;
@@ -28,10 +28,9 @@ class WalkWindow : public SdlWindow
 		bool customSdlEvtHandler(SDL_Event& e);
 
 	public:
-		WalkWindow();
+		WalkWindow(Map theMap, int x, int y);
 		
 		void setPos(int x, int y);
-		void setMap(std::weak_ptr<Map> m);
 };
 
 #endif

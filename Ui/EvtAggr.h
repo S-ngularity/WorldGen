@@ -48,15 +48,15 @@ class EvtAggr
 		}
 
 		template<typename EventType>
-		static void subscribe(std::function<void(EventType &evt)> action)
+		static long subscribe(std::function<void(EventType &evt)> action)
 		{
-			getEvent<EventType>().subscribe(action);
+			return getEvent<EventType>().subscribe(action);
 		}
 
 		template<typename EventType>
-		static void unsubscribe(std::function<void(EventType &evt)> action)
+		static void unsubscribe(long id)
 		{
-			getEvent<EventType>().unsubscribe(action);
+			getEvent<EventType>().unsubscribe(id);
 		}
 };
 

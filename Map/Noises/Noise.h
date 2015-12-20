@@ -19,10 +19,6 @@ class Noise
 		Noise(std::string n) : name(n) {};
 		virtual ~Noise() {};
 		
-		virtual void setMap(std::weak_ptr<Map> m) = 0;
-
-		virtual void reset() = 0;
-		
 		virtual void runOnce() = 0;
 
 		virtual int getPercentComplete() = 0;

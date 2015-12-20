@@ -12,34 +12,35 @@
 
 using namespace std;
 
-OpenSimplexNoise::OpenSimplexNoise(std::weak_ptr<Map> theMap, int oct, double freq, double pers, double fdiv) : 
+OpenSimplexNoise::OpenSimplexNoise(Map &theMap, int oct, double freq, double pers, double fdiv) : 
 	Noise("OpenSimplex"), 
+	map(theMap), 
 	alreadySaved(false)
 {
-	EvtAggr::subscribe<UiCode>( [&](UiCode &c){ handleEvtCode(c); } );
-	EvtAggr::subscribe<NoiseInfoRequest*>( [&](NoiseInfoRequest* &n){ n->setInfo(octaves, frequency, persistence, freqDiv); } );
+	subscribeTkUiCode = EvtAggr::subscribe<UiCode>( [&](UiCode &c){ handleEvtCode(c); } );
+	subscribeTkNoiseInfoRequest = EvtAggr::subscribe<NoiseInfoRequest*>( [&](NoiseInfoRequest* &n){ n->setInfo(octaves, frequency, persistence, freqDiv); } );
 	//srand(time(NULL));
-
-	if(theMap.expired())
-		std::cout << "OpenSimplexNoise::OpenSimplexNoise() called with an expired argument theMap." << std::endl;
-	else
-	{
-		map = theMap;
-		reset();
-	}
 
 	octaves = oct;
 	frequency = freq;
 	persistence = pers;
 	freqDiv = fdiv;
 
+	state = running;
+	doneIts = 0;
+	totalIts = map.getMapHeight();
+	nowX = 0;
+	nowY = 0;
+
+	open_simplex_noise(rand(), &context);
+
 	EvtAggr::publish<UiCode>(UiCode(UIEVT_NOISEINFOUPDATED));
 }
 
 OpenSimplexNoise::~OpenSimplexNoise()
 {
-	EvtAggr::unsubscribe<UiCode>( [&](UiCode &c){ handleEvtCode(c); } );
-	EvtAggr::unsubscribe<NoiseInfoRequest*>( [&](NoiseInfoRequest* &n){ n->setInfo(octaves, frequency, persistence, freqDiv); } );
+	EvtAggr::unsubscribe<UiCode>(subscribeTkUiCode);
+	EvtAggr::unsubscribe<NoiseInfoRequest*>(subscribeTkNoiseInfoRequest);
 
 	open_simplex_noise_free(context);
 }
@@ -88,38 +89,6 @@ void OpenSimplexNoise::handleEvtCode(UiCode &c)
 
 }
 
-void OpenSimplexNoise::setMap(std::weak_ptr<Map> m)
-{
-	if(m.expired())
-	{
-		std::cout << "OpenSimplexNoise::setMap() called with an expired argument m." << std::endl;
-		map.reset();
-
-		return;
-	}
-
-	map = m;
-	reset();
-}
-
-void OpenSimplexNoise::reset()
-{
-	actualMap = map.lock();
-	if(actualMap == nullptr)
-	{
-		std::cout << "OpenSimplexNoise::reset() called with a NULL actualMap." << std::endl;
-		return;
-	}
-
-	state = running;
-	doneIts = 0;
-	totalIts = actualMap->getMapHeight();
-	nowX = 0;
-	nowY = 0;
-
-	open_simplex_noise(rand(), &context);
-}
-
 int OpenSimplexNoise::getPercentComplete()
 {
 	return 100 * ((float)doneIts / totalIts);
@@ -129,22 +98,16 @@ void OpenSimplexNoise::runOnce()
 {
 	if(state != done)
 	{
-		if(actualMap == nullptr)
-		{
-			std::cout << "OpenSimplexNoise::runOnce() called with a NULL actualMap." << std::endl;
-			return;
-		}
-
 		if(doneIts == 0)
 		{
-			actualMap->setHighestH(0);
-			actualMap->setLowestH(MAX_H);
-			actualMap->setSeaLevel(SEA_LEVEL);
+			map.setHighestH(0);
+			map.setLowestH(MAX_H);
+			map.setSeaLevel(SEA_LEVEL);
 		}
 
-		if(nowY < actualMap->getMapHeight()) // uma linha por chamada
+		if(nowY < map.getMapHeight()) // uma linha por chamada
 		{
-			while(nowX < actualMap->getMapWidth())
+			while(nowX < map.getMapWidth())
 			{
 				double value = 0;
 				double amp = 1, maxAmp = 0;
@@ -153,13 +116,13 @@ void OpenSimplexNoise::runOnce()
 				//*
 				double pi = 3.14159265359;
 
-				int x1 = 0, x2 = actualMap->getMapWidth();
-				double s = (double)nowX / actualMap->getMapWidth();
+				int x1 = 0, x2 = map.getMapWidth();
+				double s = (double)nowX / map.getMapWidth();
 				double dx = x2 - x1;
 				
 				/*
-				int y1 = 0, y2 = actualMap->getMapHeight();
-				double t = (double)nowY / actualMap->getMapHeight();
+				int y1 = 0, y2 = map.getMapHeight();
+				double t = (double)nowY / map.getMapHeight();
 				double dy = y2 - y1;//*/
 
 				double nx = x1 + cos(s * 2 * pi) * dx / (2 * pi);
@@ -188,13 +151,13 @@ void OpenSimplexNoise::runOnce()
 				value /= maxAmp;
 
 				value *= MAX_H;
-				actualMap->setH(nowX, nowY, value);
+				map.setH(nowX, nowY, value);
 
-				if(value > actualMap->getHighestH())
-					actualMap->setHighestH(value);
+				if(value > map.getHighestH())
+					map.setHighestH(value);
 
-				if(value < actualMap->getLowestH())
-					actualMap->setLowestH(value);
+				if(value < map.getLowestH())
+					map.setLowestH(value);
 
 				nowX++;
 			}
@@ -212,30 +175,29 @@ void OpenSimplexNoise::checkIfFinished()
 {
 	if(doneIts == totalIts && state == running)
 	{
-		actualMap->normalize(MAX_H);
+		map.normalize(MAX_H);
 //*
 		if(!alreadySaved) // SALVAR UMA VEZ RESULTADO EM TGA
 		{
 			unsigned char *imageData;
-			imageData = (unsigned char*)malloc(sizeof(unsigned char) * actualMap->getMapWidth() * actualMap->getMapHeight());
+			imageData = (unsigned char*)malloc(sizeof(unsigned char) * map.getMapWidth() * map.getMapHeight());
 
-			for(int y = 0; y < actualMap->getMapHeight(); y++)
-				for(int x = 0; x < actualMap->getMapWidth(); x++)
+			for(int y = 0; y < map.getMapHeight(); y++)
+				for(int x = 0; x < map.getMapWidth(); x++)
 				{
-					if(actualMap->getH(x, y) <= actualMap->getSeaLevel())
-						imageData[(actualMap->getMapHeight() - 1 - y) * actualMap->getMapWidth() + x] = 0;//(unsigned char)(((float)(actualMap->getSeaLevel() - 1) / MAX_H) * 256.0);
+					if(map.getH(x, y) <= map.getSeaLevel())
+						imageData[(map.getMapHeight() - 1 - y) * map.getMapWidth() + x] = 0;//(unsigned char)(((float)(map.getSeaLevel() - 1) / MAX_H) * 256.0);
 
 					else
-						imageData[(actualMap->getMapHeight() - 1 - y) * actualMap->getMapWidth() + x] = (unsigned char)((int)((actualMap->getH(x, y) - actualMap->getSeaLevel()) / (float)(MAX_H - actualMap->getSeaLevel()) * 255.0)); //(unsigned char)((int)(((float)actualMap->getH(x, y) / MAX_H) * 256.0));
+						imageData[(map.getMapHeight() - 1 - y) * map.getMapWidth() + x] = (unsigned char)((int)((map.getH(x, y) - map.getSeaLevel()) / (float)(MAX_H - map.getSeaLevel()) * 255.0)); //(unsigned char)((int)(((float)map.getH(x, y) / MAX_H) * 256.0));
 				}
 
-			tgaSave("t.tga", actualMap->getMapWidth(), actualMap->getMapHeight(), 8, imageData);
+			tgaSave("t.tga", map.getMapWidth(), map.getMapHeight(), 8, imageData);
 
 			//alreadySaved = true;
 		}//*/
 
 		state = done;
-		actualMap = nullptr;
 	}
 }
 

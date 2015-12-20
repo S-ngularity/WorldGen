@@ -3,30 +3,24 @@
 
 #include <iostream>
 
-MapTexture::MapTexture(SDL_Renderer *r, std::weak_ptr<Map> theMap)
+MapTexture::MapTexture(SDL_Renderer *r, Map &theMap) : 
+	context(r), 
+	seaRenderMode(NO_SEA), 
+	landRenderMode(FIXED)
 {
-	context = r;
-	worldMap = theMap;
-	seaRenderMode = NO_SEA;
-	landRenderMode = FIXED;
+	if(r == NULL)
+		std::cout << "MapTexture::MapTexture() called with a NULL argument SDL_Renderer *r." << std::endl;
 
-	auto actualMap = worldMap.lock();
-	if(actualMap == nullptr)
-		std::cout << "MapTexture::MapTexture() called with a NULL actualMap." << std::endl;
+	mapPixels = new Uint32[theMap.getMapWidth() * theMap.getMapHeight()];
 
-	else
-	{
-		mapPixels = new Uint32[actualMap->getMapWidth() * actualMap->getMapHeight()];
+	SDL_Texture *temp = SDL_CreateTexture(context, 
+											SDL_PIXELFORMAT_RGBA8888, 
+											SDL_TEXTUREACCESS_STREAMING, 
+											theMap.getMapWidth(), theMap.getMapHeight());
 
-		SDL_Texture *temp = SDL_CreateTexture(context, 
-												SDL_PIXELFORMAT_RGBA8888, 
-												SDL_TEXTUREACCESS_STREAMING, 
-												actualMap->getMapWidth(), actualMap->getMapHeight());
+	setTexture(temp, theMap.getMapWidth(), theMap.getMapHeight());
 
-		setTexture(temp, actualMap->getMapWidth(), actualMap->getMapHeight());
-
-		update();
-	}
+	update(theMap);
 }
 
 MapTexture::~MapTexture()
@@ -34,59 +28,37 @@ MapTexture::~MapTexture()
 	delete mapPixels;
 }
 
-void MapTexture::setMapAndUpdate(std::weak_ptr<Map> theMap)
+void MapTexture::update(Map &theMap)
 {
-	auto actualMap = worldMap.lock();
-	if(actualMap == nullptr)
-		std::cout << "MapTexture::setMapAndUpdate() called with a NULL actualMap." << std::endl;
-
-	int oldW = actualMap->getMapWidth();
-	int oldH = actualMap->getMapHeight();
-
-	worldMap = theMap;
-
-	actualMap = worldMap.lock();
-	if(actualMap == nullptr)
-		std::cout << "MapTexture::setMapAndUpdate() called with a NULL actualMap (from argument theMap)." << std::endl;
-
-	if(actualMap->getMapWidth() != oldW || actualMap->getMapHeight() != oldH)
+	if(theMap.getMapWidth() != getWidth() || theMap.getMapHeight() != getHeight())
 	{
 		delete mapPixels;
-		mapPixels = new Uint32[actualMap->getMapWidth() * actualMap->getMapHeight()];
+		mapPixels = new Uint32[theMap.getMapWidth() * theMap.getMapHeight()];
 
 		SDL_Texture *temp = SDL_CreateTexture(context, 
 											SDL_PIXELFORMAT_RGBA8888, 
 											SDL_TEXTUREACCESS_STREAMING, 
-											actualMap->getMapWidth(), actualMap->getMapHeight());
+											theMap.getMapWidth(), theMap.getMapHeight());
 
-		setTexture(temp, actualMap->getMapWidth(), actualMap->getMapHeight());
+		setTexture(temp, theMap.getMapWidth(), theMap.getMapHeight());
 	}
-
-	update();
-}
-
-void MapTexture::update()
-{
-	auto actualMap = worldMap.lock();
-	if(actualMap == nullptr)
-		std::cout << "MapTexture::update() called with a NULL actualMap." << std::endl;
 
 	Uint32 *pixelIt = mapPixels;
 	Uint8 r, g, b, a = 255;
 	
 	int dashedLineCounter = -1;
 
-	for(int y = 0; y < actualMap->getMapHeight(); y++)
+	for(int y = 0; y < theMap.getMapHeight(); y++)
 	{
 		// Count pixels of the dashed line
 		++dashedLineCounter;
 		if(dashedLineCounter == 30)
 			dashedLineCounter = 0;
 
-		for(int x = 0; x < actualMap->getMapWidth(); x++)
+		for(int x = 0; x < theMap.getMapWidth(); x++)
 		{
 			// Color map limits
-			if(x == 0 && (y == 0 || y == actualMap->getMapHeight()-1))
+			if(x == 0 && (y == 0 || y == theMap.getMapHeight()-1))
 			{
 				r = 0;
 				g = 255;
@@ -102,7 +74,7 @@ void MapTexture::update()
 			}
 
 			// Sea
-			else if(seaRenderMode == WITH_SEA && actualMap->getH(x, y) <= actualMap->getSeaLevel())
+			else if(seaRenderMode == WITH_SEA && theMap.getH(x, y) <= theMap.getSeaLevel())
 			{
 				r = 25;
 				g = 45;
@@ -114,40 +86,40 @@ void MapTexture::update()
 			{
 				Uint8 baseColor, hColor;
 				
-				if(landRenderMode == VARYING_HIGHEST) // BRANCO VARIAVEL actualMap->getSeaLevel() até HighestH
+				if(landRenderMode == VARYING_HIGHEST) // BRANCO VARIAVEL theMap.getSeaLevel() até HighestH
 				{
 					baseColor = 100;
 					
-					int varBy = (actualMap->getHighestH() - actualMap->getSeaLevel());
+					int varBy = (theMap.getHighestH() - theMap.getSeaLevel());
 					if(varBy == 0) varBy = 1;
 					
 					float multiplierColor = (float)(255 - baseColor) / varBy;
 					
-					hColor = (actualMap->getH(x, y) - actualMap->getSeaLevel()) * multiplierColor;
+					hColor = (theMap.getH(x, y) - theMap.getSeaLevel()) * multiplierColor;
 				}
 
-				else if(landRenderMode == VARYING_MAX) // BRANCO VARIAVEL actualMap->getSeaLevel() até MAX_H
+				else if(landRenderMode == VARYING_MAX) // BRANCO VARIAVEL theMap.getSeaLevel() até MAX_H
 				{
 					baseColor = 100;
 					
-					int varBy = (MAX_H - actualMap->getSeaLevel());
+					int varBy = (MAX_H - theMap.getSeaLevel());
 					if(varBy == 0) varBy = 1;
 					
 					float multiplierColor = (float)(255 - baseColor) / varBy;
 					
-					hColor = (actualMap->getH(x, y) - actualMap->getSeaLevel()) * multiplierColor;
+					hColor = (theMap.getH(x, y) - theMap.getSeaLevel()) * multiplierColor;
 				}
 
 				else if(landRenderMode == FIXED) // BRANCO FIXO
 				{
 					baseColor = 0;
 					
-					int varBy = MAX_H; //actualMap->getHighestH();
+					int varBy = MAX_H; //theMap.getHighestH();
 					if(varBy == 0) varBy = 1;;
 					
 					float multiplierColor = (float)(255 - baseColor) / varBy;
 
-					hColor = actualMap->getH(x, y) * multiplierColor;
+					hColor = theMap.getH(x, y) * multiplierColor;
 				}
 
 				r = baseColor + hColor;
@@ -165,7 +137,7 @@ void MapTexture::update()
 	int texturePitch;
 
 	SDL_LockTexture(getSDL_Texture(), NULL, &texturePixels, &texturePitch);
-	memcpy(texturePixels, mapPixels, actualMap->getMapWidth() * sizeof (Uint32) * actualMap->getMapHeight());
+	memcpy(texturePixels, mapPixels, theMap.getMapWidth() * sizeof (Uint32) * theMap.getMapHeight());
 	SDL_UnlockTexture(getSDL_Texture());
 }
 

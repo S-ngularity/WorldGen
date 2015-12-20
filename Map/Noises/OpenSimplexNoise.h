@@ -16,8 +16,7 @@ class Map;
 class OpenSimplexNoise : public Noise
 {
 	private:
-		std::weak_ptr<Map> map;
-		std::shared_ptr<Map> actualMap;
+		Map &map;
 
 		State state;
 
@@ -34,6 +33,9 @@ class OpenSimplexNoise : public Noise
 
 		osn_context *context;
 
+		long subscribeTkUiCode;
+		long subscribeTkNoiseInfoRequest;
+
 		void checkIfFinished();
 
 
@@ -45,14 +47,10 @@ class OpenSimplexNoise : public Noise
 			 unsigned char	*imageData);
 
 	public:
-		OpenSimplexNoise(std::weak_ptr<Map> theMap, int oct, double freq, double pers, double fdiv);
+		OpenSimplexNoise(Map &theMap, int oct, double freq, double pers, double fdiv);
 		~OpenSimplexNoise();
 
 		void handleEvtCode(UiCode &c);
-
-		void setMap(std::weak_ptr<Map> m);
-
-		void reset();
 
 		void runOnce();
 

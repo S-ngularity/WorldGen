@@ -9,8 +9,7 @@
 class DiamSqNoise : public Noise
 {
 	private:
-		std::weak_ptr<Map> map;
-		std::shared_ptr<Map> actualMap;
+		Map &map;
 
 		State state;
 
@@ -34,9 +33,7 @@ class DiamSqNoise : public Noise
 			 unsigned char	*imageData);
 
 	public:
-		DiamSqNoise(std::weak_ptr<Map> theMap);
-
-		void setMap(std::weak_ptr<Map> m);
+		DiamSqNoise(Map &theMap);
 
 		void reset();
 

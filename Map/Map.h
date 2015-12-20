@@ -18,6 +18,7 @@ class Map
 
 	public:
 		Map(int w, int h);
+		Map(const Map &m);
 		~Map();
 
 		int getH(int x, int y);

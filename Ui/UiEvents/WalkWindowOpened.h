@@ -6,14 +6,13 @@
 class WalkWindowOpened
 {
 	public:
-		WalkWindowOpened(std::weak_ptr<Map> m, int a, int b)
-		{
-			map = m;
-			x = a;
-			y = b;
-		}
+		WalkWindowOpened(Map &m, int a, int b) : 
+			map(m), 
+			x(a), 
+			y(b)
+		{}
 
-		std::weak_ptr<Map> map;
+		Map &map;
 		int x, y;
 
 };

@@ -1,31 +1,38 @@
 #ifndef EVENT
 #define EVENT
 
-#include <list>
+#include <unordered_map>
 #include <functional>
 #include <iostream>
 template<typename EventType>
 class Event
 {
 	private:
-		// to do: substituir por map, gerar uma key e retornar a key ao fazer subscribe(), o subscriber guarda essa key e chama remove(key) quando precusar
-		std::list< std::function<void(EventType &evt)> > subscriberList;
+		long nextKey;
+		std::unordered_map< long, std::function<void(EventType &evt)> > subscriberMap;
 
 	public:
-		void subscribe(std::function<void(EventType &evt)> action)
+		Event() : 
+			nextKey(0)
+		{}
+
+		long subscribe(std::function<void(EventType &evt)> action)
 		{
-			subscriberList.push_front(action);
+			subscriberMap[nextKey] = action;
+			nextKey++;
+
+			return nextKey - 1;
 		}
 
-		void unsubscribe(std::function<void(EventType &evt)> action)
+		void unsubscribe(long id)
 		{
-			//subscriberList.remove(action);
+			subscriberMap.erase(id);
 		}
 
 		void publish(EventType evt)
 		{
-			for(auto action : subscriberList)
-				action(evt);
+			for(auto action : subscriberMap)
+				action.second(evt);
 		}
 };
 

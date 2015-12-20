@@ -9,8 +9,6 @@ class UiCode
 };
 
 // handled by NoiseWindow
-#define UIEVT_RUNNOISEUPDATE 1
-
 #define UIEVT_FREQINCREASE 2
 #define UIEVT_FREQDECREASE 3
 #define UIEVT_PERSINCREASE 4

@@ -19,6 +19,25 @@ Map::Map(int w, int h)
 	seaLevel = SEA_LEVEL;
 }
 
+Map::Map(const Map &m)
+{
+	mapWidth = m.mapWidth;
+	mapHeight = m.mapHeight;
+
+	map = new int*[mapWidth]();
+
+	for(int i = 0; i < mapWidth; i++)
+		map[i] = new int[mapHeight]();
+
+	for(int y = 0; y < mapHeight; y++)
+		for(int x = 0; x < mapWidth; x++)
+			map[x][y] = m.map[x][y];
+
+	highestH = INIT_H;
+	lowestH = INIT_H;
+	seaLevel = SEA_LEVEL;
+}
+
 Map::~Map()
 {
 	for(int i = 0; i < mapWidth; i++)

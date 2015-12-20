@@ -51,9 +51,8 @@ int main(int argc, char* args[])
 	}
 
 	noiseWindow = make_unique<NoiseWindow>();
-	walkWindow = make_unique<WalkWindow>();
 
-	EvtAggr::subscribe<WalkWindowOpened>( [&](WalkWindowOpened &w){ openWalkWindow(w); } );
+	long subscribeTk1 = EvtAggr::subscribe<WalkWindowOpened>( [&](WalkWindowOpened &w){ openWalkWindow(w); } );
 
 	// while window is open
 	while(noiseWindow->isShown())
@@ -61,13 +60,15 @@ int main(int argc, char* args[])
 		while(SDL_PollEvent(&event))
 		{
 			noiseWindow->handleSdlEvent(event);
-			walkWindow->handleSdlEvent(event);
+
+			if(walkWindow)
+				walkWindow->handleSdlEvent(event);
 		}
 
 		regulateFrameRate();
 	}
 
-	EvtAggr::unsubscribe<WalkWindowOpened>( [&](WalkWindowOpened &w){ openWalkWindow(w); } );
+	EvtAggr::unsubscribe<WalkWindowOpened>(subscribeTk1);
 
 	// delete windows before closing SDL
 	noiseWindow.reset();
@@ -108,9 +109,7 @@ void SDLClose()
 
 void openWalkWindow(WalkWindowOpened &w)
 {
-	walkWindow->setMap(w.map);
-	walkWindow->show(); // must happen before setPos
-	walkWindow->setPos(w.x, w.y);
+	walkWindow = make_unique<WalkWindow>(w.map, w.x, w.y);
 }
 
 
@@ -125,7 +124,9 @@ void doFrame(bool draw)
 	if(draw)
 	{
 		noiseWindow->doRefresh();
-		walkWindow->doRefresh();
+
+		if(walkWindow)
+			walkWindow->doRefresh();
 	}
 }
 

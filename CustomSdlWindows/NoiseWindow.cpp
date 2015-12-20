@@ -1,6 +1,8 @@
 #include "CustomSdlWindows/NoiseWindow.h"
 
 #include "Map/Map.h"
+#include "Map/Noises/DiamSqNoise.h"
+#include "Map/Noises/OpenSimplexNoise.h"
 
 #include "Ui/UiObject.h"
 #include "CustomUiObjects/MapFrame.h"
@@ -18,45 +20,102 @@
 #include <sstream>
 #include <string>
 
+
+#include "CustomSdlTextures/MapTexture.h" // TEMPORARY: FOR THE DEFINES
+
+
 NoiseWindow::NoiseWindow() : 
 	SdlWindow(	"WorldGen", 20, 40, 
 				SCREEN_WIDTH, SCREEN_HEIGHT, // window size 
 				SCREEN_WIDTH, SCREEN_HEIGHT, // window resolution
 				SDL_WINDOW_RESIZABLE, SDL_RENDERER_ACCELERATED | SDL_RENDERER_TARGETTEXTURE) // superclass window constructor
 {
-	mapVector = {std::make_shared<Map>(1025, 1025), 
-				std::make_shared<Map>(1025, 1025), 
-				std::make_shared<Map>(1025, 1025)};
+	mapVector = {Map(1025, 1025), 
+				Map(1025, 1025), 
+				Map(1025, 1025)};
 
-	EvtAggr::subscribe<UiCode>( [&](UiCode &c){ customUiEventHandler(c); } );
+	selectedMap = &mapVector.at(0);
 
-	EvtAggr::subscribe<MapInfoUpdate>( [&](MapInfoUpdate &i){ updateMapInfo(i); } );
+	normalizedLevel = 20;
+
+	selectedNoiseId = 1; 
+	selectedNoise = std::make_unique<DiamSqNoise>(*selectedMap);
+
+
+	subscribeTkUiCode = EvtAggr::subscribe<UiCode>( [&](UiCode &c){ customUiEventHandler(c); } );
+	
+	subscribeTkMapInfoUpdate = EvtAggr::subscribe<MapInfoUpdate>( [&](MapInfoUpdate &i){ updateMapInfo(i); } );
 
 	SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "nearest");
 
 	createGui();
+
+	setWindowSdlEvtHandler([&](SDL_Event &e){return customSdlEvtHandler(e);});
 }
 
 NoiseWindow::~NoiseWindow()
 {
-	EvtAggr::unsubscribe<UiCode>( [&](UiCode &c){ customUiEventHandler(c); } );
+	EvtAggr::unsubscribe<UiCode>(subscribeTkUiCode);
 
-	EvtAggr::unsubscribe<MapInfoUpdate>( [&](MapInfoUpdate &i){ updateMapInfo(i); } );
+	EvtAggr::unsubscribe<MapInfoUpdate>(subscribeTkMapInfoUpdate);
+}
+
+bool NoiseWindow::customSdlEvtHandler(SDL_Event &e)
+{
+	switch(e.type)
+	{
+		case SDL_KEYDOWN:
+			switch(e.key.keysym.sym)
+			{
+				case SDLK_1:
+					if(e.key.keysym.mod & KMOD_SHIFT)
+						selectNoise(0);
+
+					else if(!(e.key.keysym.mod & KMOD_SHIFT))
+						selectedMap = &mapVector.at(0); mapFrame->reset();
+				break;
+
+				case SDLK_2:
+					if(e.key.keysym.mod & KMOD_SHIFT)
+						selectNoise(1);
+
+					else if(!(e.key.keysym.mod & KMOD_SHIFT))
+						selectedMap = &mapVector.at(1); mapFrame->reset();
+				break;
+
+				case SDLK_3:
+					if(!(e.key.keysym.mod & KMOD_SHIFT))
+						selectedMap = &mapVector.at(2); mapFrame->reset();
+				break;
+
+				case SDLK_n:
+					mapFrame->normalizeMap(normalizedLevel);
+				break;
+
+				case SDLK_r:
+					runNoise();
+				break;
+
+				// if event was from keyboard but wasn't handled, returns to parent
+				default:
+					return false;
+				break;
+			}
+		break;
+	}
+	
+	return true;
 }
 
 void NoiseWindow::customUiEventHandler(UiCode &c)
 {
-	if(c.code == UIEVT_RUNNOISEUPDATE)
-	{
-		doRefresh();
-	}
-
 	if(c.code == UIEVT_NOISEINFOUPDATED && noiseInfoText != NULL)
 	{
 		NoiseInfoRequest req;
 		EvtAggr::publish<NoiseInfoRequest*>(&req);
 
 		std::stringstream ss;
+		ss << "";
 		
 		ss << "\n\nOct: " << req.oct
 		<< "\nFrequency: " << req.freq 
@@ -73,17 +132,17 @@ void NoiseWindow::updateMapInfo(MapInfoUpdate &info)
 	{
 		std::stringstream ss;
 		
-		if(info.percentComplete != 0 && info.percentComplete != 100)
+		if(selectedNoise->getPercentComplete() != 0 && selectedNoise->getPercentComplete() != 100)
 			ss << "Noise: \n" 
-			<< info.noiseName
-			<< "\n\nMap " << info.mapNum << " - " << info.percentComplete 
+			<< selectedNoise->name
+			<< "\n\nMap " << "NUM" << " - " << selectedNoise->getPercentComplete()
 			<< "%\nSea Level: " << info.seaLevel 
 			<< "\n\nHighest: " << info.highestH 
 			<< "\nLowest: " << info.lowestH;
 		else
 			ss << "Noise: \n" 
-			<< info.noiseName
-			<< "\n\nMap " << info.mapNum
+			<< selectedNoise->name
+			<< "\n\nMap " << "NUM"
 			<< "\nSea Level: " << info.seaLevel 
 			<< "\n\nHighest: " << info.highestH 
 			<< "\nLowest: " << info.lowestH;
@@ -92,16 +151,85 @@ void NoiseWindow::updateMapInfo(MapInfoUpdate &info)
 	}
 }
 
-// UI
+void NoiseWindow::selectNoise(int id)
+{
+	selectedNoiseId = id;
 
-MapFrame *mapFrame = nullptr;
+	if(selectedNoiseId == 0)
+		selectedNoise = std::make_unique<OpenSimplexNoise>(*selectedMap, octaves, freq, persistence, freqDiv);
+
+	else if(selectedNoiseId == 1)
+		selectedNoise = std::make_unique<DiamSqNoise>(*selectedMap);
+
+	// >>>>>>> TO DO: GET RID OF PUBLISHMAPINFO() <<<<<<<
+	mapFrame->publishMapInfo();
+}
+
+void NoiseWindow::runNoise()
+{
+	if(selectedNoiseId == 0)
+		selectedNoise = std::make_unique<OpenSimplexNoise>(*selectedMap, octaves, freq, persistence, freqDiv);
+
+	else if(selectedNoiseId == 1)
+		selectedNoise = std::make_unique<DiamSqNoise>(*selectedMap);
+
+	else
+	{
+		std::cout << "MapFrame::runNoise() called with an invalid selectedNoiseId." << std::endl;
+		return;
+	}
+
+	bool updateMapTexture = false;
+	int shownPercent = 0, updateAt = 0;
+
+	mapFrame->setSeaRenderMode(NO_SEA);  // no sea while not done
+	mapFrame->setLandRenderMode(FIXED);
+
+	while(selectedNoise->getPercentComplete() < 100) // noise iterations
+	{
+		selectedNoise->runOnce();
+
+		// update only once per percent
+		if(selectedNoise->getPercentComplete() != shownPercent)
+		{
+			shownPercent = selectedNoise->getPercentComplete();
+
+			if(shownPercent >= updateAt || shownPercent >= 100)
+			{
+				updateAt += UPDATE_AT_PERCENT;
+				updateMapTexture = true;
+
+				if(shownPercent >= 100)
+				{
+					mapFrame->setSeaRenderMode(WITH_SEA);
+					mapFrame->setLandRenderMode(VARYING_HIGHEST);
+
+					selectedMap->setSeaLevel(SEA_LEVEL);
+				}
+			}
+		}
+
+		if(updateMapTexture)
+		{
+			mapFrame->reset();
+			doRefresh();
+			updateMapTexture = false;
+		}
+
+		SDL_PumpEvents();
+	}
+
+	mapFrame->publishMapInfo();
+}
+
+// UI
 
 void NoiseWindow::createGui()
 {
 	std::shared_ptr<SdlTexture> standardBtTexture = MyUtils::loadTexture(getRenderer(), "Resources\\btSprite.png");
 	std::shared_ptr<SdlTexture> sidebarBg = createDrawnTexture(SIDEBAR_WIDTH, windowUiManager->getHeight(), 0, 126, 126, 255);
 
-	mapFrame = new MapFrame(0, 0, windowUiManager->getWidth() - SIDEBAR_WIDTH, windowUiManager->getHeight(), mapVector);
+	mapFrame = new MapFrame(0, 0, windowUiManager->getWidth() - SIDEBAR_WIDTH, windowUiManager->getHeight(), &selectedMap);
 
 	UiPanel *sidebar = new UiPanel(windowUiManager->getWidth() - SIDEBAR_WIDTH, 0, sidebarBg);
 
@@ -117,45 +245,43 @@ void NoiseWindow::createGui()
 									30, 30,
 									new UiLabel(0, 0, "1", 16, 235, 235, 235), 
 									standardBtTexture, 
-									[&](){ mapFrame->selectMap(0); } ));
+									[&](){ selectedMap = &mapVector.at(0); mapFrame->reset(); } ));
 
 	sidebar->addChild(new UiButton(	90, 30, 
 									30, 30, 
 									new UiLabel(0, 0, "2", 16, 235, 235, 235), 
 									standardBtTexture, 
-									[&](){ mapFrame->selectMap(1); } ));
+									[&](){ selectedMap = &mapVector.at(1); mapFrame->reset(); } ));
 
 	sidebar->addChild(new UiButton(	150, 30, 
 									30, 30, 
 									new UiLabel(0, 0, "3", 16, 235, 235, 235), 
 									standardBtTexture, 
-									[&](){ mapFrame->selectMap(2); } ));
+									[&](){ selectedMap = &mapVector.at(2); mapFrame->reset(); } ));
 
 	// Noise selectors
 	sidebar->addChild(new UiButton(	30, 80, 
 									70, 30, 
 									new UiLabel(0, 0, "OpSim", 14, 235, 235, 235), 
 									standardBtTexture, 
-									[&](){ mapFrame->selectNoise(0); } ));
+									[&](){ selectNoise(0); } ));
 
 	sidebar->addChild(new UiButton(	110, 80, 
 									70, 30, 
 									new UiLabel(0, 0, "DiamSq", 14, 235, 235, 235), 
 									standardBtTexture, 
-									[&](){ mapFrame->selectNoise(1); } ));
+									[&](){ selectNoise(1); } ));
 
 	// Run button
 	sidebar->addChild(new UiButton(	30, windowUiManager->getHeight() - 60, 
 									150, 30, 
 									new UiLabel(0, 0, "RUN", 22, 235, 235, 235), 
 									standardBtTexture, 
-									[&](){ mapFrame->runNoise(); } ));
+									[&](){ runNoise(); } ));
 
 	// Normalization buttons
 	static UiLabel *nLevel = new UiLabel(48, windowUiManager->getHeight() - 100, ALIGN_BOTTOM_CENTER, "20", 18, 235, 235, 235);
 	sidebar->addChild(nLevel);
-
-	static int normalizedLevel = 20;
 
 	sidebar->addChild(new UiButton(	50, windowUiManager->getHeight() - 95, 
 									15, 15, 
@@ -182,6 +308,7 @@ void NoiseWindow::createGui()
 									[&](){ mapFrame->normalizeMap(normalizedLevel); } ));
 
 
+	// >>>>>>> TO DO: FIX NOISE SIDE SETTINGS CHANGES THAT GET LOST WHEN NOISES ARE RECONSTRUCTED <<<<<<<
 	// Noise adjust buttons
 	sidebar->addChild(new UiButton(	30, windowUiManager->getHeight() - 145, 
 									15, 15, 
