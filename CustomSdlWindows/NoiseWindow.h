@@ -10,11 +10,9 @@
 
 class Map;
 class Noise;
-class UiObject;
 class MapFrame;
 class UiLabel;
 class UiCode;
-class MapInfoUpdate;
 
 // ask for noise screen update at every X percent completed
 const int UPDATE_AT_PERCENT = 25;
@@ -30,27 +28,32 @@ class NoiseWindow : public SdlWindow
 		const int octaves = 10; const double freq = 0.0024, persistence = 0.6, freqDiv = 2.08;
 		//const int octaves = 10; const double freq = 0.0028, persistence = 0.6, freqDiv = 1.9;
 		
-		std::vector<Map> mapVector;
-		Map *selectedMap;
+		std::vector<std::shared_ptr<Map>> mapVector;
+		std::shared_ptr<Map> selectedMap;
 
-		int normalizedLevel;
+		std::vector<std::unique_ptr<Noise>> noiseVector;
+		int selectedNoiseIdx;
 
-		int selectedNoiseId;
-		std::unique_ptr<Noise> selectedNoise;
-
+		MapFrame *mapFrame;
 		UiLabel *mapInfoText;
 		UiLabel *noiseInfoText;
 
-		MapFrame *mapFrame;
+		int normalizedLevel;
+		
+		long subscribeTkUiCode;
 
-		long subscribeTkUiCode, subscribeTkMapInfoUpdate;
+		void selectMap(int index);
+		void selectNoise(int index);
 
-		void selectNoise(int id);
 		void runNoise();
 
+		void normalizeMap(int n);
+
 		// Ui Event handlers
-		void customUiEventHandler(UiCode &c);
-		void updateMapInfo(MapInfoUpdate &info);
+		void handleUiCode(UiCode &c);
+
+		void updateMap();
+		void updateMapInfo();
 
 		// UI creation
 		void createGui();

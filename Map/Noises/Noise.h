@@ -18,6 +18,10 @@ class Noise
 
 		Noise(std::string n) : name(n) {};
 		virtual ~Noise() {};
+
+		virtual void setMap(std::shared_ptr<Map> m) = 0;
+
+		virtual void reset() = 0;
 		
 		virtual void runOnce() = 0;
 

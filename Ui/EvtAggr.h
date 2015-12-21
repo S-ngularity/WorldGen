@@ -23,24 +23,6 @@ class EvtAggr
 		}
 
 	public:
-		/*static EvtAggr& getEvent() {return evtAggrInstance;}
-
-		template<typename EventType>
-		Event<EventType>& getEvent()
-		{
-			static Event<EventType> evt;
-
-			return evt;
-		}*/
-
-		/*template<typename EventType>
-		static Event<EventType>& getEvent()
-		{
-			static Event<EventType> evt;
-
-			return evt;
-		}*/
-
 		template<typename EventType>
 		static void publish(EventType evt)
 		{

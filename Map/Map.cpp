@@ -33,9 +33,9 @@ Map::Map(const Map &m)
 		for(int x = 0; x < mapWidth; x++)
 			map[x][y] = m.map[x][y];
 
-	highestH = INIT_H;
-	lowestH = INIT_H;
-	seaLevel = SEA_LEVEL;
+	highestH = m.highestH;
+	lowestH = m.lowestH;
+	seaLevel = m.seaLevel;
 }
 
 Map::~Map()

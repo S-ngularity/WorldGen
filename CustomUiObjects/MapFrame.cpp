@@ -10,7 +10,6 @@
 #include "Ui/EvtAggr.h"
 #include "Ui/UiEvents/UiCode.h"
 #include "Ui/UiEvents/WalkWindowOpened.h"
-#include "Ui/UiEvents/MapInfoUpdate.h"
 
 #include <iostream>
 #include <iomanip>
@@ -18,12 +17,11 @@
 #include <string>
 #include <sstream>
 
-MapFrame::MapFrame(int x, int y, int w, int h, Map **mapPtr) : 
+MapFrame::MapFrame(int x, int y, int w, int h, std::shared_ptr<Map> &selectedMapPtr) : 
 	UiObject(x, y, w, h, NULL,
 			[&](SDL_Event &e){return customSdlEvtHandler(e);}), 
-	ptrToMap(mapPtr)
-{
-}
+	selectedMap(selectedMapPtr)
+{}
 
 void MapFrame::init()
 {
@@ -31,14 +29,13 @@ void MapFrame::init()
 	if(parentUiManager == NULL)
 		std::cout << "MapFrame without parentUiManager (is NULL)." << std::endl;
 
-	mapTexture = std::make_unique<MapTexture>(parentUiManager->getRenderer(), **ptrToMap);
+	mapTexture = std::make_unique<MapTexture>(parentUiManager->getRenderer(), *selectedMap);
 	
-	frameTexture = std::make_shared<SdlTexture>(SDL_CreateTexture(parentUiManager->getRenderer(), 
+	setUiObjectTexture(std::make_shared<SdlTexture>(SDL_CreateTexture(parentUiManager->getRenderer(), 
 																		SDL_PIXELFORMAT_RGBA8888, 
 																		SDL_TEXTUREACCESS_TARGET, 
 																		mapTexture->getWidth(), 
-																		mapTexture->getHeight()));
-	setUiObjectTexture(frameTexture);
+																		mapTexture->getHeight())));
 
 	// Mouse tooltip for map height
 	mouseTooltip = new UiLabel(0, 0, ALIGN_BOTTOM_LEFT, "", 20, 220, 20, 60);
@@ -55,11 +52,8 @@ void MapFrame::init()
 	// Zoom
 	zoomX = 0;
 	zoomY = 0;
-	zoomW = frameTexture->getWidth();
-	zoomH = frameTexture->getHeight();
-
-	// Send map info update
-	publishMapInfo();
+	zoomW = getTexture()->getWidth();
+	zoomH = getTexture()->getHeight();
 }
 
 void MapFrame::updateMouseText()
@@ -68,10 +62,10 @@ void MapFrame::updateMouseText()
 	
 	if(mapPosFromMouse(&mapX, &mapY))
 	{
-		int h = (*ptrToMap)->getH(mapX, mapY);
+		int h = selectedMap->getH(mapX, mapY);
 		std::string text;
 
-		if(mapTexture->getSeaRenderMode() == WITH_SEA && h <= (*ptrToMap)->getSeaLevel())
+		if(mapTexture->getSeaRenderMode() == WITH_SEA && h <= selectedMap->getSeaLevel())
 			text = "Sea";
 
 		else
@@ -94,20 +88,25 @@ bool MapFrame::mapPosFromMouse(int *x, int *y)
 	if(!UiObject::getRelativeMousePos(this, x, y))
 		return false;
 
+	// zoom offset pos (on mouse pointer) from zoom top left pos
+	// regra de três da posição relativa do mouse dentro do tamanho do frame para 
+	// a posição relativa do mouse dentro do tamanho da área de zoom:
 	// framePos / frameSize = zoomOffsetPos / zoomSize
 	// zoomOffsetPos = (framePos / frameSize) * zoomSize
-	double xTemp = (*x / (double) getWidth()) * zoomW; // zoom offset pos (on mouse pointer) from zoom top left pos
+	double xTemp = (*x / (double) getWidth()) * zoomW;
 	double yTemp = (*y / (double) getHeight()) * zoomH;
 	
+	// zoom area top left pos (on the map - because the mapTexture has the same dimensions as the original map)
+	// + mouse relative pos inside zoomed area
 	*x = floor(zoomX + xTemp - mapOffset);
 	*y = floor(zoomY + yTemp);
 
 	// wrap mapOffset
 	if(*x < 0)
-		*x = (*ptrToMap)->getMapWidth() + *x % (*ptrToMap)->getMapWidth();
+		*x = selectedMap->getMapWidth() + *x % selectedMap->getMapWidth();
 
-	else if(*x >= (*ptrToMap)->getMapWidth())
-		*x = *x % (*ptrToMap)->getMapWidth();
+	else if(*x >= selectedMap->getMapWidth())
+		*x = *x % selectedMap->getMapWidth();
 
 	return true;
 }
@@ -122,21 +121,18 @@ bool MapFrame::customSdlEvtHandler(SDL_Event &e)
 				case SDLK_UP:
 					// up always shows sea (without increasing seaLevel on first press)
 					if(mapTexture->getSeaRenderMode() != WITH_SEA)
+					{
 						setSeaRenderMode(WITH_SEA);
+						return true;
+					}
 
-					// up = +1 sea_Level when with_sea
-					else if(!(e.key.keysym.mod & KMOD_SHIFT) && (*ptrToMap)->getSeaLevel() + 1 <= (*ptrToMap)->getHighestH())
-						increaseSeaLevel();
+					return false;
 				break;
 
 				case SDLK_DOWN:
 					// shift+down = no_sea (no update when not needed)
 					if(e.key.keysym.mod & KMOD_SHIFT && mapTexture->getSeaRenderMode() != NO_SEA)
 						setLandAndSeaRenderModes(FIXED, NO_SEA);
-
-					// down = -1 seaLevel when with_sea
-					else if(!(e.key.keysym.mod & KMOD_SHIFT) && (*ptrToMap)->getSeaLevel() - 1 >= 0 && mapTexture->getSeaRenderMode() == WITH_SEA)
-						decreaseSeaLevel();
 				break;
 
 				case SDLK_z:
@@ -154,18 +150,6 @@ bool MapFrame::customSdlEvtHandler(SDL_Event &e)
 						setLandRenderMode(FIXED);
 				break;
 
-				// case SDLK_1:
-				// 	selectMap(0);
-				// break;
-
-				// case SDLK_2:
-				// 	selectMap(1);
-				// break;
-
-				// case SDLK_3:
-				// 	selectMap(2);
-				// break;
-
 				// if event was from keyboard but wasn't handled, returns to parent
 				default:
 					return false;
@@ -180,9 +164,10 @@ bool MapFrame::customSdlEvtHandler(SDL_Event &e)
 				int x, y;
 				
 				if(mapPosFromMouse(&x, &y))
-					EvtAggr::publish<WalkWindowOpened>(WalkWindowOpened(**ptrToMap, x, y));
+					EvtAggr::publish<WalkWindowOpened>(WalkWindowOpened(*selectedMap, x, y));
 			}
 
+			// left click release
 			if(e.button.button == SDL_BUTTON_LEFT)
 				clickHappenedHere = false;
 		break;
@@ -236,8 +221,8 @@ bool MapFrame::customSdlEvtHandler(SDL_Event &e)
 				else if(mouseYDragOffset < -1)
 				{
 					zoomY -= (int) mouseYDragOffset;
-					if(zoomY > frameTexture->getHeight() - zoomH)
-						zoomY = frameTexture->getHeight() - zoomH;
+					if(zoomY > getTexture()->getHeight() - zoomH)
+						zoomY = getTexture()->getHeight() - zoomH;
 					mouseYDragOffset -= (int) mouseYDragOffset;
 				}
 
@@ -249,9 +234,8 @@ bool MapFrame::customSdlEvtHandler(SDL_Event &e)
 			updateMouseText();
 		break;
 
-		#define ZOOM_AMOUNT (int)(frameTexture->getWidth() * 0.05)
-
 		case SDL_MOUSEWHEEL:
+			#define ZOOM_AMOUNT (int)(getTexture()->getWidth() * 0.05)
 			// wheel up
 			if(e.wheel.y > 0)
 			{
@@ -283,11 +267,11 @@ bool MapFrame::customSdlEvtHandler(SDL_Event &e)
 						zoomY += ZOOM_AMOUNT * y / (double) getHeight() * 1.01;
 					}
 
-					if(zoomX > frameTexture->getWidth() - zoomW)
-						zoomX = frameTexture->getWidth() - zoomW;
+					if(zoomX > getTexture()->getWidth() - zoomW)
+						zoomX = getTexture()->getWidth() - zoomW;
 
-					if(zoomY > frameTexture->getHeight() - zoomH)
-						zoomY = frameTexture->getHeight() - zoomH;
+					if(zoomY > getTexture()->getHeight() - zoomH)
+						zoomY = getTexture()->getHeight() - zoomH;
 				}
 			}
 
@@ -303,10 +287,10 @@ bool MapFrame::customSdlEvtHandler(SDL_Event &e)
 				zoomH += ZOOM_AMOUNT;
 
 				// limit zoomed area
-				if(zoomW > frameTexture->getWidth() || zoomH > frameTexture->getHeight())
+				if(zoomW > getTexture()->getWidth() || zoomH > getTexture()->getHeight())
 				{
-					zoomW = frameTexture->getWidth();
-					zoomH = frameTexture->getHeight();
+					zoomW = getTexture()->getWidth();
+					zoomH = getTexture()->getHeight();
 				}
 
 				// move zoomed area relative to the mouse pointer
@@ -319,11 +303,11 @@ bool MapFrame::customSdlEvtHandler(SDL_Event &e)
 					zoomY = 0;
 
 				// avoid zoomed area to go beyond texture limits
-				if(zoomX + zoomW > frameTexture->getWidth())
-					zoomX = frameTexture->getWidth() - zoomW;
+				if(zoomX + zoomW > getTexture()->getWidth())
+					zoomX = getTexture()->getWidth() - zoomW;
 
-				if(zoomY + zoomH > frameTexture->getHeight())
-					zoomY = frameTexture->getHeight() - zoomH;
+				if(zoomY + zoomH > getTexture()->getHeight())
+					zoomY = getTexture()->getHeight() - zoomH;
 			}
 		break;
 
@@ -336,89 +320,49 @@ bool MapFrame::customSdlEvtHandler(SDL_Event &e)
 	return true;
 }
 
-void MapFrame::reset()
+void MapFrame::updateTexture()
 {
-	mapTexture->update(**ptrToMap);
+	mapTexture->update(*selectedMap);
 
-	if(frameTexture->getWidth() != mapTexture->getWidth()
-		 || frameTexture->getHeight() != mapTexture->getHeight())
+	if(getTexture()->getWidth() != mapTexture->getWidth()
+		 || getTexture()->getHeight() != mapTexture->getHeight())
 	{
-		frameTexture = std::make_shared<SdlTexture>(SDL_CreateTexture(parentUiManager->getRenderer(), 
+		setUiObjectTexture(std::make_shared<SdlTexture>(SDL_CreateTexture(parentUiManager->getRenderer(), 
 																		SDL_PIXELFORMAT_RGBA8888, 
 																		SDL_TEXTUREACCESS_TARGET, 
-																		(*ptrToMap)->getMapWidth(), 
-																		(*ptrToMap)->getMapHeight()));
-		
-		setUiObjectTexture(frameTexture);
-	}
+																		selectedMap->getMapWidth(), 
+																		selectedMap->getMapHeight())));
 
+		resetZoom();
+	}
+}
+
+void MapFrame::resetZoom()
+{
 	zoomX = 0;
 	zoomY = 0;
-	zoomW = frameTexture->getWidth();
-	zoomH = frameTexture->getHeight();
-
-	publishMapInfo();
-}
-
-void MapFrame::normalizeMap(int n)
-{
-	(*ptrToMap)->normalize(n);
-	
-	// reset sea level after normalization
-	(*ptrToMap)->setSeaLevel(((*ptrToMap)->getHighestH() / 2 ) - 1);
-	
-	mapTexture->update(**ptrToMap);
-
-	publishMapInfo();
-}
-
-void MapFrame::increaseSeaLevel()
-{
-	(*ptrToMap)->increaseSeaLevel();
-
-	mapTexture->update(**ptrToMap);
-
-	publishMapInfo();
-}
-
-void MapFrame::decreaseSeaLevel()
-{
-	(*ptrToMap)->decreaseSeaLevel();
-
-	mapTexture->update(**ptrToMap);
-
-	publishMapInfo();
+	zoomW = getTexture()->getWidth();
+	zoomH = getTexture()->getHeight();
 }
 
 void MapFrame::setLandRenderMode(int mode)
 {
 	mapTexture->setLandRenderMode(mode);
-
-	mapTexture->update(**ptrToMap);
+	mapTexture->update(*selectedMap);
 }
 
 void MapFrame::setSeaRenderMode(int mode)
 {
 	mapTexture->setSeaRenderMode(mode);
-
-	mapTexture->update(**ptrToMap);
+	mapTexture->update(*selectedMap);
 }
 
 void MapFrame::setLandAndSeaRenderModes(int modeLand, int modeSea)
 {
 	mapTexture->setLandRenderMode(modeLand);
 	mapTexture->setSeaRenderMode(modeSea);
-
-	mapTexture->update(**ptrToMap);
+	mapTexture->update(*selectedMap);
 }
-
-void MapFrame::publishMapInfo()
-{
-	EvtAggr::publish<MapInfoUpdate>(MapInfoUpdate((*ptrToMap)->getSeaLevel(), 
-												(*ptrToMap)->getHighestH(), 
-												(*ptrToMap)->getLowestH()));
-}
-
 
 void MapFrame::preRenderProcedure()
 {
@@ -427,27 +371,28 @@ void MapFrame::preRenderProcedure()
 		clickHappenedHere = false;
 
 	// Wrap mapOffset
-	if(mapOffset > frameTexture->getWidth())
-		mapOffset = mapOffset % frameTexture->getWidth();
+	if(mapOffset > getTexture()->getWidth())
+		mapOffset = mapOffset % getTexture()->getWidth();
 	else if(mapOffset < 0)
-		mapOffset = frameTexture->getWidth() + mapOffset % frameTexture->getWidth();
+		mapOffset = getTexture()->getWidth() + mapOffset % getTexture()->getWidth();
 
-	// Print scrolling mapTexture to frameTexture
-	frameTexture->setAsRenderTarget(parentUiManager->getRenderer());
+	// Print scrolling mapTexture to MapFrame's UiObject texture
+	getTexture()->setAsRenderTarget(parentUiManager->getRenderer());
 
 	mapTexture->renderFitToArea(parentUiManager->getRenderer(), 
-									mapOffset - frameTexture->getWidth(), 
+									mapOffset - getTexture()->getWidth(), 
 									0, 
-									frameTexture->getWidth(), 
-									frameTexture->getHeight());	
+									getTexture()->getWidth(), 
+									getTexture()->getHeight());	
 
 	mapTexture->renderFitToArea(parentUiManager->getRenderer(), 
 									mapOffset, 
 									0, 
-									frameTexture->getWidth(), 
-									frameTexture->getHeight());
+									getTexture()->getWidth(), 
+									getTexture()->getHeight());
 
-	frameTexture->releaseRenderTarget(parentUiManager->getRenderer());
+	getTexture()->releaseRenderTarget(parentUiManager->getRenderer());
 
-	frameTexture->setCropRect(zoomX, zoomY, zoomW, zoomH);
+	// Set zoomed area on the texture
+	getTexture()->setCropRect(zoomX, zoomY, zoomW, zoomH);
 }

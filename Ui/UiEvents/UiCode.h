@@ -8,7 +8,7 @@ class UiCode
 		int code;
 };
 
-// handled by NoiseWindow
+// handled by OpenSimplexNoise
 #define UIEVT_FREQINCREASE 2
 #define UIEVT_FREQDECREASE 3
 #define UIEVT_PERSINCREASE 4
@@ -16,6 +16,7 @@ class UiCode
 #define UIEVT_FDIVINCREASE 6
 #define UIEVT_FDIVDECREASE 7
 
+// handled by NoiseWindow
 #define UIEVT_NOISEINFOUPDATED 8
 
 

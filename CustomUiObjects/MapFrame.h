@@ -18,11 +18,12 @@ class UiLabel;
 class MapFrame : public UiObject
 {
 	private:
-		std::unique_ptr<MapTexture> mapTexture;
-		
-		std::shared_ptr<SdlTexture> frameTexture;
+		// Reference to a pointer that keeps the selected map as it's target
+		std::shared_ptr<Map> &selectedMap;
 
-		Map **ptrToMap;
+		// Generated (fixed) texture from the selected maps's data.
+		// It's rendered to the MapFrame's actual texture with applied scrolling/zooming
+		std::unique_ptr<MapTexture> mapTexture;
 
 		UiLabel *mouseTooltip;
 
@@ -39,29 +40,22 @@ class MapFrame : public UiObject
 
 		bool customSdlEvtHandler(SDL_Event &e);
 
-
 		void preRenderProcedure();
 
 	public:
-		MapFrame(int x, int y, int w, int h, Map **mapPtr);
+		MapFrame(int x, int y, int w, int h, std::shared_ptr<Map> &selectedMapPtr);
 
-		// Initializes the noises/textures and then publish a MapUpdateInfo
+		// Initializes the textures & other settings and then publish a MapUpdateInfo
 		// Should only be called after MapFrame is granted to have a parentUiManager
 		// (after MapFrame or one of it's ancestors has been added to a UiManager)
 		void init();
 
-		void reset();
-
-		void normalizeMap(int n);
-
-		void increaseSeaLevel();
-		void decreaseSeaLevel();
+		void updateTexture();
+		void resetZoom();
 
 		void setLandRenderMode(int mode);
 		void setSeaRenderMode(int mode);
 		void setLandAndSeaRenderModes(int modeLand, int modeSea);
-		
-		void publishMapInfo();
 };
 
 #endif

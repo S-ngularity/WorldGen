@@ -16,7 +16,7 @@ class Map;
 class OpenSimplexNoise : public Noise
 {
 	private:
-		Map &map;
+		std::shared_ptr<Map> map;
 
 		State state;
 
@@ -47,10 +47,14 @@ class OpenSimplexNoise : public Noise
 			 unsigned char	*imageData);
 
 	public:
-		OpenSimplexNoise(Map &theMap, int oct, double freq, double pers, double fdiv);
+		OpenSimplexNoise(std::shared_ptr<Map> theMap, int oct, double freq, double pers, double fdiv);
 		~OpenSimplexNoise();
 
 		void handleEvtCode(UiCode &c);
+
+		void setMap(std::shared_ptr<Map> m);
+
+		void reset();
 
 		void runOnce();
 

@@ -168,11 +168,11 @@ bool SdlWindow::handleSdlEvent(SDL_Event& e)
 
 		else
 		{
-			// handle other events with the implemented handler
-			windowUiManager->handleSdlEvent(e);
+			// handle other events with the implemented Ui handlers
+			bool uiHandled = windowUiManager->handleSdlEvent(e);
 
-			// handle other events with the implemented handler
-			if(evtHandler)
+			// if Ui didn't handle the event, use the implemented window handler
+			if(!uiHandled && evtHandler)
 				evtHandler(e);
 		}
 
