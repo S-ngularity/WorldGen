@@ -11,7 +11,7 @@
 
 class SdlTexture;
 
-class UiObject
+class UiObject : public std::enable_shared_from_this<UiObject>
 {
 	private:
 		int xOffset, yOffset; // offset from parent's 0, 0
@@ -28,7 +28,7 @@ class UiObject
 		std::function<void()> postRenderProcedure;
 
 		UiObject* parent;
-		std::list<UiObject*> childList;
+		std::list<std::shared_ptr<UiObject>> childList;
 
 		void bringToFront();
 
@@ -44,7 +44,7 @@ class UiObject
 
 		int absoluteX, absoluteY;
 
-		void getUiObjectOffset(int *xOff, int *yOff);
+		void getUiObjectOffset(int &xOff, int &yOff);
 		std::shared_ptr<SdlTexture> getTexture();
 
 	public:
@@ -54,7 +54,7 @@ class UiObject
 		virtual ~UiObject();
 
 		// Settings
-		void addChild(UiObject *c);
+		void addChild(std::shared_ptr<UiObject> c);
 		
 		void setUiObjectTexture(std::shared_ptr<SdlTexture> t);
 		void setUiObjectOffset(int x, int y); // Offset from parent
@@ -80,7 +80,7 @@ class UiObject
 
 		// Mouse
 		bool isMouseInside();
-		static bool getRelativeMousePos(UiObject *obj, int *x, int *y);
+		static bool getRelativeMousePos(UiObject &obj, int &x, int &y);
 };
 
 # endif

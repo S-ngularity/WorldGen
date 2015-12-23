@@ -34,9 +34,9 @@ class NoiseWindow : public SdlWindow
 		std::vector<std::unique_ptr<Noise>> noiseVector;
 		int selectedNoiseIdx;
 
-		MapFrame *mapFrame;
-		UiLabel *mapInfoText;
-		UiLabel *noiseInfoText;
+		MapFrame *mapFramePtr;
+		UiLabel *mapInfoTextPtr;
+		UiLabel *noiseInfoTextPtr;
 
 		int normalizedLevel;
 		

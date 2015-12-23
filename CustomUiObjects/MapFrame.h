@@ -25,7 +25,7 @@ class MapFrame : public UiObject
 		// It's rendered to the MapFrame's actual texture with applied scrolling/zooming
 		std::unique_ptr<MapTexture> mapTexture;
 
-		UiLabel *mouseTooltip;
+		UiLabel *mouseTooltipPtr;
 
 		bool clickHappenedHere;
 		int mouseLastX, mouseLastY;
@@ -36,7 +36,7 @@ class MapFrame : public UiObject
 
 		void updateMouseText();
 		
-		bool mapPosFromMouse(int *x, int *y);
+		bool mapPosFromMouse(int &x, int &y);
 
 		bool customSdlEvtHandler(SDL_Event &e);
 

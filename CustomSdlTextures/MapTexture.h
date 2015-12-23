@@ -18,7 +18,7 @@ class MapTexture : public SdlTexture
 {
 	private:
 		Uint32 *mapPixels;
-		SDL_Renderer *context;
+		SDL_Renderer *rendererContext;
 
 		int seaRenderMode, landRenderMode;
 		

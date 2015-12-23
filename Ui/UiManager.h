@@ -2,6 +2,7 @@
 #define UIMANAGER
 
 #include <list>
+#include <memory>
 
 #include <SDL2/SDL.h>
 
@@ -18,15 +19,17 @@ class UiManager
 		int width, height;
 		double windowScaleW, windowScaleH;
 
-		std::list<UiObject*> childList;
+		std::list<std::shared_ptr<UiObject>> childList;
 
 		UiObject* focusedUiObject;
 
 	public:
 		UiManager(SDL_Renderer *r, int w, int h, double wScaleW, double wScaleH);
+		UiManager(const UiManager &) = delete;
+		UiManager& operator=(const UiManager&) = delete;
 		~UiManager();
 
-		void addChild(UiObject *c);
+		void addChild(std::shared_ptr<UiObject> c);
 
 		int getWidth();
 		int getHeight();

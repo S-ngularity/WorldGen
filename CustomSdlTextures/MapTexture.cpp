@@ -4,7 +4,7 @@
 #include <iostream>
 
 MapTexture::MapTexture(SDL_Renderer *r, Map &theMap) : 
-	context(r), 
+	rendererContext(r), 
 	seaRenderMode(NO_SEA), 
 	landRenderMode(FIXED)
 {
@@ -13,7 +13,7 @@ MapTexture::MapTexture(SDL_Renderer *r, Map &theMap) :
 
 	mapPixels = new Uint32[theMap.getMapWidth() * theMap.getMapHeight()];
 
-	SDL_Texture *temp = SDL_CreateTexture(context, 
+	SDL_Texture *temp = SDL_CreateTexture(rendererContext, 
 											SDL_PIXELFORMAT_RGBA8888, 
 											SDL_TEXTUREACCESS_STREAMING, 
 											theMap.getMapWidth(), theMap.getMapHeight());
@@ -35,7 +35,7 @@ void MapTexture::update(Map &theMap)
 		delete mapPixels;
 		mapPixels = new Uint32[theMap.getMapWidth() * theMap.getMapHeight()];
 
-		SDL_Texture *temp = SDL_CreateTexture(context, 
+		SDL_Texture *temp = SDL_CreateTexture(rendererContext, 
 											SDL_PIXELFORMAT_RGBA8888, 
 											SDL_TEXTUREACCESS_STREAMING, 
 											theMap.getMapWidth(), theMap.getMapHeight());

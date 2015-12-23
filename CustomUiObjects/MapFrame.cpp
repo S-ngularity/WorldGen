@@ -38,8 +38,9 @@ void MapFrame::init()
 																		mapTexture->getHeight())));
 
 	// Mouse tooltip for map height
-	mouseTooltip = new UiLabel(0, 0, ALIGN_BOTTOM_LEFT, "", 20, 220, 20, 60);
+	auto mouseTooltip = std::make_shared<UiLabel>(0, 0, ALIGN_BOTTOM_LEFT, "", 20, 220, 20, 60);
 	addChild(mouseTooltip);
+	mouseTooltipPtr = mouseTooltip.get();
 
 	// Dragging functionality
 	SDL_GetMouseState(&mouseLastX, &mouseLastY);
@@ -60,7 +61,7 @@ void MapFrame::updateMouseText()
 {
 	int mapX, mapY;
 	
-	if(mapPosFromMouse(&mapX, &mapY))
+	if(mapPosFromMouse(mapX, mapY))
 	{
 		int h = selectedMap->getH(mapX, mapY);
 		std::string text;
@@ -75,17 +76,17 @@ void MapFrame::updateMouseText()
 			text = ss.str();
 		}
 
-		mouseTooltip->setText(text);
+		mouseTooltipPtr->setText(text);
 
 		int x, y;
-		UiObject::getRelativeMousePos(this, &x, &y);
-		mouseTooltip->setUiObjectOffset(x, y);
+		UiObject::getRelativeMousePos(*this, x, y);
+		mouseTooltipPtr->setUiObjectOffset(x, y);
 	}
 }
 
-bool MapFrame::mapPosFromMouse(int *x, int *y)
+bool MapFrame::mapPosFromMouse(int &x, int &y)
 {
-	if(!UiObject::getRelativeMousePos(this, x, y))
+	if(!UiObject::getRelativeMousePos(*this, x, y))
 		return false;
 
 	// zoom offset pos (on mouse pointer) from zoom top left pos
@@ -93,20 +94,20 @@ bool MapFrame::mapPosFromMouse(int *x, int *y)
 	// a posição relativa do mouse dentro do tamanho da área de zoom:
 	// framePos / frameSize = zoomOffsetPos / zoomSize
 	// zoomOffsetPos = (framePos / frameSize) * zoomSize
-	double xTemp = (*x / (double) getWidth()) * zoomW;
-	double yTemp = (*y / (double) getHeight()) * zoomH;
+	double xTemp = (x / (double) getWidth()) * zoomW;
+	double yTemp = (y / (double) getHeight()) * zoomH;
 	
 	// zoom area top left pos (on the map - because the mapTexture has the same dimensions as the original map)
 	// + mouse relative pos inside zoomed area
-	*x = floor(zoomX + xTemp - mapOffset);
-	*y = floor(zoomY + yTemp);
+	x = floor(zoomX + xTemp - mapOffset);
+	y = floor(zoomY + yTemp);
 
 	// wrap mapOffset
-	if(*x < 0)
-		*x = selectedMap->getMapWidth() + *x % selectedMap->getMapWidth();
+	if(x < 0)
+		x = selectedMap->getMapWidth() + x % selectedMap->getMapWidth();
 
-	else if(*x >= selectedMap->getMapWidth())
-		*x = *x % selectedMap->getMapWidth();
+	else if(x >= selectedMap->getMapWidth())
+		x = x % selectedMap->getMapWidth();
 
 	return true;
 }
@@ -163,7 +164,7 @@ bool MapFrame::customSdlEvtHandler(SDL_Event &e)
 			{
 				int x, y;
 				
-				if(mapPosFromMouse(&x, &y))
+				if(mapPosFromMouse(x, y))
 					EvtAggr::publish<WalkWindowOpened>(WalkWindowOpened(*selectedMap, x, y));
 			}
 
@@ -246,7 +247,7 @@ bool MapFrame::customSdlEvtHandler(SDL_Event &e)
 
 					// relative mouse pos from this UiObject 0,0, scaled 
 					// to the original size (even if the window is resized)
-					if(!UiObject::getRelativeMousePos(this, &x, &y))
+					if(!UiObject::getRelativeMousePos(*this, x, y))
 						break;
 
 					// reduce zoomed area
@@ -279,7 +280,7 @@ bool MapFrame::customSdlEvtHandler(SDL_Event &e)
 			{
 				int x, y;
 
-				if(!UiObject::getRelativeMousePos(this, &x, &y))
+				if(!UiObject::getRelativeMousePos(*this, x, y))
 					return false;
 
 				// enlarge zoomed area

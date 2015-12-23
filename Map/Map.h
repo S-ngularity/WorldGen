@@ -1,6 +1,8 @@
 #ifndef MAP
 #define MAP
 
+#include <vector>
+
 #define MAX_H 255 //170//120//70
 
 #define INIT_H ((MAX_H / 2) - 1)
@@ -10,16 +12,14 @@
 class Map
 {
 	private:
-		int mapHeight, mapWidth;
-		int **map;
+		int mapWidth, mapHeight;
+		std::vector<int> map;
 
 		int highestH, lowestH;
 		int seaLevel;
 
 	public:
 		Map(int w, int h);
-		Map(const Map &m);
-		~Map();
 
 		int getH(int x, int y);
 		void setH(int x, int y, int newH);

@@ -42,7 +42,7 @@ class SdlWindow
 		bool shown;
 
 	protected:
-		UiManager *windowUiManager;
+		std::unique_ptr<UiManager> windowUiManager;
 
 		unsigned int windowID;
 
@@ -53,6 +53,8 @@ class SdlWindow
 
 	public:
 		SdlWindow(char const *title, int x, int y, int w, int h, int resW, int resH, Uint32 windowFlags, Uint32 rendererFlags);
+		SdlWindow(const SdlWindow &) = delete;
+		SdlWindow& operator=(const SdlWindow&) = delete;
 		virtual ~SdlWindow();
 
 		bool handleSdlEvent(SDL_Event& e);

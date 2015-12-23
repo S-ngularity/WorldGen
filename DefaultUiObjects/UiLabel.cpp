@@ -111,7 +111,7 @@ void UiLabel::labelPreRender()
 			SDL_FreeSurface(tempSurface);
 		}
 
-		getUiObjectOffset(&originalX, &originalY);
+		getUiObjectOffset(originalX, originalY);
 
 		if(align == ALIGN_TOP_LEFT || align == ALIGN_CENTER_LEFT || align == ALIGN_BOTTOM_LEFT)
 			alignedX = originalX;

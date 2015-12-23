@@ -68,7 +68,7 @@ SdlWindow::SdlWindow(char const *title, int x, int y, int w, int h, int resW, in
 				SDL_RenderClear(wndRenderer);
 				resolutionTexture.releaseRenderTarget(wndRenderer);
 
-				windowUiManager = new UiManager(wndRenderer, resW, resH, getWindowWidthScale(), getWindowHeightScale()); // create base windowUiManager object
+				windowUiManager = std::make_unique<UiManager>(wndRenderer, resW, resH, getWindowWidthScale(), getWindowHeightScale()); // create base windowUiManager object
 			}
 
 		}

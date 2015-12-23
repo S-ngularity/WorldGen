@@ -40,6 +40,10 @@ NoiseWindow::NoiseWindow() :
 
 	normalizedLevel = 20;
 
+	mapFramePtr = NULL;
+	mapInfoTextPtr = NULL;
+	noiseInfoTextPtr = NULL;
+
 	subscribeTkUiCode = EvtAggr::subscribe<UiCode>( [&](UiCode &c){ handleUiCode(c); } );
 
 	SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "nearest");
@@ -119,7 +123,7 @@ bool NoiseWindow::customSdlEvtHandler(SDL_Event &e)
 
 void NoiseWindow::handleUiCode(UiCode &c)
 {
-	if(c.code == UIEVT_NOISEINFOUPDATED && noiseInfoText != NULL)
+	if(c.code == UIEVT_NOISEINFOUPDATED && noiseInfoTextPtr != NULL)
 	{
 		NoiseInfoRequest req;
 		EvtAggr::publish<NoiseInfoRequest*>(&req);
@@ -132,19 +136,19 @@ void NoiseWindow::handleUiCode(UiCode &c)
 		<< "\nPersistency: " << req.pers
 		<< "\nfDiv: " << req.fDiv;
 		
-		noiseInfoText->setText(ss.str());
+		noiseInfoTextPtr->setText(ss.str());
 	}
 }
 
 void NoiseWindow::updateMap()
 {
-	mapFrame->updateTexture();
+	mapFramePtr->updateTexture();
 	updateMapInfo();
 }
 
 void NoiseWindow::updateMapInfo()
 {
-	if(mapInfoText != NULL)
+	if(mapInfoTextPtr != NULL)
 	{
 		std::stringstream ss;
 		
@@ -157,7 +161,7 @@ void NoiseWindow::updateMapInfo()
 		<< "\n\nHighest: " << selectedMap->getHighestH()
 		<< "\nLowest: " << selectedMap->getLowestH();
 		
-		mapInfoText->setText(ss.str());
+		mapInfoTextPtr->setText(ss.str());
 	}
 }
 
@@ -165,7 +169,7 @@ void NoiseWindow::selectMap(int index)
 {
 	selectedMap = mapVector.at(index);
 	updateMap();
-	mapFrame->resetZoom();
+	mapFramePtr->resetZoom();
 }
 
 void NoiseWindow::selectNoise(int index)
@@ -181,8 +185,8 @@ void NoiseWindow::runNoise()
 
 	noiseVector[selectedNoiseIdx]->setMap(selectedMap); // sets target map on noise and resets
 
-	mapFrame->setSeaRenderMode(NO_SEA);  // no sea while not done
-	mapFrame->setLandRenderMode(FIXED);
+	mapFramePtr->setSeaRenderMode(NO_SEA);  // no sea while not done
+	mapFramePtr->setLandRenderMode(FIXED);
 
 	while(noiseVector[selectedNoiseIdx]->getPercentComplete() < 100) // noise iterations
 	{
@@ -197,8 +201,8 @@ void NoiseWindow::runNoise()
 
 			if(percentComplete >= 100)
 			{
-				mapFrame->setSeaRenderMode(WITH_SEA);
-				mapFrame->setLandRenderMode(VARYING_HIGHEST);
+				mapFramePtr->setSeaRenderMode(WITH_SEA);
+				mapFramePtr->setLandRenderMode(VARYING_HIGHEST);
 
 				selectedMap->setSeaLevel(SEA_LEVEL);
 			}
@@ -231,122 +235,139 @@ void NoiseWindow::createGui()
 	std::shared_ptr<SdlTexture> standardBtTexture = MyUtils::loadTexture(getRenderer(), "Resources\\btSprite.png");
 	std::shared_ptr<SdlTexture> sidebarBg = createDrawnTexture(SIDEBAR_WIDTH, windowUiManager->getHeight(), 0, 126, 126, 255);
 
-	mapFrame = new MapFrame(0, 0, windowUiManager->getWidth() - SIDEBAR_WIDTH, windowUiManager->getHeight(), selectedMap);
+	auto mapFrame = std::make_shared<MapFrame>(0, 0, windowUiManager->getWidth() - SIDEBAR_WIDTH, windowUiManager->getHeight(), selectedMap);
+	mapFramePtr = mapFrame.get();
 
-	UiPanel *sidebar = new UiPanel(windowUiManager->getWidth() - SIDEBAR_WIDTH, 0, sidebarBg);
+	auto sidebar = std::make_shared<UiPanel>(windowUiManager->getWidth() - SIDEBAR_WIDTH, 0, sidebarBg);
 
 	// Text
-	mapInfoText = new UiLabel(30, 150, "", 18, 175, 0, 0);
+	auto mapInfoText = std::make_shared<UiLabel>(30, 150, "", 18, 175, 0, 0);
 	sidebar->addChild(mapInfoText);
+	mapInfoTextPtr = mapInfoText.get();
 	
-	noiseInfoText = new UiLabel(30, windowUiManager->getHeight() - 310, "", 18, 175, 0, 0);
+	auto noiseInfoText = std::make_shared<UiLabel>(30, windowUiManager->getHeight() - 310, "", 18, 175, 0, 0);
 	sidebar->addChild(noiseInfoText);
+	noiseInfoTextPtr = noiseInfoText.get();
 
 	// Map selectors
-	sidebar->addChild(new UiButton(	30, 30, 
-									30, 30,
-									new UiLabel(0, 0, "1", 16, 235, 235, 235), 
-									standardBtTexture, 
-									[&](){ selectMap(0); } ));
+	sidebar->addChild(std::make_shared<UiButton>(
+						30, 30, 
+						30, 30,
+						std::make_shared<UiLabel>(0, 0, "1", 16, 235, 235, 235), 
+						standardBtTexture, 
+						[&](){ selectMap(0); } ));
 
-	sidebar->addChild(new UiButton(	90, 30, 
-									30, 30, 
-									new UiLabel(0, 0, "2", 16, 235, 235, 235), 
-									standardBtTexture, 
-									[&](){ selectMap(1); } ));
+	sidebar->addChild(std::make_shared<UiButton>(
+						90, 30, 
+						30, 30, 
+						std::make_shared<UiLabel>(0, 0, "2", 16, 235, 235, 235), 
+						standardBtTexture, 
+						[&](){ selectMap(1); } ));
 
-	sidebar->addChild(new UiButton(	150, 30, 
-									30, 30, 
-									new UiLabel(0, 0, "3", 16, 235, 235, 235), 
-									standardBtTexture, 
-									[&](){ selectMap(2); } ));
+	sidebar->addChild(std::make_shared<UiButton>(
+						150, 30, 
+						30, 30, 
+						std::make_shared<UiLabel>(0, 0, "3", 16, 235, 235, 235), 
+						standardBtTexture, 
+						[&](){ selectMap(2); } ));
 
 	// Noise selectors
-	sidebar->addChild(new UiButton(	30, 80, 
-									70, 30, 
-									new UiLabel(0, 0, "OpSim", 14, 235, 235, 235), 
-									standardBtTexture, 
-									[&](){ selectNoise(0); } ));
+	sidebar->addChild(std::make_shared<UiButton>(
+						30, 80, 
+						70, 30, 
+						std::make_shared<UiLabel>(0, 0, "OpSim", 14, 235, 235, 235), 
+						standardBtTexture, 
+						[&](){ selectNoise(0); } ));
 
-	sidebar->addChild(new UiButton(	110, 80, 
-									70, 30, 
-									new UiLabel(0, 0, "DiamSq", 14, 235, 235, 235), 
-									standardBtTexture, 
-									[&](){ selectNoise(1); } ));
+	sidebar->addChild(std::make_shared<UiButton>(
+						110, 80, 
+						70, 30, 
+						std::make_shared<UiLabel>(0, 0, "DiamSq", 14, 235, 235, 235), 
+						standardBtTexture, 
+						[&](){ selectNoise(1); } ));
 
 	// Run button
-	sidebar->addChild(new UiButton(	30, windowUiManager->getHeight() - 60, 
-									150, 30, 
-									new UiLabel(0, 0, "RUN", 22, 235, 235, 235), 
-									standardBtTexture, 
-									[&](){ runNoise(); } ));
+	sidebar->addChild(std::make_shared<UiButton>(
+						30, windowUiManager->getHeight() - 60, 
+						150, 30, 
+						std::make_shared<UiLabel>(0, 0, "RUN", 22, 235, 235, 235), 
+						standardBtTexture, 
+						[&](){ runNoise(); } ));
 
 	// Normalization buttons
-	static UiLabel *nLevel = new UiLabel(48, windowUiManager->getHeight() - 100, ALIGN_BOTTOM_CENTER, "20", 18, 235, 235, 235);
+	auto nLevel = std::make_shared<UiLabel>(48, windowUiManager->getHeight() - 100, ALIGN_BOTTOM_CENTER, "20", 18, 235, 235, 235);
 	sidebar->addChild(nLevel);
+	static UiLabel *nLevelPtr = nLevel.get();
 
-	sidebar->addChild(new UiButton(	50, windowUiManager->getHeight() - 95, 
-									15, 15, 
-									new UiLabel(0, 0, "+", 12, 235, 235, 235), 
-									standardBtTexture, 
-									[&](){	normalizedLevel++;
-											std::stringstream ss;
-											ss << normalizedLevel;
-											nLevel->setText(ss.str()); } ));
+	sidebar->addChild(std::make_shared<UiButton>(
+						50, windowUiManager->getHeight() - 95, 
+						15, 15, 
+						std::make_shared<UiLabel>(0, 0, "+", 12, 235, 235, 235), 
+						standardBtTexture, 
+						[&](){	normalizedLevel++;
+								std::stringstream ss;
+								ss << normalizedLevel;
+								nLevelPtr->setText(ss.str()); } ));
 
-	sidebar->addChild(new UiButton(	30, windowUiManager->getHeight() - 95, 
-									15, 15, 
-									new UiLabel(0, 0, "-", 12, 235, 235, 235), 
-									standardBtTexture, 
-									[&](){ normalizedLevel--;
-											std::stringstream ss;
-											ss << normalizedLevel;
-											nLevel->setText(ss.str()); } ));
+	sidebar->addChild(std::make_shared<UiButton>(
+						30, windowUiManager->getHeight() - 95, 
+						15, 15, 
+						std::make_shared<UiLabel>(0, 0, "-", 12, 235, 235, 235), 
+						standardBtTexture, 
+						[&](){ normalizedLevel--;
+								std::stringstream ss;
+								ss << normalizedLevel;
+								nLevelPtr->setText(ss.str()); } ));
 
-	sidebar->addChild(new UiButton(	80, windowUiManager->getHeight() - 115, 
-									100, 30, 
-									new UiLabel(0, 0, "Normalize", 14, 235, 235, 235), 
-									standardBtTexture, 
-									[&](){ normalizeMap(normalizedLevel); } ));
+	sidebar->addChild(std::make_shared<UiButton>(
+						80, windowUiManager->getHeight() - 115, 
+						100, 30, 
+						std::make_shared<UiLabel>(0, 0, "Normalize", 14, 235, 235, 235), 
+						standardBtTexture, 
+						[&](){ normalizeMap(normalizedLevel); } ));
 
-
-	// >>>>>>> TO DO: FIX NOISE SIDE SETTINGS CHANGES THAT GET LOST WHEN NOISES ARE RECONSTRUCTED <<<<<<<
 	// Noise adjust buttons
-	sidebar->addChild(new UiButton(	30, windowUiManager->getHeight() - 145, 
-									15, 15, 
-									new UiLabel(0, 0, "f", 12, 235, 235, 235), 
-									standardBtTexture, 
-									[&](){	EvtAggr::publish<UiCode>(UiCode(UIEVT_FREQDECREASE)); } ));
+	sidebar->addChild(std::make_shared<UiButton>(
+						30, windowUiManager->getHeight() - 145, 
+						15, 15, 
+						std::make_shared<UiLabel>(0, 0, "f", 12, 235, 235, 235), 
+						standardBtTexture, 
+						[&](){	EvtAggr::publish<UiCode>(UiCode(UIEVT_FREQDECREASE)); } ));
 
-	sidebar->addChild(new UiButton(	50, windowUiManager->getHeight() - 145, 
-									15, 15, 
-									new UiLabel(0, 0, "F", 12, 235, 235, 235), 
-									standardBtTexture, 
-									[&](){	EvtAggr::publish<UiCode>(UiCode(UIEVT_FREQINCREASE)); } ));
+	sidebar->addChild(std::make_shared<UiButton>(
+						50, windowUiManager->getHeight() - 145, 
+						15, 15, 
+						std::make_shared<UiLabel>(0, 0, "F", 12, 235, 235, 235), 
+						standardBtTexture, 
+						[&](){	EvtAggr::publish<UiCode>(UiCode(UIEVT_FREQINCREASE)); } ));
 
-	sidebar->addChild(new UiButton(	75, windowUiManager->getHeight() - 145, 
-									15, 15, 
-									new UiLabel(0, 0, "p", 12, 235, 235, 235), 
-									standardBtTexture, 
-									[&](){	EvtAggr::publish<UiCode>(UiCode(UIEVT_PERSDECREASE)); } ));
+	sidebar->addChild(std::make_shared<UiButton>(
+						75, windowUiManager->getHeight() - 145, 
+						15, 15, 
+						std::make_shared<UiLabel>(0, 0, "p", 12, 235, 235, 235), 
+						standardBtTexture, 
+						[&](){	EvtAggr::publish<UiCode>(UiCode(UIEVT_PERSDECREASE)); } ));
 
-	sidebar->addChild(new UiButton(	95, windowUiManager->getHeight() - 145, 
-									15, 15,  
-									new UiLabel(0, 0, "P", 12, 235, 235, 235), 
-									standardBtTexture, 
-									[&](){	EvtAggr::publish<UiCode>(UiCode(UIEVT_PERSINCREASE)); } ));
+	sidebar->addChild(std::make_shared<UiButton>(
+						95, windowUiManager->getHeight() - 145, 
+						15, 15,  
+						std::make_shared<UiLabel>(0, 0, "P", 12, 235, 235, 235), 
+						standardBtTexture, 
+						[&](){	EvtAggr::publish<UiCode>(UiCode(UIEVT_PERSINCREASE)); } ));
 
-	sidebar->addChild(new UiButton(	120, windowUiManager->getHeight() - 145, 
-									15, 15, 
-									new UiLabel(0, 0, "d", 12, 235, 235, 235), 
-									standardBtTexture, 
-									[&](){	EvtAggr::publish<UiCode>(UiCode(UIEVT_FDIVDECREASE)); } ));
+	sidebar->addChild(std::make_shared<UiButton>(
+						120, windowUiManager->getHeight() - 145, 
+						15, 15, 
+						std::make_shared<UiLabel>(0, 0, "d", 12, 235, 235, 235), 
+						standardBtTexture, 
+						[&](){	EvtAggr::publish<UiCode>(UiCode(UIEVT_FDIVDECREASE)); } ));
 
-	sidebar->addChild(new UiButton(	140, windowUiManager->getHeight() - 145, 
-									15, 15, 
-									new UiLabel(0, 0, "D", 12, 235, 235, 235), 
-									standardBtTexture, 
-									[&](){	EvtAggr::publish<UiCode>(UiCode(UIEVT_FDIVINCREASE)); } ));
+	sidebar->addChild(std::make_shared<UiButton>(
+						140, windowUiManager->getHeight() - 145, 
+						15, 15, 
+						std::make_shared<UiLabel>(0, 0, "D", 12, 235, 235, 235), 
+						standardBtTexture, 
+						[&](){	EvtAggr::publish<UiCode>(UiCode(UIEVT_FDIVINCREASE)); } ));
 
 	mapFrame->setUiObjectLogicalSize(windowUiManager->getWidth(), windowUiManager->getHeight());
 	mapFrame->addChild(sidebar);

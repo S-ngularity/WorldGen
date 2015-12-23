@@ -17,7 +17,7 @@ class UiButton : public UiObject
 	private:
 		std::function<void()> customButtonAction;
 		std::shared_ptr<SDL_Rect> standardClipRect, hoverClipRect, pressedClipRect;
-		UiLabel *label;
+		UiLabel *labelPtr;
 		
 		bool clickHappenedHere;
 		bool isPressed;
@@ -28,13 +28,13 @@ class UiButton : public UiObject
 
 	public:
 		UiButton(int xOff, int yOff, 						// Position (offset)
-					UiLabel *textLabel, 					// Text label
+					std::shared_ptr<UiLabel> textLabel, 	// Text label
 					std::shared_ptr<SdlTexture> t, 			// Three part texture (standard/hover/pressed, side by side)
 					std::function<void()> btEvtH);			// Event handler
 
 		UiButton(int xOff, int yOff, 						//
 					int w, int h, 							// Size
-					UiLabel *textLabel, 					//
+					std::shared_ptr<UiLabel> textLabel,		//
 					std::shared_ptr<SdlTexture> t, 			//
 					std::function<void()> btEvtH);			//
 };

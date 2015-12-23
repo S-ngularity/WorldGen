@@ -12,13 +12,10 @@ UiManager::UiManager(SDL_Renderer *r, int w, int h, double wScaleW, double wScal
 {}
 
 UiManager::~UiManager()
-{
-	for(UiObject *childUiObj : childList)
-		delete childUiObj;
-}
+{}
 
 
-void UiManager::addChild(UiObject *c)
+void UiManager::addChild(std::shared_ptr<UiObject> c)
 {
 	c->setParentUiManager(this);
 
@@ -80,7 +77,7 @@ bool UiManager::handleSdlEvent(SDL_Event& e)
 		// or else it would be as if the click "passed
 		// through" the object and had an effect on the object behind
 		
-		for(UiObject *childUiObj : childList)
+		for(std::shared_ptr<UiObject> childUiObj : childList)
 		{
 			if(childUiObj->isMouseInside())
 			{

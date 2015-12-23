@@ -27,7 +27,7 @@ WalkWindow::WalkWindow(Map theMap, int x, int y) :
 
 	SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "nearest");
 
-	windowUiManager->addChild(new UiObject(0, 0, walkTexture, nullptr));
+	windowUiManager->addChild(std::make_shared<UiObject>(0, 0, walkTexture, nullptr));
 
 	// if(!worldMap.isPosInsideNoWrap(x, y))
 	// {

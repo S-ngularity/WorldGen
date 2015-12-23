@@ -46,15 +46,12 @@ UiObject::UiObject(int xOff, int yOff, int w, int h, std::shared_ptr<SdlTexture>
 }
 
 UiObject::~UiObject()
-{
-	for(UiObject *childUiObj : childList)
-		delete childUiObj;
-}
+{}
 
 
 // ----- Settings ----- //
 
-void UiObject::addChild(UiObject *c)
+void UiObject::addChild(std::shared_ptr<UiObject> c)
 {
 	if(c != NULL)
 	{
@@ -69,10 +66,10 @@ void UiObject::bringToFront()
 {
 	if(parent != NULL)
 	{
-		if(parent->childList.front() != this)
+		if(parent->childList.front() != shared_from_this())
 		{
-			parent->childList.remove(this);
-			parent->childList.push_front(this);
+			parent->childList.remove(shared_from_this());
+			parent->childList.push_front(shared_from_this());
 		}
 
 		parent->bringToFront();
@@ -83,10 +80,10 @@ void UiObject::bringToFront()
 		if(parentUiManager == NULL)
 			std::cout << "UiObject::bringToFront() called without a valid parentUiManager (is NULL)." << std::endl;
 
-		if(parentUiManager->childList.front() != this)
+		if(parentUiManager->childList.front() != shared_from_this())
 		{
-			parentUiManager->childList.remove(this);
-			parentUiManager->childList.push_front(this);
+			parentUiManager->childList.remove(shared_from_this());
+			parentUiManager->childList.push_front(shared_from_this());
 		}
 	}
 }
@@ -126,14 +123,14 @@ void UiObject::setParentUiManager(UiManager *uiMngr)
 {
 	parentUiManager = uiMngr;
 
-	for(UiObject *childUiObj : childList)
+	for(std::shared_ptr<UiObject> childUiObj : childList)
 		childUiObj->setParentUiManager(uiMngr);
 }
 
-void UiObject::getUiObjectOffset(int *xOff, int *yOff)
+void UiObject::getUiObjectOffset(int &xOff, int &yOff)
 {
-	*xOff = xOffset;
-	*yOff = yOffset;
+	xOff = xOffset;
+	yOff = yOffset;
 }
 
 std::shared_ptr<SdlTexture> UiObject::getTexture()
@@ -242,7 +239,7 @@ bool UiObject::handleSdlEventMouse(SDL_Event& e)
 		// or else it would be as if the click "passed
 		// through" the object and had an effect on the object behind
 		
-		for(UiObject *childUiObj : childList)
+		for(std::shared_ptr<UiObject> childUiObj : childList)
 		{
 			if(childUiObj->isMouseInside())
 			{
@@ -326,26 +323,23 @@ bool UiObject::isMouseInside()
 		return false;
 }
 
-bool UiObject::getRelativeMousePos(UiObject *obj, int *x, int *y)
+bool UiObject::getRelativeMousePos(UiObject &obj, int &x, int &y)
 {
-	SDL_GetMouseState(x, y);
+	SDL_GetMouseState(&x, &y);
 
-	if(obj == NULL)
-		std::cout << "UiObject::getRelativeMousePos() called without a valid UiObject *obj argument (is NULL)." << std::endl;
-
-	if(obj->parentUiManager == NULL)
+	if(obj.parentUiManager == NULL)
 			std::cout << "UiObject::getRelativeMousePos() called without a valid parentUiManager (is NULL) for the provided argument UiObject *obj." << std::endl;
 
-	*x = (*x - obj->absoluteX * obj->parentUiManager->getWindowScaleW()) / obj->parentUiManager->getWindowScaleW();
-	*y = (*y - obj->absoluteY * obj->parentUiManager->getWindowScaleH()) / obj->parentUiManager->getWindowScaleH();
+	x = (x - obj.absoluteX * obj.parentUiManager->getWindowScaleW()) / obj.parentUiManager->getWindowScaleW();
+	y = (y - obj.absoluteY * obj.parentUiManager->getWindowScaleH()) / obj.parentUiManager->getWindowScaleH();
 
-	if(	*x < 0 || *x > obj->width || 
-		*y < 0 || *y > obj->height)
+	if(	x < 0 || x > obj.width || 
+		y < 0 || y > obj.height)
 	{
-		std::cout << "UiObject::getRelativeMousePos() returned invalid x and/or y: x = " << *x << " y = " << *y << " (obj: width = " << obj->width << " height = " << obj->height << ")." << std::endl;
+		std::cout << "UiObject::getRelativeMousePos() returned invalid x and/or y: x = " << x << " y = " << y << " (obj: width = " << obj.width << " height = " << obj.height << ")." << std::endl;
 
-		*x = -1;
-		*y = -1;
+		x = -1;
+		y = -1;
 
 		return false;
 	}

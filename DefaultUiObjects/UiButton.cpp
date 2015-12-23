@@ -4,11 +4,11 @@
 
 #include "DefaultUiObjects/UiLabel.h"
 
-UiButton::UiButton(int xOff, int yOff, UiLabel *textLabel, std::shared_ptr<SdlTexture> t, std::function<void()> btEvtH) :  
+UiButton::UiButton(int xOff, int yOff, std::shared_ptr<UiLabel> textLabel, std::shared_ptr<SdlTexture> t, std::function<void()> btEvtH) :  
 	UiObject(xOff, yOff, t, [&](SDL_Event &e){ return buttonEvtHandler(e); }),
 	customButtonAction(btEvtH)
 {
-	label = textLabel;
+	labelPtr = textLabel.get();
 
 	if(getTexture() != NULL)
 	{
@@ -27,18 +27,18 @@ UiButton::UiButton(int xOff, int yOff, UiLabel *textLabel, std::shared_ptr<SdlTe
 
 	setPreRenderProcedure([&](){ buttonPreRender(); });
 
-	if(label != NULL)
+	if(textLabel != NULL)
 	{
-		label->setAlignMode(ALIGN_CENTER_CENTER);
-		addChild(label);
+		textLabel->setAlignMode(ALIGN_CENTER_CENTER);
+		addChild(textLabel);
 	}
 }
 
-UiButton::UiButton(int xOff, int yOff, int w, int h, UiLabel *textLabel, std::shared_ptr<SdlTexture> t, std::function<void()> btEvtH) : 
+UiButton::UiButton(int xOff, int yOff, int w, int h, std::shared_ptr<UiLabel> textLabel, std::shared_ptr<SdlTexture> t, std::function<void()> btEvtH) : 
 	UiObject(xOff, yOff, w, h, t, [&](SDL_Event &e){ return buttonEvtHandler(e); }),
 	customButtonAction(btEvtH)
 {
-	label = textLabel;
+	labelPtr = textLabel.get();
 	
 	if(getTexture() != NULL)
 	{
@@ -57,10 +57,10 @@ UiButton::UiButton(int xOff, int yOff, int w, int h, UiLabel *textLabel, std::sh
 
 	setPreRenderProcedure([&](){ buttonPreRender(); });
 
-	if(label != NULL)
+	if(textLabel != NULL)
 	{
-		label->setAlignMode(ALIGN_CENTER_CENTER);
-		addChild(label);
+		textLabel->setAlignMode(ALIGN_CENTER_CENTER);
+		addChild(textLabel);
 	}
 }
 
@@ -140,11 +140,11 @@ void UiButton::buttonPreRender()
 			getTexture()->setCropRect(standardClipRect);
 	}
 
-	if(label != NULL)
+	if(labelPtr != NULL)
 	{
 		int myX, myY;
-		getUiObjectOffset(&myX, &myY);
+		getUiObjectOffset(myX, myY);
 		
-		label->setUiObjectOffset(getWidth() / 2.f, getHeight() / 2.f);
+		labelPtr->setUiObjectOffset(getWidth() / 2.f, getHeight() / 2.f);
 	}
 }
