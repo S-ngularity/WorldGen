@@ -34,6 +34,9 @@ class DiamSqNoise : public Noise
 
 	public:
 		DiamSqNoise(std::shared_ptr<Map> theMap);
+		DiamSqNoise(const DiamSqNoise&) = delete;
+		DiamSqNoise& operator=(const DiamSqNoise&) = delete;
+		~DiamSqNoise() = default;
 
 		void setMap(std::shared_ptr<Map> m);
 		void reset();

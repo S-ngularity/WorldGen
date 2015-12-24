@@ -25,7 +25,7 @@ class UiManager
 
 	public:
 		UiManager(SDL_Renderer *r, int w, int h, double wScaleW, double wScaleH);
-		UiManager(const UiManager &) = delete;
+		UiManager(const UiManager&) = delete;
 		UiManager& operator=(const UiManager&) = delete;
 		~UiManager();
 
@@ -43,7 +43,7 @@ class UiManager
 		void render();
 
 		// Events
-		bool handleSdlEvent(SDL_Event& e);
+		bool handleSdlEvent(const SDL_Event& e);
 
 		// Window
 		void setWindowScale(double sW, double sH);

@@ -14,7 +14,7 @@ class SdlWindow
 {
 	private:
 		// Custom event handler
-		std::function<bool(SDL_Event& e)> evtHandler;
+		std::function<bool(const SDL_Event& e)> evtHandler;
 
 		// Window data
 		SDL_Window* window;
@@ -46,18 +46,18 @@ class SdlWindow
 
 		unsigned int windowID;
 
-		void setWindowSdlEvtHandler(std::function<bool(SDL_Event& e)> evth);
+		void setWindowSdlEvtHandler(std::function<bool(const SDL_Event& e)> evth);
 
 		// returns window's renderer so others can render with it
 		SDL_Renderer* getRenderer();
 
 	public:
 		SdlWindow(char const *title, int x, int y, int w, int h, int resW, int resH, Uint32 windowFlags, Uint32 rendererFlags);
-		SdlWindow(const SdlWindow &) = delete;
+		SdlWindow(const SdlWindow&) = delete;
 		SdlWindow& operator=(const SdlWindow&) = delete;
 		virtual ~SdlWindow();
 
-		bool handleSdlEvent(SDL_Event& e);
+		bool handleSdlEvent(const SDL_Event& e);
 
 		// Shows windows contents
 		void doRefresh();

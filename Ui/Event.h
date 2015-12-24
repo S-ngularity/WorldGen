@@ -16,6 +16,9 @@ class Event
 			nextKey(0)
 		{}
 
+		Event(const Event&) = delete;
+		Event& operator=(const Event&) = delete;
+
 		long subscribe(std::function<void(EventType &evt)> action)
 		{
 			subscriberMap[nextKey] = action;

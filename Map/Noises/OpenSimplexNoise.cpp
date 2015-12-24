@@ -39,7 +39,7 @@ OpenSimplexNoise::~OpenSimplexNoise()
 	open_simplex_noise_free(context);
 }
 
-void OpenSimplexNoise::handleEvtCode(UiCode &c)
+void OpenSimplexNoise::handleEvtCode(const UiCode &c)
 {
 	switch(c.code)
 	{

@@ -30,7 +30,7 @@ void doFrame(bool draw);
 void resyncFrameTime();
 void regulateFrameRate();
 
-void openWalkWindow(WalkWindowOpened &w);
+void openWalkWindow(const WalkWindowOpened &w);
 
 int main(int argc, char* args[])
 {
@@ -107,7 +107,7 @@ void SDLClose()
 }
 
 
-void openWalkWindow(WalkWindowOpened &w)
+void openWalkWindow(const WalkWindowOpened &w)
 {
 	walkWindow = make_unique<WalkWindow>(w.map, w.x, w.y);
 }

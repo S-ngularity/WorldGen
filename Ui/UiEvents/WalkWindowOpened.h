@@ -6,13 +6,13 @@
 class WalkWindowOpened
 {
 	public:
-		WalkWindowOpened(Map &m, int a, int b) : 
+		WalkWindowOpened(const Map &m, int a, int b) : 
 			map(m), 
 			x(a), 
 			y(b)
 		{}
 
-		Map &map;
+		const Map &map;
 		int x, y;
 
 };

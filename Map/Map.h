@@ -20,6 +20,9 @@ class Map
 
 	public:
 		Map(int w, int h);
+		Map(const Map &) = default;
+		Map& operator=(const Map&) = default;
+		~Map() = default;
 
 		int getH(int x, int y);
 		void setH(int x, int y, int newH);

@@ -48,9 +48,11 @@ class OpenSimplexNoise : public Noise
 
 	public:
 		OpenSimplexNoise(std::shared_ptr<Map> theMap, int oct, double freq, double pers, double fdiv);
+		OpenSimplexNoise(const OpenSimplexNoise&) = delete;
+		OpenSimplexNoise& operator=(const OpenSimplexNoise&) = delete;
 		~OpenSimplexNoise();
 
-		void handleEvtCode(UiCode &c);
+		void handleEvtCode(const UiCode &c);
 
 		void setMap(std::shared_ptr<Map> m);
 

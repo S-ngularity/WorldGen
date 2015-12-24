@@ -24,6 +24,8 @@ class MapTexture : public SdlTexture
 		
 	public:
 		MapTexture(SDL_Renderer *r, Map &theMap);
+		MapTexture(const MapTexture&) = delete;
+		MapTexture& operator=(const MapTexture&) = delete;
 		~MapTexture();
 
 		void update(Map &theMap);

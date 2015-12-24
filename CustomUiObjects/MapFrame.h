@@ -19,7 +19,7 @@ class MapFrame : public UiObject
 {
 	private:
 		// Reference to a pointer that keeps the selected map as it's target
-		std::shared_ptr<Map> &selectedMap;
+		const std::shared_ptr<Map> &selectedMap;
 
 		// Generated (fixed) texture from the selected maps's data.
 		// It's rendered to the MapFrame's actual texture with applied scrolling/zooming
@@ -38,12 +38,15 @@ class MapFrame : public UiObject
 		
 		bool mapPosFromMouse(int &x, int &y);
 
-		bool customSdlEvtHandler(SDL_Event &e);
+		bool customSdlEvtHandler(const SDL_Event &e);
 
 		void preRenderProcedure();
 
 	public:
-		MapFrame(int x, int y, int w, int h, std::shared_ptr<Map> &selectedMapPtr);
+		MapFrame(int x, int y, int w, int h, const std::shared_ptr<Map> &selectedMapPtr);
+		MapFrame(const MapFrame&) = delete;
+		MapFrame& operator=(const MapFrame&) = delete;
+		~MapFrame() = default;
 
 		// Initializes the textures & other settings and then publish a MapUpdateInfo
 		// Should only be called after MapFrame is granted to have a parentUiManager

@@ -61,7 +61,7 @@ void UiManager::render()
 
 // ----- Events ----- //
 
-bool UiManager::handleSdlEvent(SDL_Event& e)
+bool UiManager::handleSdlEvent(const SDL_Event& e)
 {
 	bool isMouseEvt = 	e.type == SDL_MOUSEMOTION || 
 						e.type == SDL_MOUSEBUTTONDOWN || 

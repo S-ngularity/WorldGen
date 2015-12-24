@@ -50,7 +50,7 @@ NoiseWindow::NoiseWindow() :
 
 	createGui();
 
-	setWindowSdlEvtHandler([&](SDL_Event &e){return customSdlEvtHandler(e);});
+	setWindowSdlEvtHandler([&](const SDL_Event &e){return customSdlEvtHandler(e);});
 }
 
 NoiseWindow::~NoiseWindow()
@@ -58,7 +58,7 @@ NoiseWindow::~NoiseWindow()
 	EvtAggr::unsubscribe<UiCode>(subscribeTkUiCode);
 }
 
-bool NoiseWindow::customSdlEvtHandler(SDL_Event &e)
+bool NoiseWindow::customSdlEvtHandler(const SDL_Event &e)
 {
 	switch(e.type)
 	{
@@ -121,7 +121,7 @@ bool NoiseWindow::customSdlEvtHandler(SDL_Event &e)
 	return true;
 }
 
-void NoiseWindow::handleUiCode(UiCode &c)
+void NoiseWindow::handleUiCode(const UiCode &c)
 {
 	if(c.code == UIEVT_NOISEINFOUPDATED && noiseInfoTextPtr != NULL)
 	{

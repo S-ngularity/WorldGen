@@ -23,7 +23,7 @@ class UiObject : public std::enable_shared_from_this<UiObject>
 
 		std::shared_ptr<SdlTexture> uiTexture;
 
-		std::function<bool(SDL_Event& e)> evtHandler;
+		std::function<bool(const SDL_Event& e)> evtHandler;
 		std::function<void()> preRenderProcedure;
 		std::function<void()> postRenderProcedure;
 
@@ -49,8 +49,10 @@ class UiObject : public std::enable_shared_from_this<UiObject>
 
 	public:
 		UiObject(int xOff, int yOff, int w, int h);
-		UiObject(int xOff, int yOff, std::shared_ptr<SdlTexture> t, std::function<bool(SDL_Event& e)> evth);
-		UiObject(int xOff, int yOff, int w, int h, std::shared_ptr<SdlTexture> t, std::function<bool(SDL_Event& e)> evth);
+		UiObject(int xOff, int yOff, std::shared_ptr<SdlTexture> t, std::function<bool(const SDL_Event& e)> evth);
+		UiObject(int xOff, int yOff, int w, int h, std::shared_ptr<SdlTexture> t, std::function<bool(const SDL_Event& e)> evth);
+		UiObject(const UiObject&) = delete;
+		UiObject& operator=(const UiObject&) = delete;
 		virtual ~UiObject();
 
 		// Settings
@@ -73,14 +75,14 @@ class UiObject : public std::enable_shared_from_this<UiObject>
 		void renderScaled(int parentX, int parentY, double sW, double sH);
 
 		// Events
-		void setSdlEventHandler(std::function<bool(SDL_Event& e)> evth);
+		void setSdlEventHandler(std::function<bool(const SDL_Event& e)> evth);
 
-		bool handleSdlEventMouse(SDL_Event& e);
-		bool handleSdlEventKeyboard(SDL_Event& e);
+		bool handleSdlEventMouse(const SDL_Event& e);
+		bool handleSdlEventKeyboard(const SDL_Event& e);
 
 		// Mouse
 		bool isMouseInside();
-		static bool getRelativeMousePos(UiObject &obj, int &x, int &y);
+		static bool getRelativeMousePos(const UiObject &obj, int &x, int &y);
 };
 
 # endif

@@ -23,7 +23,7 @@ WalkWindow::WalkWindow(Map theMap, int x, int y) :
 												WALK_SCREEN_SIZE,
 												WALK_SCREEN_SIZE)))
 {
-	setWindowSdlEvtHandler([&](SDL_Event &e){return customSdlEvtHandler(e);});
+	setWindowSdlEvtHandler([&](const SDL_Event &e){return customSdlEvtHandler(e);});
 
 	SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "nearest");
 
@@ -56,7 +56,7 @@ void WalkWindow::setPos(int x, int y)
 	updateWalkTex();
 }
 
-bool WalkWindow::customSdlEvtHandler(SDL_Event& e)
+bool WalkWindow::customSdlEvtHandler(const SDL_Event& e)
 {
 	bool returnValue = false;
 

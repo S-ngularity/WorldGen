@@ -50,7 +50,7 @@ class NoiseWindow : public SdlWindow
 		void normalizeMap(int n);
 
 		// Ui Event handlers
-		void handleUiCode(UiCode &c);
+		void handleUiCode(const UiCode &c);
 
 		void updateMap();
 		void updateMapInfo();
@@ -59,10 +59,12 @@ class NoiseWindow : public SdlWindow
 		void createGui();
 		std::shared_ptr<SdlTexture> createDrawnTexture(int width, int height, int r, int g, int b, int a);
 
-		bool customSdlEvtHandler(SDL_Event &e);
+		bool customSdlEvtHandler(const SDL_Event &e);
 
 	public:
 		NoiseWindow();
+		NoiseWindow(const NoiseWindow&) = delete;
+		NoiseWindow& operator=(const NoiseWindow&) = delete;
 		~NoiseWindow();
 };
 

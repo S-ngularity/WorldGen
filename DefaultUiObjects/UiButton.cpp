@@ -4,9 +4,9 @@
 
 #include "DefaultUiObjects/UiLabel.h"
 
-UiButton::UiButton(int xOff, int yOff, std::shared_ptr<UiLabel> textLabel, std::shared_ptr<SdlTexture> t, std::function<void()> btEvtH) :  
-	UiObject(xOff, yOff, t, [&](SDL_Event &e){ return buttonEvtHandler(e); }),
-	customButtonAction(btEvtH)
+UiButton::UiButton(int xOff, int yOff, std::shared_ptr<UiLabel> textLabel, std::shared_ptr<SdlTexture> t, std::function<void()> btAction) :  
+	UiObject(xOff, yOff, t, [&](const SDL_Event &e){ return buttonEvtHandler(e); }),
+	customButtonAction(btAction)
 {
 	labelPtr = textLabel.get();
 
@@ -34,9 +34,9 @@ UiButton::UiButton(int xOff, int yOff, std::shared_ptr<UiLabel> textLabel, std::
 	}
 }
 
-UiButton::UiButton(int xOff, int yOff, int w, int h, std::shared_ptr<UiLabel> textLabel, std::shared_ptr<SdlTexture> t, std::function<void()> btEvtH) : 
-	UiObject(xOff, yOff, w, h, t, [&](SDL_Event &e){ return buttonEvtHandler(e); }),
-	customButtonAction(btEvtH)
+UiButton::UiButton(int xOff, int yOff, int w, int h, std::shared_ptr<UiLabel> textLabel, std::shared_ptr<SdlTexture> t, std::function<void()> btAction) : 
+	UiObject(xOff, yOff, w, h, t, [&](const SDL_Event &e){ return buttonEvtHandler(e); }),
+	customButtonAction(btAction)
 {
 	labelPtr = textLabel.get();
 	
@@ -64,7 +64,7 @@ UiButton::UiButton(int xOff, int yOff, int w, int h, std::shared_ptr<UiLabel> te
 	}
 }
 
-bool UiButton::buttonEvtHandler(SDL_Event &e)
+bool UiButton::buttonEvtHandler(const SDL_Event &e)
 {
 	switch(e.type)
 	{

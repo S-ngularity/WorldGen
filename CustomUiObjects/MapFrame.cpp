@@ -17,9 +17,9 @@
 #include <string>
 #include <sstream>
 
-MapFrame::MapFrame(int x, int y, int w, int h, std::shared_ptr<Map> &selectedMapPtr) : 
+MapFrame::MapFrame(int x, int y, int w, int h, const std::shared_ptr<Map> &selectedMapPtr) : 
 	UiObject(x, y, w, h, NULL,
-			[&](SDL_Event &e){return customSdlEvtHandler(e);}), 
+			[&](const SDL_Event &e){return customSdlEvtHandler(e);}), 
 	selectedMap(selectedMapPtr)
 {}
 
@@ -112,7 +112,7 @@ bool MapFrame::mapPosFromMouse(int &x, int &y)
 	return true;
 }
 
-bool MapFrame::customSdlEvtHandler(SDL_Event &e)
+bool MapFrame::customSdlEvtHandler(const SDL_Event &e)
 {
 	switch(e.type)
 	{

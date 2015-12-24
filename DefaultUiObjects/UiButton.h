@@ -22,21 +22,21 @@ class UiButton : public UiObject
 		bool clickHappenedHere;
 		bool isPressed;
 
-		bool buttonEvtHandler(SDL_Event &e);
+		bool buttonEvtHandler(const SDL_Event &e);
 
 		void buttonPreRender();
 
 	public:
 		UiButton(int xOff, int yOff, 						// Position (offset)
 					std::shared_ptr<UiLabel> textLabel, 	// Text label
-					std::shared_ptr<SdlTexture> t, 			// Three part texture (standard/hover/pressed, side by side)
-					std::function<void()> btEvtH);			// Event handler
+					std::shared_ptr<SdlTexture> t, 			// Three part texture (standard/hover/pressed, vertically aligned)
+					std::function<void()> btAction);		// Event handler
 
 		UiButton(int xOff, int yOff, 						//
 					int w, int h, 							// Size
 					std::shared_ptr<UiLabel> textLabel,		//
 					std::shared_ptr<SdlTexture> t, 			//
-					std::function<void()> btEvtH);			//
+					std::function<void()> btAction);		//
 };
 
 # endif

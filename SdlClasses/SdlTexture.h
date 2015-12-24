@@ -24,7 +24,7 @@ class SdlTexture
 		SdlTexture();
 		SdlTexture(SDL_Texture *t);
 		SdlTexture(SDL_Texture *t, int w, int h);
-		SdlTexture(const SdlTexture &) = delete;
+		SdlTexture(const SdlTexture&) = delete;
 		SdlTexture& operator=(const SdlTexture&) = delete;
 		virtual ~SdlTexture();
 		

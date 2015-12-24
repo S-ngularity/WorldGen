@@ -25,10 +25,13 @@ class WalkWindow : public SdlWindow
 
 		void updateWalkTex();
 
-		bool customSdlEvtHandler(SDL_Event& e);
+		bool customSdlEvtHandler(const SDL_Event& e);
 
 	public:
 		WalkWindow(Map theMap, int x, int y);
+		WalkWindow(const WalkWindow&) = delete;
+		WalkWindow& operator=(const WalkWindow&) = delete;
+		~WalkWindow() = default;
 		
 		void setPos(int x, int y);
 };

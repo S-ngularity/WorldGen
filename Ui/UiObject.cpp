@@ -10,7 +10,7 @@ UiObject::UiObject(int xOff, int yOff, int w, int h) :
 	UiObject(xOff, yOff, w, h, NULL, nullptr)
 {}
 
-UiObject::UiObject(int xOff, int yOff, std::shared_ptr<SdlTexture> t, std::function<bool(SDL_Event& e)> evth) : 
+UiObject::UiObject(int xOff, int yOff, std::shared_ptr<SdlTexture> t, std::function<bool(const SDL_Event& e)> evth) : 
 	UiObject(xOff, yOff, 0, 0, t, evth)
 {
 	if(t != NULL)
@@ -20,7 +20,7 @@ UiObject::UiObject(int xOff, int yOff, std::shared_ptr<SdlTexture> t, std::funct
 	}
 }
 
-UiObject::UiObject(int xOff, int yOff, int w, int h, std::shared_ptr<SdlTexture> t, std::function<bool(SDL_Event& e)> evth) : 
+UiObject::UiObject(int xOff, int yOff, int w, int h, std::shared_ptr<SdlTexture> t, std::function<bool(const SDL_Event& e)> evth) : 
 	uiTexture(t),
 	evtHandler(evth),
 	preRenderProcedure(nullptr),
@@ -219,12 +219,12 @@ void UiObject::renderScaled(int parentX, int parentY, double sW, double sH)
 
 // ----- Event ----- //
 
-void UiObject::setSdlEventHandler(std::function<bool(SDL_Event& e)> evth)
+void UiObject::setSdlEventHandler(std::function<bool(const SDL_Event& e)> evth)
 {
 	evtHandler = evth;
 }
 
-bool UiObject::handleSdlEventMouse(SDL_Event& e)
+bool UiObject::handleSdlEventMouse(const SDL_Event& e)
 {
 	bool isMouseEvt = 	e.type == SDL_MOUSEMOTION || 
 						e.type == SDL_MOUSEBUTTONDOWN || 
@@ -272,7 +272,7 @@ bool UiObject::handleSdlEventMouse(SDL_Event& e)
 	return false;
 }
 
-bool UiObject::handleSdlEventKeyboard(SDL_Event& e)
+bool UiObject::handleSdlEventKeyboard(const SDL_Event& e)
 {
 	bool isMouseEvt = 	e.type == SDL_MOUSEMOTION || 
 						e.type == SDL_MOUSEBUTTONDOWN || 
@@ -323,7 +323,7 @@ bool UiObject::isMouseInside()
 		return false;
 }
 
-bool UiObject::getRelativeMousePos(UiObject &obj, int &x, int &y)
+bool UiObject::getRelativeMousePos(const UiObject &obj, int &x, int &y)
 {
 	SDL_GetMouseState(&x, &y);
 
