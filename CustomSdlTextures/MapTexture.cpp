@@ -3,7 +3,7 @@
 
 #include <iostream>
 
-MapTexture::MapTexture(SDL_Renderer *r, Map &theMap) : 
+MapTexture::MapTexture(SDL_Renderer *r, const Map &theMap) : 
 	rendererContext(r), 
 	seaRenderMode(NO_SEA), 
 	landRenderMode(FIXED)
@@ -28,7 +28,7 @@ MapTexture::~MapTexture()
 	delete mapPixels;
 }
 
-void MapTexture::update(Map &theMap)
+void MapTexture::update(const Map &theMap)
 {
 	if(theMap.getMapWidth() != getWidth() || theMap.getMapHeight() != getHeight())
 	{
@@ -142,7 +142,7 @@ void MapTexture::update(Map &theMap)
 }
 
 
-int MapTexture::getSeaRenderMode()
+int MapTexture::getSeaRenderMode() const
 {
 	return seaRenderMode;
 }
@@ -156,7 +156,7 @@ void MapTexture::setSeaRenderMode(int mode)
 		seaRenderMode = WITH_SEA;
 }
 
-int MapTexture::getLandRenderMode()
+int MapTexture::getLandRenderMode() const
 {
 	return landRenderMode;
 }

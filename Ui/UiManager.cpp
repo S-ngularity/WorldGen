@@ -22,12 +22,12 @@ void UiManager::addChild(std::shared_ptr<UiObject> c)
 	childList.push_front(c);
 }
 
-int UiManager::getWidth()
+int UiManager::getWidth() const
 {
 	return width;
 }
 
-int UiManager::getHeight()
+int UiManager::getHeight() const
 {
 	return height;
 }
@@ -37,7 +37,7 @@ void UiManager::setFocusedUiObject(UiObject* obj)
 	focusedUiObject = obj;
 }
 
-UiObject* UiManager::getFocusedUiObject()
+const UiObject* UiManager::getFocusedUiObject() const
 {
 	return focusedUiObject;
 }
@@ -61,7 +61,7 @@ void UiManager::render()
 
 // ----- Events ----- //
 
-bool UiManager::handleSdlEvent(const SDL_Event& e)
+bool UiManager::handleSdlEvent(const SDL_Event &e)
 {
 	bool isMouseEvt = 	e.type == SDL_MOUSEMOTION || 
 						e.type == SDL_MOUSEBUTTONDOWN || 
@@ -106,12 +106,12 @@ void UiManager::setWindowScale(double sW, double sH)
 	windowScaleH = sH;
 }
 
-double UiManager::getWindowScaleW()
+double UiManager::getWindowScaleW() const
 {
 	return windowScaleW;
 }
 
-double UiManager::getWindowScaleH()
+double UiManager::getWindowScaleH() const
 {
 	return windowScaleH;
 }

@@ -84,7 +84,7 @@ void MapFrame::updateMouseText()
 	}
 }
 
-bool MapFrame::mapPosFromMouse(int &x, int &y)
+bool MapFrame::mapPosFromMouse(int &x, int &y) const
 {
 	if(!UiObject::getRelativeMousePos(*this, x, y))
 		return false;

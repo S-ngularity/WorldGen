@@ -25,7 +25,7 @@ class Noise
 		
 		virtual void runOnce() = 0;
 
-		virtual int getPercentComplete() = 0;
+		virtual int getPercentComplete() const = 0;
 };
 
 #endif

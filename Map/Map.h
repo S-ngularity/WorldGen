@@ -20,29 +20,29 @@ class Map
 
 	public:
 		Map(int w, int h);
-		Map(const Map &) = default;
+		Map(const Map&) = default;
 		Map& operator=(const Map&) = default;
 		~Map() = default;
 
-		int getH(int x, int y);
+		int getH(int x, int y) const;
 		void setH(int x, int y, int newH);
 
 		void normalize(int maxH);
 
-		bool isPosInsideWrap(int x, int y);
+		bool isPosInsideWrap(int x, int y) const;
 
-		bool isPosInsideNoWrap(int x, int y);
+		bool isPosInsideNoWrap(int x, int y) const;
 
-		int getMapHeight();
-		int getMapWidth();
+		int getMapHeight() const;
+		int getMapWidth() const;
 
-		int getHighestH();
+		int getHighestH() const;
 		void setHighestH(int h);
 
-		int getLowestH();
+		int getLowestH() const;
 		void setLowestH(int h);
 
-		int getSeaLevel();
+		int getSeaLevel() const;
 		void setSeaLevel(int lvl);
 		void increaseSeaLevel();
 		void decreaseSeaLevel();

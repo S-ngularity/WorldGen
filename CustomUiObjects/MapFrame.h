@@ -36,7 +36,7 @@ class MapFrame : public UiObject
 
 		void updateMouseText();
 		
-		bool mapPosFromMouse(int &x, int &y);
+		bool mapPosFromMouse(int &x, int &y) const;
 
 		bool customSdlEvtHandler(const SDL_Event &e);
 

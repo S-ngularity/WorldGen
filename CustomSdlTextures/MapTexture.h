@@ -23,17 +23,17 @@ class MapTexture : public SdlTexture
 		int seaRenderMode, landRenderMode;
 		
 	public:
-		MapTexture(SDL_Renderer *r, Map &theMap);
+		MapTexture(SDL_Renderer *r, const Map &theMap);
 		MapTexture(const MapTexture&) = delete;
 		MapTexture& operator=(const MapTexture&) = delete;
 		~MapTexture();
 
-		void update(Map &theMap);
+		void update(const Map &theMap);
 
-		int getSeaRenderMode();
+		int getSeaRenderMode() const;
 		void setSeaRenderMode(int mode);
 
-		int getLandRenderMode();
+		int getLandRenderMode() const;
 		void setLandRenderMode(int mode);
 };
 

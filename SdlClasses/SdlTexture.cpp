@@ -228,17 +228,17 @@ void SdlTexture::setCropRect(int cX, int cY, int cW, int cH)
 	cropRect->h = cH;
 }
 
-int SdlTexture::getWidth()
+int SdlTexture::getWidth() const
 {
 	return width;
 }
 
-int SdlTexture::getHeight()
+int SdlTexture::getHeight() const
 {
 	return height;
 }
 
-bool SdlTexture::isNull()
+bool SdlTexture::isNull() const
 {
 	return texture == NULL;
 }

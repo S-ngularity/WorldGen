@@ -56,7 +56,7 @@ void WalkWindow::setPos(int x, int y)
 	updateWalkTex();
 }
 
-bool WalkWindow::customSdlEvtHandler(const SDL_Event& e)
+bool WalkWindow::customSdlEvtHandler(const SDL_Event &e)
 {
 	bool returnValue = false;
 

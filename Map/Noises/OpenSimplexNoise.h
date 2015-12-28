@@ -60,7 +60,7 @@ class OpenSimplexNoise : public Noise
 
 		void runOnce();
 
-		int getPercentComplete();
+		int getPercentComplete() const;
 };
 
 #endif

@@ -87,12 +87,12 @@ SdlWindow::~SdlWindow()
 	window = NULL;
 }
 
-void SdlWindow::setWindowSdlEvtHandler(std::function<bool(const SDL_Event& e)> evth)
+void SdlWindow::setWindowSdlEvtHandler(std::function<bool(const SDL_Event &e)> evth)
 {
 	evtHandler = evth;
 }
 
-bool SdlWindow::handleSdlEvent(const SDL_Event& e)
+bool SdlWindow::handleSdlEvent(const SDL_Event &e)
 {
 	// If an event was detected for this window
 	if(e.window.windowID == windowID)
@@ -182,9 +182,20 @@ bool SdlWindow::handleSdlEvent(const SDL_Event& e)
 	return false;
 }
 
-SDL_Renderer* SdlWindow::getRenderer()
+void SdlWindow::doRefresh()
 {
-	return wndRenderer;
+	if(!minimized && shown)
+	{
+		resolutionTexture.setAsRenderTarget(wndRenderer);
+		SDL_SetRenderDrawColor(wndRenderer, 255, 0, 255, 255);
+		SDL_RenderClear(wndRenderer);
+		windowUiManager->render();
+		resolutionTexture.releaseRenderTarget(wndRenderer);
+
+		resolutionTexture.renderFitToArea(wndRenderer, 0, 0, windowWidth, windowHeight);
+
+		SDL_RenderPresent(wndRenderer);
+	}
 }
 
 void SdlWindow::show()
@@ -206,58 +217,47 @@ void SdlWindow::hide()
 	SDL_HideWindow(window);
 }
 
-void SdlWindow::doRefresh()
+SDL_Renderer* SdlWindow::getRenderer()
 {
-	if(!minimized && shown)
-	{
-		resolutionTexture.setAsRenderTarget(wndRenderer);
-		SDL_SetRenderDrawColor(wndRenderer, 255, 0, 255, 255);
-		SDL_RenderClear(wndRenderer);
-		windowUiManager->render();
-		resolutionTexture.releaseRenderTarget(wndRenderer);
-
-		resolutionTexture.renderFitToArea(wndRenderer, 0, 0, windowWidth, windowHeight);
-
-		SDL_RenderPresent(wndRenderer);
-	}
+	return wndRenderer;
 }
 
-int SdlWindow::getWindowWidth()
+int SdlWindow::getWindowWidth() const
 {
 	return windowWidth;
 }
 
-int SdlWindow::getWindowHeight()
+int SdlWindow::getWindowHeight() const
 {
 	return windowHeight;
 }
 
-double SdlWindow::getWindowWidthScale()
+double SdlWindow::getWindowWidthScale() const
 {
 	return (double)windowWidth / (double)originalWndWidth;
 }
 
-double SdlWindow::getWindowHeightScale()
+double SdlWindow::getWindowHeightScale() const
 {
 	return (double)windowHeight / (double)originalWndHeight;
 }
 
-bool SdlWindow::hasMouseFocus()
+bool SdlWindow::hasMouseFocus() const
 {
 	return mouseFocus;
 }
 
-bool SdlWindow::hasKeyboardFocus()
+bool SdlWindow::hasKeyboardFocus() const
 {
 	return keyboardFocus;
 }
 
-bool SdlWindow::isMinimized()
+bool SdlWindow::isMinimized() const
 {
 	return minimized;
 }
 
-bool SdlWindow::isShown()
+bool SdlWindow::isShown() const
 {
 	return shown;
 }

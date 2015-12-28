@@ -46,10 +46,10 @@ class SdlTexture
 		void setCropRect(std::shared_ptr<SDL_Rect> newCropRect);
 		void setCropRect(int cX, int cY, int cW, int cH);
 		
-		int getWidth();
-		int getHeight();
+		int getWidth() const;
+		int getHeight() const;
 
-		bool isNull();
+		bool isNull() const;
 };
 
 #endif

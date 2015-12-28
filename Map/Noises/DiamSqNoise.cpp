@@ -47,7 +47,7 @@ void DiamSqNoise::reset()
 	}
 }
 
-int DiamSqNoise::getPercentComplete()
+int DiamSqNoise::getPercentComplete() const
 {
 	return 100 * ((float)doneIts / totalIts);
 }

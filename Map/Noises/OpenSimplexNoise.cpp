@@ -100,7 +100,7 @@ void OpenSimplexNoise::reset()
 	open_simplex_noise(rand(), &context);
 }
 
-int OpenSimplexNoise::getPercentComplete()
+int OpenSimplexNoise::getPercentComplete() const
 {
 	return 100 * ((float)doneIts / totalIts);
 }

@@ -14,7 +14,7 @@ class SdlWindow
 {
 	private:
 		// Custom event handler
-		std::function<bool(const SDL_Event& e)> evtHandler;
+		std::function<bool(const SDL_Event &e)> evtHandler;
 
 		// Window data
 		SDL_Window* window;
@@ -46,7 +46,7 @@ class SdlWindow
 
 		unsigned int windowID;
 
-		void setWindowSdlEvtHandler(std::function<bool(const SDL_Event& e)> evth);
+		void setWindowSdlEvtHandler(std::function<bool(const SDL_Event &e)> evth);
 
 		// returns window's renderer so others can render with it
 		SDL_Renderer* getRenderer();
@@ -57,7 +57,7 @@ class SdlWindow
 		SdlWindow& operator=(const SdlWindow&) = delete;
 		virtual ~SdlWindow();
 
-		bool handleSdlEvent(const SDL_Event& e);
+		bool handleSdlEvent(const SDL_Event &e);
 
 		// Shows windows contents
 		void doRefresh();
@@ -65,17 +65,17 @@ class SdlWindow
 		void show();
 		void hide();
 
-		int getWindowWidth();
-		int getWindowHeight();
+		int getWindowWidth() const;
+		int getWindowHeight() const;
 
-		double getWindowWidthScale();
-		double getWindowHeightScale();
+		double getWindowWidthScale() const;
+		double getWindowHeightScale() const;
 		
 		// Window focii
-		bool hasMouseFocus();
-		bool hasKeyboardFocus();
-		bool isMinimized();
-		bool isShown();
+		bool hasMouseFocus() const;
+		bool hasKeyboardFocus() const;
+		bool isMinimized() const;
+		bool isShown() const;
 };
 
 #endif

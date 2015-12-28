@@ -31,11 +31,11 @@ class UiManager
 
 		void addChild(std::shared_ptr<UiObject> c);
 
-		int getWidth();
-		int getHeight();
+		int getWidth() const;
+		int getHeight() const;
 
 		void setFocusedUiObject(UiObject* obj);
-		UiObject* getFocusedUiObject();
+		const UiObject* getFocusedUiObject() const;
 		
 		SDL_Renderer* getRenderer();
 
@@ -43,12 +43,12 @@ class UiManager
 		void render();
 
 		// Events
-		bool handleSdlEvent(const SDL_Event& e);
+		bool handleSdlEvent(const SDL_Event &e);
 
 		// Window
 		void setWindowScale(double sW, double sH);
-		double getWindowScaleW();
-		double getWindowScaleH();
+		double getWindowScaleW() const;
+		double getWindowScaleH() const;
 };
 
 # endif

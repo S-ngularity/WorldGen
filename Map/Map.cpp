@@ -9,7 +9,7 @@ Map::Map(int w, int h) :
 	seaLevel(SEA_LEVEL)
 {}
 
-int Map::getH(int x, int y)
+int Map::getH(int x, int y) const
 {
 	if(isPosInsideWrap(x, y))
 	{
@@ -53,7 +53,7 @@ void Map::normalize(int maxH)
 	setLowestH(0);
 }
 
-bool Map::isPosInsideWrap(int x, int y)
+bool Map::isPosInsideWrap(int x, int y) const
 {
 	if(y >= 0 && y < mapHeight)
 		return true;
@@ -62,7 +62,7 @@ bool Map::isPosInsideWrap(int x, int y)
 		return false;
 }
 
-bool Map::isPosInsideNoWrap(int x, int y)
+bool Map::isPosInsideNoWrap(int x, int y) const
 {
 	if(x >= 0 && y >= 0 && x < mapWidth && y < mapHeight)
 		return true;
@@ -71,17 +71,17 @@ bool Map::isPosInsideNoWrap(int x, int y)
 		return false;
 }
 
-int Map::getMapHeight()
+int Map::getMapHeight() const
 {
 	return mapHeight;
 }
 
-int Map::getMapWidth()
+int Map::getMapWidth() const
 {
 	return mapWidth;
 }
 
-int Map::getHighestH()
+int Map::getHighestH() const
 {
 	return highestH;
 }
@@ -91,7 +91,7 @@ void Map::setHighestH(int h)
 	highestH = h;
 }
 
-int Map::getLowestH()
+int Map::getLowestH() const
 {
 	return lowestH;
 }
@@ -101,7 +101,7 @@ void Map::setLowestH(int h)
 	lowestH = h;
 }
 
-int Map::getSeaLevel()
+int Map::getSeaLevel() const
 {
 	return seaLevel;
 }
