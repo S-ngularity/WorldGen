@@ -46,7 +46,7 @@ SdlWindow::SdlWindow(char const *title, int x, int y, int w, int h, int resW, in
 			windowID = SDL_GetWindowID(window);
 			shown = true;
 
-			SDL_Texture *resTex = SDL_CreateTexture(wndRenderer, SDL_PIXELFORMAT_RGBA8888, 
+			SDL_Texture *resTex = SDL_CreateTexture(wndRenderer, SDL_PIXELFORMAT_ARGB8888, 
 													SDL_TEXTUREACCESS_TARGET, 
 													resolutionWidth, resolutionHeight);
 			if(resTex == NULL)

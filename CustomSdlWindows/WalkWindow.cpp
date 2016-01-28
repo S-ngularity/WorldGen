@@ -18,7 +18,7 @@ WalkWindow::WalkWindow(Map theMap, int x, int y) :
 				SDL_RENDERER_ACCELERATED | SDL_RENDERER_TARGETTEXTURE), 
 	worldMap(theMap), 
 	walkTexture(std::make_shared<SdlTexture>(SDL_CreateTexture(getRenderer(), 
-												SDL_PIXELFORMAT_RGBA8888, 
+												SDL_PIXELFORMAT_ARGB8888, 
 												SDL_TEXTUREACCESS_TARGET, 
 												WALK_SCREEN_SIZE,
 												WALK_SCREEN_SIZE)))

@@ -73,11 +73,20 @@ void SdlTexture::setTexture(SDL_Texture *t, int w, int h)
 	clearTexture();
 
 	texture = t;
-	width = w;
-	height = h;
 
-	if(texture == NULL)
-		std::cout << "SdlTexture::setTexture() called on a SdlTexture with a NULL argument SDL_Texture *t.  If the intention was to clear the texture, use SdlTexture::clearTexture()." << std::endl;
+	if(texture != NULL)
+	{
+		width = w;
+		height = h;
+	}
+
+	else
+	{
+		width = 0;
+		height = 0;
+
+		std::cout << "SdlTexture::setTexture() called on a SdlTexture with a NULL argument SDL_Texture *t. If the intention was to clear the texture, use SdlTexture::clearTexture()." << std::endl;
+	}
 }
 
 void SdlTexture::clearTexture()

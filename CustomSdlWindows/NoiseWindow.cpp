@@ -382,7 +382,7 @@ void NoiseWindow::createGui()
 std::shared_ptr<SdlTexture> NoiseWindow::createDrawnTexture(int width, int height, int r, int g, int b, int a)
 {
 	std::shared_ptr<SdlTexture> tex = std::make_shared<SdlTexture>(SDL_CreateTexture(	getRenderer(), 
-																						SDL_PIXELFORMAT_RGBA8888, 
+																						SDL_PIXELFORMAT_ARGB8888, 
 																						SDL_TEXTUREACCESS_TARGET, 
 																						width, height));
 

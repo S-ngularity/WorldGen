@@ -8,7 +8,6 @@
 #include <memory>
 
 #include <SDL2/SDL.h>
-#include <SDL2/SDL_ttf.h>
 
 #define walkTileNum 15
 #define walkTileSize 20

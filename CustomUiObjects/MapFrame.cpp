@@ -32,7 +32,7 @@ void MapFrame::init()
 	mapTexture = std::make_unique<MapTexture>(parentUiManager->getRenderer(), *selectedMap);
 	
 	setUiObjectTexture(std::make_shared<SdlTexture>(SDL_CreateTexture(parentUiManager->getRenderer(), 
-																		SDL_PIXELFORMAT_RGBA8888, 
+																		SDL_PIXELFORMAT_ARGB8888, 
 																		SDL_TEXTUREACCESS_TARGET, 
 																		mapTexture->getWidth(), 
 																		mapTexture->getHeight())));
@@ -329,7 +329,7 @@ void MapFrame::updateTexture()
 		 || getTexture()->getHeight() != mapTexture->getHeight())
 	{
 		setUiObjectTexture(std::make_shared<SdlTexture>(SDL_CreateTexture(parentUiManager->getRenderer(), 
-																		SDL_PIXELFORMAT_RGBA8888, 
+																		SDL_PIXELFORMAT_ARGB8888, 
 																		SDL_TEXTUREACCESS_TARGET, 
 																		selectedMap->getMapWidth(), 
 																		selectedMap->getMapHeight())));

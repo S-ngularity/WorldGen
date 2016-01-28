@@ -3,7 +3,8 @@
 
 #include <iostream>
 
-MapTexture::MapTexture(SDL_Renderer *r, const Map &theMap) : 
+MapTexture::MapTexture(SDL_Renderer *r, const Map &theMap) :
+	SdlTexture(), 
 	rendererContext(r), 
 	seaRenderMode(NO_SEA), 
 	landRenderMode(FIXED)
@@ -14,7 +15,7 @@ MapTexture::MapTexture(SDL_Renderer *r, const Map &theMap) :
 	mapPixels = new Uint32[theMap.getMapWidth() * theMap.getMapHeight()];
 
 	SDL_Texture *temp = SDL_CreateTexture(rendererContext, 
-											SDL_PIXELFORMAT_RGBA8888, 
+											SDL_PIXELFORMAT_ARGB8888, 
 											SDL_TEXTUREACCESS_STREAMING, 
 											theMap.getMapWidth(), theMap.getMapHeight());
 
@@ -36,7 +37,7 @@ void MapTexture::update(const Map &theMap)
 		mapPixels = new Uint32[theMap.getMapWidth() * theMap.getMapHeight()];
 
 		SDL_Texture *temp = SDL_CreateTexture(rendererContext, 
-											SDL_PIXELFORMAT_RGBA8888, 
+											SDL_PIXELFORMAT_ARGB8888, 
 											SDL_TEXTUREACCESS_STREAMING, 
 											theMap.getMapWidth(), theMap.getMapHeight());
 
@@ -127,7 +128,7 @@ void MapTexture::update(const Map &theMap)
 				b = baseColor + hColor;
 			}
 
-			*pixelIt = r << 24 | g << 16 | b << 8 | a;
+			*pixelIt = a << 24 | r << 16 | g << 8 | b;
 
 			pixelIt++;
 		}
