@@ -2,10 +2,6 @@
 
 #include "SdlClasses/SdlTexture.h"
 
-UiPanel::UiPanel(int xOff, int yOff, std::shared_ptr<SdlTexture> t) :  
-	UiObject(xOff, yOff, t, nullptr)
-{}
-
-UiPanel::UiPanel(int xOff, int yOff, int w, int h, std::shared_ptr<SdlTexture> t) : 
-	UiObject(xOff, yOff, w, h, t, nullptr)
+UiPanel::UiPanel(int xOff, int yOff, int width, int height, std::shared_ptr<SdlTexture> texture) : 
+	UiObject(xOff, yOff, width, height, texture, nullptr)
 {}

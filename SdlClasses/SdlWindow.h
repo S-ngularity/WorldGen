@@ -46,13 +46,13 @@ class SdlWindow
 
 		unsigned int windowID;
 
-		void setWindowSdlEvtHandler(std::function<bool(const SDL_Event &e)> evth);
+		void setWindowSdlEvtHandler(std::function<bool(const SDL_Event &e)> eventHandler);
 
 		// returns window's renderer so others can render with it
 		SDL_Renderer* getRenderer();
 
 	public:
-		SdlWindow(char const *title, int x, int y, int w, int h, int resW, int resH, Uint32 windowFlags, Uint32 rendererFlags);
+		SdlWindow(char const *title, int x, int y, int width, int height, int resolutionWidth, int resolutionHeight, Uint32 windowFlags, Uint32 rendererFlags);
 		SdlWindow(const SdlWindow&) = delete;
 		SdlWindow& operator=(const SdlWindow&) = delete;
 		virtual ~SdlWindow();

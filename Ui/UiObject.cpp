@@ -6,23 +6,9 @@
 
 UiObject *UiObject::mouseOnTop = NULL;
 
-UiObject::UiObject(int xOff, int yOff, int w, int h) : 
-	UiObject(xOff, yOff, w, h, NULL, nullptr)
-{}
-
-UiObject::UiObject(int xOff, int yOff, std::shared_ptr<SdlTexture> t, std::function<bool(const SDL_Event &e)> evth) : 
-	UiObject(xOff, yOff, 0, 0, t, evth)
-{
-	if(t != NULL)
-	{
-		setUiObjectSize(t->getWidth(), t->getHeight());
-		setUiObjectLogicalSize(t->getWidth(), t->getHeight());
-	}
-}
-
-UiObject::UiObject(int xOff, int yOff, int w, int h, std::shared_ptr<SdlTexture> t, std::function<bool(const SDL_Event &e)> evth) : 
-	uiTexture(t),
-	evtHandler(evth),
+UiObject::UiObject(int xOffset, int yOffset, int width, int height, std::shared_ptr<SdlTexture> texture, std::function<bool(const SDL_Event &e)> eventHandler) : 
+	uiTexture(texture),
+	evtHandler(eventHandler),
 	preRenderProcedure(nullptr),
 	postRenderProcedure(nullptr)
 {
@@ -31,18 +17,16 @@ UiObject::UiObject(int xOff, int yOff, int w, int h, std::shared_ptr<SdlTexture>
 
 	absoluteX = 0;
 	absoluteY = 0;
-	xOffset = xOff;
-	yOffset = yOff;
+	this->xOffset = xOffset;
+	this->yOffset = yOffset;
 
-	width = w;
-	height = h;
 	scaleW = 1;
 	scaleH = 1;
+	this->width = width;
+	this->height = height;
 
-	logicalWidth = width;
-	logicalHeight = height;
-	
-	//uiTexture = t;
+	logicalWidth = this->width;
+	logicalHeight = this->height;
 }
 
 UiObject::~UiObject()
@@ -51,14 +35,14 @@ UiObject::~UiObject()
 
 // ----- Settings ----- //
 
-void UiObject::addChild(std::shared_ptr<UiObject> c)
+void UiObject::addChild(std::shared_ptr<UiObject> child)
 {
-	if(c != NULL)
+	if(child != NULL)
 	{
-		c->setParentUiManager(parentUiManager);
-		c->parent = this;
+		child->setParentUiManager(parentUiManager);
+		child->parent = this;
 
-		childList.push_front(c);
+		childList.push_front(child);
 	}
 }
 
@@ -88,9 +72,9 @@ void UiObject::bringToFront()
 	}
 }
 
-void UiObject::setUiObjectTexture(std::shared_ptr<SdlTexture> t)
+void UiObject::setUiObjectTexture(std::shared_ptr<SdlTexture> texture)
 {
-	uiTexture = t;
+	uiTexture = texture;
 }
 
 void UiObject::setUiObjectOffset(int x, int y)
@@ -105,18 +89,18 @@ void UiObject::setUiObjectOffset(int x, int y)
 	absoluteY += yOffset;
 }
 
-void UiObject::setUiObjectSize(int w, int h)
+void UiObject::setUiObjectSize(int width, int height)
 {
-	width = w;
-	height = h;
-	logicalWidth = w;
-	logicalHeight = h;
+	this->width = width;
+	this->height = height;
+	logicalWidth = this->width;
+	logicalHeight = this->height;
 }
 
-void UiObject::setUiObjectLogicalSize(int logicalW, int logicalH)
+void UiObject::setUiObjectLogicalSize(int logicalWidth, int logicalHeight)
 {
-	logicalWidth = logicalW;
-	logicalHeight = logicalH;
+	this->logicalWidth = logicalWidth;
+	this->logicalHeight = logicalHeight;
 }
 
 void UiObject::setParentUiManager(UiManager *uiMngr)
@@ -189,13 +173,13 @@ void UiObject::render(int parentX, int parentY)
 	}
 }
 
-void UiObject::renderScaled(int parentX, int parentY, double sW, double sH)
+void UiObject::renderScaled(int parentX, int parentY, double widthScale, double heightScale)
 {
 	absoluteX = parentX + xOffset;
 	absoluteY = parentY + yOffset;
 
-	scaleW = sW;
-	scaleH = sH;
+	scaleW = widthScale;
+	scaleH = heightScale;
 
 	if(preRenderProcedure)
 		preRenderProcedure();
@@ -219,9 +203,9 @@ void UiObject::renderScaled(int parentX, int parentY, double sW, double sH)
 
 // ----- Event ----- //
 
-void UiObject::setSdlEventHandler(std::function<bool(const SDL_Event &e)> evth)
+void UiObject::setSdlEventHandler(std::function<bool(const SDL_Event &e)> eventHandler)
 {
-	evtHandler = evth;
+	evtHandler = eventHandler;
 }
 
 bool UiObject::handleSdlEventMouse(const SDL_Event &e)

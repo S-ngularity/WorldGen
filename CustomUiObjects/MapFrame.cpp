@@ -18,8 +18,7 @@
 #include <sstream>
 
 MapFrame::MapFrame(int x, int y, int w, int h, const std::shared_ptr<Map> &selectedMapPtr) : 
-	UiObject(x, y, w, h, NULL,
-			[&](const SDL_Event &e){return customSdlEvtHandler(e);}), 
+	UiObject(x, y, w, h, NULL, [&](const SDL_Event &e){return customSdlEvtHandler(e);}), 
 	selectedMap(selectedMapPtr)
 {}
 
@@ -38,7 +37,8 @@ void MapFrame::init()
 																		mapTexture->getHeight())));
 
 	// Mouse tooltip for map height
-	auto mouseTooltip = std::make_shared<UiLabel>(0, 0, ALIGN_BOTTOM_LEFT, "", 20, 220, 20, 60);
+	auto mouseTooltip = std::make_shared<UiLabel>(0, 0, "", 20, 220, 20, 60);
+	mouseTooltip->setAlignMode(ALIGN_BOTTOM_LEFT);
 	addChild(mouseTooltip);
 	mouseTooltipPtr = mouseTooltip.get();
 
@@ -133,7 +133,12 @@ bool MapFrame::customSdlEvtHandler(const SDL_Event &e)
 				case SDLK_DOWN:
 					// shift+down = no_sea (no update when not needed)
 					if(e.key.keysym.mod & KMOD_SHIFT && mapTexture->getSeaRenderMode() != NO_SEA)
+					{
 						setLandAndSeaRenderModes(FIXED, NO_SEA);
+						return true;
+					}
+
+					return false;
 				break;
 
 				case SDLK_z:
@@ -331,8 +336,8 @@ void MapFrame::updateTexture()
 		setUiObjectTexture(std::make_shared<SdlTexture>(SDL_CreateTexture(parentUiManager->getRenderer(), 
 																		SDL_PIXELFORMAT_ARGB8888, 
 																		SDL_TEXTUREACCESS_TARGET, 
-																		selectedMap->getMapWidth(), 
-																		selectedMap->getMapHeight())));
+																		mapTexture->getWidth(), 
+																		mapTexture->getHeight())));
 
 		resetZoom();
 	}

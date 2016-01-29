@@ -8,13 +8,9 @@
 #include <string>
 
 UiLabel::UiLabel(int xOff, int yOff, std::string text, int size, int r, int g, int b) : 
-	UiLabel(xOff, yOff, ALIGN_TOP_LEFT, text, size, r, g, b)
-{}
-
-UiLabel::UiLabel(int xOff, int yOff, AlignMode alignMode, std::string text, int size, int r, int g, int b) : 
-	UiObject(xOff, yOff, 0, 0), 
+	UiObject(xOff, yOff, 0, 0, nullptr, nullptr), 
 	labelFont(NULL), 
-	align(alignMode), 
+	align(ALIGN_TOP_LEFT), 
 	labelText(text), 
 	fontSize(size), 
 	colorR(r), colorG(g), colorB(b), 
@@ -57,9 +53,9 @@ void UiLabel::setColor(int r, int g, int b)
 	needUpdate = true;
 }
 
-void UiLabel::setAlignMode(AlignMode a)
+void UiLabel::setAlignMode(AlignMode alignMode)
 {
-	align = a;
+	align = alignMode;
 }
 
 void UiLabel::labelPreRender()
@@ -104,7 +100,7 @@ void UiLabel::labelPreRender()
 				return;
 			}
 
-			setUiObjectTexture(std::make_shared<SdlTexture>(tempTex, tempSurface->w, tempSurface->h));
+			setUiObjectTexture(std::make_shared<SdlTexture>(tempTex));
 			setUiObjectSize(tempSurface->w, tempSurface->h);
 			setUiObjectLogicalSize(0, 0);
 

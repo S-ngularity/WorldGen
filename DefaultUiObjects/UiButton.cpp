@@ -4,36 +4,6 @@
 
 #include "DefaultUiObjects/UiLabel.h"
 
-UiButton::UiButton(int xOff, int yOff, std::shared_ptr<UiLabel> textLabel, std::shared_ptr<SdlTexture> t, std::function<void()> btAction) :  
-	UiObject(xOff, yOff, t, [&](const SDL_Event &e){ return buttonEvtHandler(e); }),
-	customButtonAction(btAction)
-{
-	labelPtr = textLabel.get();
-
-	if(getTexture() != NULL)
-	{
-		standardClipRect = std::make_shared<SDL_Rect>();
-		*standardClipRect = {0, 0, t->getWidth(), t->getHeight()/3 };
-		
-		hoverClipRect = std::make_shared<SDL_Rect>();
-		*hoverClipRect = {0, t->getHeight()/3, t->getWidth(), t->getHeight()/3};
-		
-		pressedClipRect = std::make_shared<SDL_Rect>();
-		*pressedClipRect = {0, t->getHeight()/3 * 2, t->getWidth(), t->getHeight()/3};
-	}
-
-	clickHappenedHere = false;
-	isPressed = false;
-
-	setPreRenderProcedure([&](){ buttonPreRender(); });
-
-	if(textLabel != NULL)
-	{
-		textLabel->setAlignMode(ALIGN_CENTER_CENTER);
-		addChild(textLabel);
-	}
-}
-
 UiButton::UiButton(int xOff, int yOff, int w, int h, std::shared_ptr<UiLabel> textLabel, std::shared_ptr<SdlTexture> t, std::function<void()> btAction) : 
 	UiObject(xOff, yOff, w, h, t, [&](const SDL_Event &e){ return buttonEvtHandler(e); }),
 	customButtonAction(btAction)

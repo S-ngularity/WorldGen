@@ -19,18 +19,17 @@ class Map
 		int seaLevel;
 
 	public:
-		Map(int w, int h);
+		Map(int width, int height);
 		Map(const Map&) = default;
 		Map& operator=(const Map&) = default;
 		~Map() = default;
 
 		int getH(int x, int y) const;
-		void setH(int x, int y, int newH);
+		void setH(int x, int y, int newHeight);
 
 		void normalize(int maxH);
 
 		bool isPosInsideWrap(int x, int y) const;
-
 		bool isPosInsideNoWrap(int x, int y) const;
 
 		int getMapHeight() const;

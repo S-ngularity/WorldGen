@@ -1,8 +1,8 @@
 #include "Map/Map.h"
 
-Map::Map(int w, int h) : 
-	mapWidth(w), 
-	mapHeight(h), 
+Map::Map(int width, int height) : 
+	mapWidth(width), 
+	mapHeight(height), 
 	map(mapWidth * mapHeight, INIT_H), 
 	highestH(INIT_H), 
 	lowestH(INIT_H), 
@@ -36,9 +36,9 @@ int Map::getH(int x, int y) const
 		return map[0];
 }
 
-void Map::setH(int x, int y, int newH)
+void Map::setH(int x, int y, int newHeight)
 {
-	map[x + y*mapWidth] = newH;
+	map[x + y*mapWidth] = newHeight;
 }
 
 void Map::normalize(int maxH)

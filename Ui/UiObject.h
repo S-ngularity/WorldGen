@@ -48,21 +48,22 @@ class UiObject : public std::enable_shared_from_this<UiObject>
 		std::shared_ptr<SdlTexture> getTexture();
 
 	public:
-		UiObject(int xOff, int yOff, int w, int h);
-		UiObject(int xOff, int yOff, std::shared_ptr<SdlTexture> t, std::function<bool(const SDL_Event &e)> evth);
-		UiObject(int xOff, int yOff, int w, int h, std::shared_ptr<SdlTexture> t, std::function<bool(const SDL_Event &e)> evth);
+		UiObject(	int xOffset, int yOffset, 
+					int width, int height, 
+					std::shared_ptr<SdlTexture> texture, 
+					std::function<bool(const SDL_Event &e)> eventHandler);
 		UiObject(const UiObject&) = delete;
 		UiObject& operator=(const UiObject&) = delete;
 		virtual ~UiObject();
 
 		// Settings
-		void addChild(std::shared_ptr<UiObject> c);
+		void addChild(std::shared_ptr<UiObject> child);
 		
-		void setUiObjectTexture(std::shared_ptr<SdlTexture> t);
+		void setUiObjectTexture(std::shared_ptr<SdlTexture> texture);
+		
 		void setUiObjectOffset(int x, int y); // Offset from parent
-		
-		void setUiObjectSize(int w, int h);
-		void setUiObjectLogicalSize(int logicalW, int logicalH);
+		void setUiObjectSize(int width, int height); // Also sets the logical size
+		void setUiObjectLogicalSize(int logicalWidth, int logicalHeight);
 		
 		int getWidth() const;
 		int getHeight() const;
@@ -72,10 +73,10 @@ class UiObject : public std::enable_shared_from_this<UiObject>
 		void setPostRenderProcedure(std::function<void()> procedure);
 		
 		void render(int parentX, int parentY);
-		void renderScaled(int parentX, int parentY, double sW, double sH);
+		void renderScaled(int parentX, int parentY, double widthScale, double heightScale);
 
 		// Events
-		void setSdlEventHandler(std::function<bool(const SDL_Event &e)> evth);
+		void setSdlEventHandler(std::function<bool(const SDL_Event &e)> eventHandler);
 
 		bool handleSdlEventMouse(const SDL_Event &e);
 		bool handleSdlEventKeyboard(const SDL_Event &e);

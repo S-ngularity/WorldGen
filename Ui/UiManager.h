@@ -24,12 +24,12 @@ class UiManager
 		UiObject* focusedUiObject;
 
 	public:
-		UiManager(SDL_Renderer *r, int w, int h, double wScaleW, double wScaleH);
+		UiManager(SDL_Renderer *r, int width, int height, double windowWidthScale, double windowHeightScale);
 		UiManager(const UiManager&) = delete;
 		UiManager& operator=(const UiManager&) = delete;
 		~UiManager();
 
-		void addChild(std::shared_ptr<UiObject> c);
+		void addChild(std::shared_ptr<UiObject> child);
 
 		int getWidth() const;
 		int getHeight() const;
@@ -46,7 +46,7 @@ class UiManager
 		bool handleSdlEvent(const SDL_Event &e);
 
 		// Window
-		void setWindowScale(double sW, double sH);
+		void setWindowScale(double windowWidthScale, double windowHeightScale);
 		double getWindowScaleW() const;
 		double getWindowScaleH() const;
 };

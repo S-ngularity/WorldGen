@@ -2,12 +2,12 @@
 
 #include "Ui/UiObject.h"
 
-UiManager::UiManager(SDL_Renderer *r, int w, int h, double wScaleW, double wScaleH) : 
+UiManager::UiManager(SDL_Renderer *r, int width, int height, double windowWidthScale, double windowHeightScale) : 
 	renderer(r), 
-	width(w), 
-	height(h),
-	windowScaleW(wScaleW),
-	windowScaleH(wScaleH),
+	width(width), 
+	height(height),
+	windowScaleW(windowWidthScale),
+	windowScaleH(windowHeightScale),
 	focusedUiObject(NULL)
 {}
 
@@ -15,11 +15,11 @@ UiManager::~UiManager()
 {}
 
 
-void UiManager::addChild(std::shared_ptr<UiObject> c)
+void UiManager::addChild(std::shared_ptr<UiObject> child)
 {
-	c->setParentUiManager(this);
+	child->setParentUiManager(this);
 
-	childList.push_front(c);
+	childList.push_front(child);
 }
 
 int UiManager::getWidth() const
@@ -100,10 +100,10 @@ bool UiManager::handleSdlEvent(const SDL_Event &e)
 
 // ----- Window ----- //
 
-void UiManager::setWindowScale(double sW, double sH)
+void UiManager::setWindowScale(double windowWidthScale, double windowHeightScale)
 {
-	windowScaleW = sW;
-	windowScaleH = sH;
+	windowScaleW = windowWidthScale;
+	windowScaleH = windowHeightScale;
 }
 
 double UiManager::getWindowScaleW() const

@@ -19,7 +19,7 @@ MapTexture::MapTexture(SDL_Renderer *r, const Map &theMap) :
 											SDL_TEXTUREACCESS_STREAMING, 
 											theMap.getMapWidth(), theMap.getMapHeight());
 
-	setTexture(temp, theMap.getMapWidth(), theMap.getMapHeight());
+	setTexture(temp);
 
 	update(theMap);
 }
@@ -41,7 +41,7 @@ void MapTexture::update(const Map &theMap)
 											SDL_TEXTUREACCESS_STREAMING, 
 											theMap.getMapWidth(), theMap.getMapHeight());
 
-		setTexture(temp, theMap.getMapWidth(), theMap.getMapHeight());
+		setTexture(temp);
 	}
 
 	Uint32 *pixelIt = mapPixels;

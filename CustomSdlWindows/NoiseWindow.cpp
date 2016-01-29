@@ -238,7 +238,9 @@ void NoiseWindow::createGui()
 	auto mapFrame = std::make_shared<MapFrame>(0, 0, windowUiManager->getWidth() - SIDEBAR_WIDTH, windowUiManager->getHeight(), selectedMap);
 	mapFramePtr = mapFrame.get();
 
-	auto sidebar = std::make_shared<UiPanel>(windowUiManager->getWidth() - SIDEBAR_WIDTH, 0, sidebarBg);
+	auto sidebar = std::make_shared<UiPanel>(	windowUiManager->getWidth() - SIDEBAR_WIDTH, 0, 
+												sidebarBg->getWidth(), sidebarBg->getHeight(), 
+												sidebarBg);
 
 	// Text
 	auto mapInfoText = std::make_shared<UiLabel>(30, 150, "", 18, 175, 0, 0);
@@ -295,7 +297,8 @@ void NoiseWindow::createGui()
 						[&](){ runNoise(); } ));
 
 	// Normalization buttons
-	auto nLevel = std::make_shared<UiLabel>(48, windowUiManager->getHeight() - 100, ALIGN_BOTTOM_CENTER, "20", 18, 235, 235, 235);
+	auto nLevel = std::make_shared<UiLabel>(48, windowUiManager->getHeight() - 100, "20", 18, 235, 235, 235);
+	nLevel->setAlignMode(ALIGN_BOTTOM_CENTER);
 	sidebar->addChild(nLevel);
 	static UiLabel *nLevelPtr = nLevel.get();
 

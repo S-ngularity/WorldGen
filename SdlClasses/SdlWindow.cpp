@@ -2,16 +2,16 @@
 
 #include <iostream>
 
-SdlWindow::SdlWindow(char const *title, int x, int y, int w, int h, int resW, int resH, Uint32 windowFlags, Uint32 rendererFlags)
+SdlWindow::SdlWindow(char const *title, int x, int y, int width, int height, int resolutionWidth, int resolutionHeight, Uint32 windowFlags, Uint32 rendererFlags)
 {
 	evtHandler = nullptr;
 
-	originalWndWidth = w;
-	originalWndHeight = h;
-	windowWidth = w;
-	windowHeight = h;
-	resolutionWidth = resW;
-	resolutionHeight = resH;
+	originalWndWidth = width;
+	originalWndHeight = height;
+	windowWidth = width;
+	windowHeight = height;
+	this->resolutionWidth = resolutionWidth;
+	this->resolutionHeight = resolutionHeight;
 
 	mouseFocus = false;
 	keyboardFocus = false;
@@ -21,8 +21,8 @@ SdlWindow::SdlWindow(char const *title, int x, int y, int w, int h, int resW, in
 	window = SDL_CreateWindow(	title,
 								x,
 								y,
-								w,
-								h,
+								width,
+								height,
 								windowFlags);
 	
 	if(window == NULL)
@@ -61,14 +61,14 @@ SdlWindow::SdlWindow(char const *title, int x, int y, int w, int h, int resW, in
 
 			else
 			{
-				resolutionTexture.setTexture(resTex, resolutionWidth, resolutionHeight);
+				resolutionTexture.setTexture(resTex);
 
 				resolutionTexture.setAsRenderTarget(wndRenderer);
 				SDL_SetRenderDrawColor(wndRenderer, 255, 0, 255, 255);
 				SDL_RenderClear(wndRenderer);
 				resolutionTexture.releaseRenderTarget(wndRenderer);
 
-				windowUiManager = std::make_unique<UiManager>(wndRenderer, resW, resH, getWindowWidthScale(), getWindowHeightScale()); // create base windowUiManager object
+				windowUiManager = std::make_unique<UiManager>(wndRenderer, resolutionWidth, resolutionHeight, getWindowWidthScale(), getWindowHeightScale()); // create base windowUiManager object
 			}
 
 		}
@@ -87,9 +87,9 @@ SdlWindow::~SdlWindow()
 	window = NULL;
 }
 
-void SdlWindow::setWindowSdlEvtHandler(std::function<bool(const SDL_Event &e)> evth)
+void SdlWindow::setWindowSdlEvtHandler(std::function<bool(const SDL_Event &e)> eventHandler)
 {
-	evtHandler = evth;
+	evtHandler = eventHandler;
 }
 
 bool SdlWindow::handleSdlEvent(const SDL_Event &e)
