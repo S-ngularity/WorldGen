@@ -1,0 +1,168 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="14.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="Source\CustomSdlTextures\MapTexture.cpp" />
+    <ClCompile Include="Source\CustomSdlWindows\NoiseWindow.cpp" />
+    <ClCompile Include="Source\CustomSdlWindows\WalkWindow.cpp" />
+    <ClCompile Include="Source\CustomUiObjects\MapFrame.cpp" />
+    <ClCompile Include="Source\DefaultUiObjects\UiButton.cpp" />
+    <ClCompile Include="Source\DefaultUiObjects\UiLabel.cpp" />
+    <ClCompile Include="Source\DefaultUiObjects\UiPanel.cpp" />
+    <ClCompile Include="Source\main.cpp" />
+    <ClCompile Include="Source\Map\Map.cpp" />
+    <ClCompile Include="Source\Map\Noises\DiamSqNoise.cpp" />
+    <ClCompile Include="Source\Map\Noises\OpenSimplexC\open-simplex-noise.cpp" />
+    <ClCompile Include="Source\Map\Noises\OpenSimplexNoise.cpp" />
+    <ClCompile Include="Source\MyUtils.cpp" />
+    <ClCompile Include="Source\SdlClasses\SdlTexture.cpp" />
+    <ClCompile Include="Source\SdlClasses\SdlWindow.cpp" />
+    <ClCompile Include="Source\Ui\UiManager.cpp" />
+    <ClCompile Include="Source\Ui\UiObject.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Source\CustomSdlTextures\MapTexture.h" />
+    <ClInclude Include="Source\CustomSdlWindows\NoiseWindow.h" />
+    <ClInclude Include="Source\CustomSdlWindows\WalkWindow.h" />
+    <ClInclude Include="Source\CustomUiObjects\MapFrame.h" />
+    <ClInclude Include="Source\DefaultUiObjects\UiButton.h" />
+    <ClInclude Include="Source\DefaultUiObjects\UiLabel.h" />
+    <ClInclude Include="Source\DefaultUiObjects\UiPanel.h" />
+    <ClInclude Include="Source\Map\Map.h" />
+    <ClInclude Include="Source\Map\Noises\DiamSqNoise.h" />
+    <ClInclude Include="Source\Map\Noises\Noise.h" />
+    <ClInclude Include="Source\Map\Noises\OpenSimplexC\open-simplex-noise.h" />
+    <ClInclude Include="Source\Map\Noises\OpenSimplexNoise.h" />
+    <ClInclude Include="Source\MyUtils.h" />
+    <ClInclude Include="Source\SdlClasses\SdlTexture.h" />
+    <ClInclude Include="Source\SdlClasses\SdlWindow.h" />
+    <ClInclude Include="Source\Ui\Event.h" />
+    <ClInclude Include="Source\Ui\EvtAggr.h" />
+    <ClInclude Include="Source\Ui\UiEvents\NoiseInfoRequest.h" />
+    <ClInclude Include="Source\Ui\UiEvents\UiCode.h" />
+    <ClInclude Include="Source\Ui\UiEvents\WalkWindowOpened.h" />
+    <ClInclude Include="Source\Ui\UiManager.h" />
+    <ClInclude Include="Source\Ui\UiObject.h" />
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{B826B654-D292-4A18-B031-B9B6AF65F826}</ProjectGuid>
+    <RootNamespace>WorldGen</RootNamespace>
+    <WindowsTargetPlatformVersion>8.1</WindowsTargetPlatformVersion>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v140</PlatformToolset>
+    <CharacterSet>MultiByte</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v140</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>MultiByte</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v140</PlatformToolset>
+    <CharacterSet>MultiByte</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v140</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>MultiByte</CharacterSet>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="Shared">
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup />
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>Disabled</Optimization>
+      <SDLCheck>true</SDLCheck>
+      <AdditionalIncludeDirectories>Z:\Desktop\Projetos\GitHub\WorldGen\WorldGen\WorldGen\Source;Z:\Desktop\Projetos\GitHub\WorldGen\WorldGen\WorldGen\External\SDL2_image-2.0.1\include;Z:\Desktop\Projetos\GitHub\WorldGen\WorldGen\WorldGen\External\SDL2_ttf-2.0.13\include;Z:\Desktop\Projetos\GitHub\WorldGen\WorldGen\WorldGen\External\SDL2-2.0.4\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ClCompile>
+    <Link>
+      <AdditionalLibraryDirectories>Z:\Desktop\Projetos\GitHub\WorldGen\WorldGen\WorldGen\External\SDL2_image-2.0.1\lib\x86;Z:\Desktop\Projetos\GitHub\WorldGen\WorldGen\WorldGen\External\SDL2_ttf-2.0.13\lib\x86;Z:\Desktop\Projetos\GitHub\WorldGen\WorldGen\WorldGen\External\SDL2-2.0.4\lib\x86;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>SDL2.lib;SDL2main.lib;SDL2_image.lib;SDL2_ttf.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <SubSystem>Console</SubSystem>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>Disabled</Optimization>
+      <SDLCheck>true</SDLCheck>
+    </ClCompile>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>MaxSpeed</Optimization>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <SDLCheck>true</SDLCheck>
+      <AdditionalIncludeDirectories>Z:\Desktop\Projetos\GitHub\WorldGen\WorldGen\WorldGen\Source;Z:\Desktop\Projetos\GitHub\WorldGen\WorldGen\WorldGen\External\SDL2_image-2.0.1\include;Z:\Desktop\Projetos\GitHub\WorldGen\WorldGen\WorldGen\External\SDL2_ttf-2.0.13\include;Z:\Desktop\Projetos\GitHub\WorldGen\WorldGen\WorldGen\External\SDL2-2.0.4\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ClCompile>
+    <Link>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+      <AdditionalLibraryDirectories>Z:\Desktop\Projetos\GitHub\WorldGen\WorldGen\WorldGen\External\SDL2_image-2.0.1\lib\x86;Z:\Desktop\Projetos\GitHub\WorldGen\WorldGen\WorldGen\External\SDL2_ttf-2.0.13\lib\x86;Z:\Desktop\Projetos\GitHub\WorldGen\WorldGen\WorldGen\External\SDL2-2.0.4\lib\x86;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>SDL2.lib;SDL2main.lib;SDL2_image.lib;SDL2_ttf.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <SubSystem>Console</SubSystem>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>MaxSpeed</Optimization>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <SDLCheck>true</SDLCheck>
+    </ClCompile>
+    <Link>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+    </Link>
+  </ItemDefinitionGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>
